@@ -30,9 +30,11 @@ Once you have installed the above dependencies then download the multibootusb so
 `Move to the extracted directory/folder`  
 `Double click on multibootusb.py`  
 `The GUI is self explenatory to use. More documentation is under preparation.`  
-###Help/feedback
-If you find any bug in the program please send it to feedback.multibootusb[@]gmail.com
-If you fing any solution or improvement patch then give me a pull request (or) send it to above email id.
+###I help You
+If the live usb created using multibootusb as expected then send your feedback at feedback.multibootusb[@]gmail.com or open an issue at github.
+###You help Me
+If you find any bug in the program or if you have a patch for further improvement or an idea to improve multibootusb then please contact me at feedback.multibootusb[@]gmail.com
+give me a pull request.
 ###Author(s)
 MultiBootUSB is brought to you by Sundar and co-authored by Ian Bruce.
 
