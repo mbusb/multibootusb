@@ -15,7 +15,7 @@ Mean while you can download the development version from github and try it yours
 ####Prerequest:-
 Download and install the following packages before downloading multibootusb source code.
 #####Windows
-⋅⋅* Python 2.7.
+__* Python 2.7.
 ⋅⋅* psutils [Download from here](http://code.google.com/p/psutil/).
 ⋅⋅* pywin32 [Download from here](http://sourceforge.net/projects/pywin32/).
 ⋅⋅* pyqt [Download from here](http://sourceforge.net/projects/pyqt/).
