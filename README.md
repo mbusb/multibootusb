@@ -8,7 +8,7 @@ MultiBootUSB is a cross platform* software/utility to create multi boot live Lin
 It is simillar to unetbootin but many distros can be installed, provided you have enough space on the disk.
 MultiBootUSB also provides an option to uninstall distro(s) at any time, if you wish. The software is designed to run
 as stand alone. No dependencies what so ever required.
-######* Works on Windows and Linux
+######* Works on Windows and Linux (Help to port it to mac platform is appriciated)
 ###How to install/use?
 Creation and hosting of stand alone binaries for windows and linux is in progress. 
 Mean while you can download the development version from github and try it yourself.
@@ -34,8 +34,8 @@ Once you have installed the above dependencies then download the multibootusb so
 If the live usb created using multibootusb as expected then send your feedback at feedback.multibootusb[@]gmail.com or open an issue at github.
 ###You help Me
 If you find any bug in the program or if you have a patch for further improvement or an idea to improve multibootusb then please contact me at feedback.multibootusb[@]gmail.com
-give me a pull request.  
-Any help to include mac support is also appriciated.
+or jus give me a pull request.  
+You can be a co-author by porting multibootusb to mac platform.
 ###Author(s)
 MultiBootUSB is brought to you by Sundar and co-authored by Ian Bruce.
 
