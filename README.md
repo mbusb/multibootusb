@@ -8,7 +8,7 @@ MultiBootUSB is a cross platform* software/utility to create multi boot live Lin
 It is simillar to unetbootin but many distros can be installed, provided you have enough space on the disk.
 MultiBootUSB also provides an option to uninstall distro(s) at any time, if you wish. The software is designed to run
 as stand alone. No dependencies what so ever required.
-#####* Works on Windows and Linux
+######* Works on Windows and Linux
 ###How to install/use?
 Creation and hosting of stand alone binaries for windows and linux is in progress. 
 Mean while you can download the development version from github and try it yourself.
