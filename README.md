@@ -15,15 +15,15 @@ Mean while you can download the development version from github and try it yours
 ####Prerequest:-
 Download and install the following packages before downloading multibootusb source code.
 #####Windows
-⋅⋅*Python 2.7
-⋅⋅*psutils [Download from here](http://code.google.com/p/psutil/)
-⋅⋅*pywin32 [Download from here](http://sourceforge.net/projects/pywin32/)
-⋅⋅*pyqt [Download from here](http://sourceforge.net/projects/pyqt/)
+⋅⋅* Python 2.7
+⋅⋅* psutils [Download from here](http://code.google.com/p/psutil/)
+⋅⋅* pywin32 [Download from here](http://sourceforge.net/projects/pywin32/)
+⋅⋅* pyqt [Download from here](http://sourceforge.net/projects/pyqt/)
 
 #####Linux
-⋅⋅*Python 2.7
-⋅⋅*python-psutils [download using your package manager or from here (http://code.google.com/p/psutil/)]
-⋅⋅*python-qt4 [download using your package manager or from here (http://code.google.com/p/psutil/)]
+⋅⋅* Python 2.7
+⋅⋅* python-psutils [download using your package manager or from here (http://code.google.com/p/psutil/)]
+⋅⋅* python-qt4 [download using your package manager or from here (http://code.google.com/p/psutil/)]
 
 Once you have installed the above dependencies then download the multibootusb source code to your home/desktop.
 Unzip
