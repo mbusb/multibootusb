@@ -21,9 +21,9 @@ Download and install the following packages before downloading multibootusb sour
 * pyqt [Download from here](http://sourceforge.net/projects/pyqt/).
 
 #####Linux
-⋅⋅* Python 2.7
-⋅⋅* python-psutils [download using your package manager or from here (http://code.google.com/p/psutil/)]
-⋅⋅* python-qt4 [download using your package manager or from here (http://code.google.com/p/psutil/)]
+* Python 2.7
+* python-psutils [download using your package manager or from here (http://code.google.com/p/psutil/)]
+* python-qt4 [download using your package manager or from here (http://code.google.com/p/psutil/)]
 
 Once you have installed the above dependencies then download the multibootusb source code to your home/desktop.
 Unzip
