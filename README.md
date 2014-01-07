@@ -1,6 +1,6 @@
 ![alt text](https://raw.github.com/mbusb/multibootusb/master/tools/multibootusb.png "MultiBootUSB")
 ##MultiBootUSB
-####Create multiboot live Linux on a USB stick...
+####Create multiboot live Linux on a USB disk...
 ----------------------------
 =============================================
 ###What is it?
@@ -31,11 +31,11 @@ Once you have installed the above dependencies then download the multibootusb so
 `Double click on multibootusb.py`  
 `The GUI is self explenatory to use. More documentation is under preparation.`  
 ###I help You
-If the live usb created using multibootusb as expected then send your feedback at feedback.multibootusb[@]gmail.com or open an issue at github.
+If the live usb created using multibootusb does not work as expected then send your feedback at feedback.multibootusb[@]gmail.com or open an issue at github.
 ###You help Me
 If you find any bug in the program or if you have a patch for further improvement or an idea to improve multibootusb then please contact me at feedback.multibootusb[@]gmail.com
 or jus give me a pull request.  
-You can be a co-author by porting multibootusb to mac platform.
+`Be a co-author by porting multibootusb to mac platform.` :-)
 ###Author(s)
 MultiBootUSB is brought to you by Sundar and co-authored by Ian Bruce.
 
