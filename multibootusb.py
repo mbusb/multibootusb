@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-MultibootUSB allows user to install multiple live linux of selected usb.
+MultibootUSB allows user to install multiple live linux on selected usb.
 Created by Sundar and co-authored by Ian Bruce.
 """
 from PyQt4 import QtGui
@@ -22,9 +22,11 @@ import var, qemu, detect_iso, update_cfg,  uninstall_distro
 
 if platform.system() == "Windows":
     import win32com.client
+    #"""
     if not admin.isUserAdmin():
         admin.runAsAdmin()
         sys.exit(0)
+    #"""
 
 if sys.platform.startswith("linux"):
     import dbus

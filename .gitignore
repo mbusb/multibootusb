@@ -47,9 +47,12 @@ nosetests.xml
 #multibootusb specific
 multibootusb.e4p
 .eric4project
+_eric4project
+.idea
 pyinstaller_spec_file_content.txt
 test.py
 old_files
 multibootusb.spec
+setup.py
 =======
 >>>>>>> f69e8b932e01aa3691f02e1ad3ebd67a3174cbe5
