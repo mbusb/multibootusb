@@ -352,35 +352,44 @@ class AppGui(qemu.AppGui,detect_iso.AppGui,update_cfg.AppGui,uninstall_distro.Ap
             mbusb_dir_content = resource_path(os.path.join("tools","multibootusb"))
             
             # Extract necessary files...
-            print zip + " e "+ iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r"
-            os.system(zip + " e "+ iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r")
-            var.iso_file_content = subprocess.check_output([zip, 'l', iso_path])
+            #print zip + " e "+ iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r"
+            iso_size = int(os.path.getsize(iso_path))
+            if os.system(zip + " e "+ iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r") !=0:
+                #QtGui.QMessageBox.information(self, '7Zip error...', '7Zip could not extract iso file.\nPlease check the integrity of iso.')
+                error_7zip = "yes"
+            else:
+                var.iso_file_content = subprocess.check_output([zip, 'l', iso_path])
+                error_7zip = "no"
             print var.iso_file_content
             
-            
+            """
             if os.system(zip + " e "+ iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r" ):
                 print "success"
             else:
                 print "fail"
+            """
             #os.system(resource_path(os.path.join("tools","7zip","windows","bsdtar.exe"))  + " -C "+ iso_cfg_ext_dir +  " -xvf " + iso_path + " *.cfg")
 
-            iso_size = int(os.path.getsize(iso_path))
             distro = self.detect_iso(iso_cfg_ext_dir)
             var.distro = distro
+            print var.distro
             
-            if not distro:
+            if not var.distro:
                 if re.search(r'sources', var.iso_file_content, re.I):
                     distro = "windows"
-    
+
+            """
             elif re.search(r'0.img', var.iso_file_content, re.I):
                 distro = "opensuse"
+            """
                 #self.detect_iso_zip_info()
             var.distro = distro
 
             print var.distro
 
-            if not distro :
-                print distro 
+            if error_7zip == "yes":
+                QtGui.QMessageBox.information(self, '7Zip error...', '7Zip could not extract iso file.\nPlease check the integrity of iso.')
+            elif not distro :
                 QtGui.QMessageBox.information(self, 'No support...', 'Sorry. ' + iso_name + ' is not supported at the moment\n\nPlease email this issue to feedback.multibootusb@gmail.com')
             elif iso_size > usb_size_avail:
                 print iso_size
@@ -458,6 +467,8 @@ class AppGui(qemu.AppGui,detect_iso.AppGui,update_cfg.AppGui,uninstall_distro.Ap
                         self.ui.label.clear()
                         if sys.platform.startswith("linux"):
                             os.system('sync')
+                        for files in os.listdir(iso_cfg_ext_dir):
+                            os.remove(os.path.join(iso_cfg_ext_dir, files))
                         QtGui.QMessageBox.information(self, 'Installation Completed...', iso_name + ' is successfully installed.')
     
     def get_size(self, path):

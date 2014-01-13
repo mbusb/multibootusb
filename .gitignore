@@ -51,5 +51,6 @@ pyinstaller_spec_file_content.txt
 test.py
 old_files
 multibootusb.spec
+.idea
 =======
 >>>>>>> f69e8b932e01aa3691f02e1ad3ebd67a3174cbe5
