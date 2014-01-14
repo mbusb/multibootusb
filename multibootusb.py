@@ -16,7 +16,7 @@ import subprocess
 import shutil
 import psutil 
 import threading
-import admin 
+import admin
 import var, qemu, detect_iso, update_cfg,  uninstall_distro
 
 
@@ -102,7 +102,7 @@ def resource_path(relativePath):
  
         # If the egg path does not exist, assume we're running as non-packaged
         if not os.path.exists(os.path.join(basePath, relativePath)):
-            basePath = 'tootls'
+            basePath = 'tools'
  
     path = os.path.join(basePath, relativePath)
  
@@ -222,7 +222,7 @@ class AppGui(qemu.AppGui,detect_iso.AppGui,update_cfg.AppGui,uninstall_distro.Ap
     def browse_iso(self):
         self.ui.lineEdit.clear()
         iso_link = QtGui.QFileDialog.getOpenFileName(self, 'Select an iso...', "",  "ISO Files (*.iso)")
-
+        time.sleep(.5)
         if iso_link:
             self.ui.lineEdit.insert (iso_link)
         else:
@@ -353,23 +353,37 @@ class AppGui(qemu.AppGui,detect_iso.AppGui,update_cfg.AppGui,uninstall_distro.Ap
             self.ui.lineEdit.clear()
             mbusb_dir_content = resource_path(os.path.join("tools","multibootusb"))
             
-            # Extract necessary files...
             #print zip + " e "+ iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r"
             iso_size = int(os.path.getsize(iso_path))
-            if os.system(zip + " e "+ iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r") !=0:
-                #QtGui.QMessageBox.information(self, '7Zip error...', '7Zip could not extract iso file.\nPlease check the integrity of iso.')
+
+            self.ui.label.setText("Testing integrity of an ISO")
+
+            print "Testing integrity of " + iso_name
+
+            # Someboby can help me to animate this image...
+            """
+            movie = QtGui.QMovie(resource_path(os.path.join("tools","checking.gif")))
+            movie.setCacheMode(QtGui.QMovie.CacheAll)
+            movie.setSpeed(100)
+            self.ui.label.setMovie(movie)
+            #self.ui.label.setPixmap(QtGui.QPixmap(resource_path(os.path.join("tools","checking.gif"))))
+            movie.start()
+            """
+            QtGui.qApp.processEvents()
+
+            if os.system(zip + " t "+ iso_path ) !=0:
                 error_7zip = "yes"
+
             else:
+                # Extract necessary files to find distro...
+                print "Integrity passed..."
+                os.system(zip + " e "+ iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r")
                 var.iso_file_content = subprocess.check_output([zip, 'l', iso_path])
                 error_7zip = "no"
+                self.ui.label.clear()
+
             print var.iso_file_content
-            
-            """
-            if os.system(zip + " e "+ iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r" ):
-                print "success"
-            else:
-                print "fail"
-            """
+
             #os.system(resource_path(os.path.join("tools","7zip","windows","bsdtar.exe"))  + " -C "+ iso_cfg_ext_dir +  " -xvf " + iso_path + " *.cfg")
 
             distro = self.detect_iso(iso_cfg_ext_dir)
@@ -390,7 +404,10 @@ class AppGui(qemu.AppGui,detect_iso.AppGui,update_cfg.AppGui,uninstall_distro.Ap
             print var.distro
 
             if error_7zip == "yes":
-                QtGui.QMessageBox.information(self, '7Zip error...', '7Zip could not extract iso file.\nPlease check the integrity of iso.')
+                self.ui.label.setText ("Iso failed integrity check")
+                QtGui.QMessageBox.information(self, 'Integrity error...', 'Please check the integrity of iso.')
+                self.ui.label.clear()
+
             elif not distro :
                 QtGui.QMessageBox.information(self, 'No support...', 'Sorry. ' + iso_name + ' is not supported at the moment\n\nPlease email this issue to feedback.multibootusb@gmail.com')
             elif iso_size > usb_size_avail:
