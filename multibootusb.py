@@ -19,6 +19,29 @@ import threading
 import admin
 import var, qemu, detect_iso, update_cfg,  uninstall_distro
 
+def resource_path(relativePath):
+    try:
+        # PyInstaller stores data files in a tmp folder refered to as _MEIPASS
+        basePath = sys._MEIPASS
+    except Exception:
+        # If not running as a PyInstaller created binary, try to find the data file as
+        # an installed Python egg
+        try:
+            basePath = os.path.dirname(sys.modules['tools'].__file__)
+        except Exception:
+            basePath = ''
+
+        # If the egg path does not exist, assume we're running as non-packaged
+        if not os.path.exists(os.path.join(basePath, relativePath)):
+            basePath = 'tools'
+
+    path = os.path.join(basePath, relativePath)
+
+    # If the path still doesn't exist, this function won't help you
+    if not os.path.exists(path):
+        return None
+
+    return path
 
 if platform.system() == "Windows":
     import win32com.client
@@ -33,7 +56,11 @@ if sys.platform.startswith("linux"):
     from os.path import expanduser
     home = expanduser("~")
     mbusb_dir = os.path.join(home, ".multibootusb")
-    #zip = os.path.join(os.getcwd(),  "tools",  "7zip", "linux", "7z")
+
+    for path, subdirs, files in os.walk(resource_path(os.path.join("tools", "syslinux", "bin"))):
+        for name in files:
+            if not name.endswith('.exe'):
+                os.system('chmod ' + '+x ' + resource_path(os.path.join("tools", "syslinux", "bin", name)))
 else:
     mbusb_dir = os.path.join(tempfile.gettempdir(), "multibootusb")
 #    resource_path(relative):
@@ -68,7 +95,6 @@ zip = ""
 #version = open(os.path.join(os.getcwd(), "tools","version.txt"), 'r').read().strip()
 
 
-
 if not os.path.exists(iso_cfg_ext_dir):
     os.makedirs(iso_cfg_ext_dir)
 if os.listdir(iso_cfg_ext_dir): 
@@ -88,31 +114,8 @@ def resource_path(relative):
         relative
     )
 """
-def resource_path(relativePath):
-    try:
-        # PyInstaller stores data files in a tmp folder refered to as _MEIPASS
-        basePath = sys._MEIPASS
-    except Exception:
-        # If not running as a PyInstaller created binary, try to find the data file as
-        # an installed Python egg
-        try:
-            basePath = os.path.dirname(sys.modules['tools'].__file__)
-        except Exception:
-            basePath = ''
- 
-        # If the egg path does not exist, assume we're running as non-packaged
-        if not os.path.exists(os.path.join(basePath, relativePath)):
-            basePath = 'tools'
- 
-    path = os.path.join(basePath, relativePath)
- 
-    # If the path still doesn't exist, this function won't help you
-    if not os.path.exists(path):
-        return None
- 
-    return path
 
-class AppGui(qemu.AppGui,detect_iso.AppGui,update_cfg.AppGui,uninstall_distro.AppGui, QtGui.QDialog,Ui_Dialog):
+class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro.AppGui, QtGui.QDialog, Ui_Dialog):
 
     def __init__(self):
         QtGui.QDialog.__init__(self)
@@ -135,14 +138,14 @@ class AppGui(qemu.AppGui,detect_iso.AppGui,update_cfg.AppGui,uninstall_distro.Ap
         self.ui.boot_usb_qemu.clicked.connect(self.on_Qemu_Boot_usb_Click)
         self.ui.tabWidget.removeTab(3)
         
-        version = open(resource_path(os.path.join("tools","version.txt")), 'r').read().strip()
+        version = open(resource_path(os.path.join("tools", "version.txt")), 'r').read().strip()
         var.gbl_mbusb_version = version
         
         if sys.platform.startswith("linux"):
-            zip = resource_path(os.path.join("tools","7zip", "linux", "7z"))
+            zip = resource_path(os.path.join("tools", "7zip", "linux", "7z"))
             var.zip = zip
         else:
-            zip = resource_path(os.path.join("tools","7zip","windows","7z.exe"))
+            zip = resource_path(os.path.join("tools", "7zip", "windows", "7z.exe"))
             var.zip = zip
         
         if sys.platform.startswith("linux"):
@@ -158,23 +161,23 @@ class AppGui(qemu.AppGui,detect_iso.AppGui,update_cfg.AppGui,uninstall_distro.Ap
                                 var.gbl_pass = password
                                 if os.popen('echo ' + password + ' | sudo -S id -u').read().strip() == '0':
                                     break
-                                if x == 2 :
+                                if x == 2:
                                     print "You have entered wrong password 3 times. Exiting now. "
                                     sys.exit(0)
                         else:
                             print "Password not entered. Exiting now. "
                             sys.exit(0)
                 elif os.system('which gksu')==0:
-                    os.system("gksu -d "  + sys.executable + " " + sys.argv[0])
+                    os.system("gksu -d " + sys.executable + " " + sys.argv[0])
                     sys.exit(0)
                 elif os.system('which gksudo')==0:
-                    os.system("gksudo -d "  + sys.executable + " " + sys.argv[0])
+                    os.system("gksudo -d " + sys.executable + " " + sys.argv[0])
                     sys.exit(0)
                 elif os.system('which kdesu')==0:
-                    os.system("kdesu -t "  + sys.executable + " " + sys.argv[0])
+                    os.system("kdesu -t " + sys.executable + " " + sys.argv[0])
                     sys.exit(0)
                 elif os.system('which kdesudo')==0:
-                    os.system("kdesudo -t "  + sys.executable + " " + sys.argv[0])
+                    os.system("kdesudo -t " + sys.executable + " " + sys.argv[0])
                     sys.exit(0)
                 
                 else:
@@ -183,8 +186,8 @@ class AppGui(qemu.AppGui,detect_iso.AppGui,update_cfg.AppGui,uninstall_distro.Ap
         
         detected_device = self.find_usb()
         
-        for device in detected_device :
-            self.ui.comboBox.addItem (str(device))
+        for device in detected_device:
+            self.ui.comboBox.addItem(str(device))
         if self.ui.comboBox.currentText():
             self.onComboChange()
             
@@ -222,9 +225,8 @@ class AppGui(qemu.AppGui,detect_iso.AppGui,update_cfg.AppGui,uninstall_distro.Ap
     def browse_iso(self):
         self.ui.lineEdit.clear()
         iso_link = QtGui.QFileDialog.getOpenFileName(self, 'Select an iso...', "",  "ISO Files (*.iso)")
-        time.sleep(.5)
         if iso_link:
-            self.ui.lineEdit.insert (iso_link)
+            self.ui.lineEdit.insert(iso_link)
         else:
             print ("File not selected.")
             
@@ -314,11 +316,11 @@ class AppGui(qemu.AppGui,detect_iso.AppGui,update_cfg.AppGui,uninstall_distro.Ap
             selected_usb_avail_size = psutil.disk_usage(selected_usb_mount_path)[2]
             selected_usb_used_size = psutil.disk_usage(selected_usb_mount_path)[1]
 
-        self.ui.usb_size_ttl.setText("Filesystem :: " + selected_usb_file_system )
+        self.ui.usb_size_ttl.setText("Filesystem :: " + selected_usb_file_system)
         self.ui.usb_size_avl.setText("Size :: " + str(self.bytes2human(psutil.disk_usage(selected_usb_mount_path)[0])))
-        self.ui.usb_label.setText("Label :: " + selected_usb_label )
-        self.ui.usb_dev.setText("USB Device :: " + selected_usb_device )
-        self.ui.usb_mount.setText("Mount :: " + str(selected_usb_mount_path ))
+        self.ui.usb_label.setText("Label :: " + selected_usb_label)
+        self.ui.usb_dev.setText("USB Device :: " + selected_usb_device)
+        self.ui.usb_mount.setText("Mount :: " + str(selected_usb_mount_path))
             #[0] = selected_usb_device
             #[1] = selected_usb_uuid 
             #[2] = selected_usb_label  
@@ -426,7 +428,7 @@ class AppGui(qemu.AppGui,detect_iso.AppGui,update_cfg.AppGui,uninstall_distro.Ap
                                     'USB mount point:: %s\n' % usb_mount +
                                     'Selected distro:: %s\n\n' % iso_name + 
                                     'Would you like to install the selected distro?',
-                                      QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
+                                      QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
                     if reply == QtGui.QMessageBox.Yes:
                         if not os.path.exists(mbusb_usb_dir):
                             required_syslinux_install = 'yes'
@@ -454,16 +456,16 @@ class AppGui(qemu.AppGui,detect_iso.AppGui,update_cfg.AppGui,uninstall_distro.Ap
                                         os.system('echo ' + password + ' | sudo -S umount /tmp/mbusb_suse')
                                         os.system('echo ' + password + ' | sudo -S rm -r /tmp/mbusb_suse')
                                 elif platform.system() == "Windows":
-                                    os.system(resource_path(os.path.join("tools","7zip","windows","bsdtar.exe")) + " -xvf " + iso_path + " boot " + install_dir)
+                                    os.system(resource_path(os.path.join("tools", "7zip", "windows", "bsdtar.exe")) + " -xvf " + iso_path + " boot " + install_dir)
 
                                 shutil.copy(iso_path, usb_mount)
                             elif var.distro == "windows":
                                 os.system(zip + " x "+ iso_path + " -y -o" + var.usb_mount + "/")
                             elif var.distro == "ipfire":
-                                os.system(zip + " x "+ iso_path + " -y" + out_dir + " boot -r" )
-                                os.system(zip + " e "+ iso_path + " -y -o" + var.usb_mount + "/ *.tlz -r" )
+                                os.system(zip + " x "+ iso_path + " -y" + out_dir + " boot -r")
+                                os.system(zip + " e "+ iso_path + " -y -o" + var.usb_mount + "/ *.tlz -r")
                             else:
-                               os.system(zip + " x "+ iso_path + " -y" + out_dir )
+                               os.system(zip + " x "+ iso_path + " -y" + out_dir)
 
                         thrd = threading.Thread(target=copy_process, name="copy_process")
                         thrd.start()
@@ -502,14 +504,14 @@ class AppGui(qemu.AppGui,detect_iso.AppGui,update_cfg.AppGui,uninstall_distro.Ap
                 
     def install_syslinux(self, usb_device):
         if required_syslinux_install == "yes":
-            if usb_file_system == "vfat" or  usb_file_system == "ntfs" or  usb_file_system == "FAT32":
+            if usb_file_system == "vfat" or usb_file_system == "ntfs" or  usb_file_system == "FAT32":
                 if sys.platform.startswith("linux"):
                     if password == "":
-                        if os.system('syslinux -i -d /multibootusb ' + usb_device) ==0:
+                        if os.system('syslinux -i -d /multibootusb ' + usb_device) == 0:
                             if os.system('dd bs=440 count=1 conv=notrunc if=' + resource_path(os.path.join("tools",  "mbr.bin")) + ' of=' + usb_device[:-1]) == 0:
                                 print "Syslinux and mbr install was success..."
                     elif  not password == "":
-                        syslinux_linux = resource_path(os.path.join("tools","syslinux", "bin", 'syslinux4'))
+                        syslinux_linux = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4'))
                         if os.path.exists("/usr/lib/syslinux/bios/"):
                             os.system('cp -rf /usr/lib/syslinux/bios/*.c32 ' + usb_mount + "/multibootusb")
                         #if os.system('echo ' + password + ' | sudo -S syslinux -i -d /multibootusb ' + usb_device)==0:
