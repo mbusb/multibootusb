@@ -384,17 +384,18 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 error_7zip = "no"
                 self.ui.label.clear()
 
-            print var.iso_file_content
+            #print var.iso_file_content
 
             #os.system(resource_path(os.path.join("tools","7zip","windows","bsdtar.exe"))  + " -C "+ iso_cfg_ext_dir +  " -xvf " + iso_path + " *.cfg")
 
-            distro = self.detect_iso(iso_cfg_ext_dir)
-            var.distro = distro
-            print var.distro
-            
-            if not var.distro:
-                if re.search(r'sources', var.iso_file_content, re.I):
-                    distro = "windows"
+            if var.cfg_read_err == "yes":
+                QtGui.QMessageBox.information(self, 'Read Error...', 'Could not read config files to identify distro.')
+            else:
+                distro = self.detect_iso(iso_cfg_ext_dir)
+
+                if not distro:
+                    if re.search(r'sources', var.iso_file_content, re.I):
+                        distro = "windows"
 
             """
             elif re.search(r'0.img', var.iso_file_content, re.I):
@@ -410,12 +411,13 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 QtGui.QMessageBox.information(self, 'Integrity error...', 'Please check the integrity of iso.')
                 self.ui.label.clear()
 
-            elif not distro :
+            elif not var.distro:
                 QtGui.QMessageBox.information(self, 'No support...', 'Sorry. ' + iso_name + ' is not supported at the moment\n\nPlease email this issue to feedback.multibootusb@gmail.com')
+
             elif iso_size > usb_size_avail:
                 print iso_size
                 print usb_size_avail
-                QtGui.QMessageBox.information(self, 'No Space...', 'Sorry. There is no space available on ' + usb_device)
+                QtGui.QMessageBox.information(self, 'No Space...', 'Sorry.\n\nThere is no space available on ' + usb_device)
             else:
                 mbusb_usb_dir = os.path.join(str(usb_mount), "multibootusb")
                 install_dir = os.path.join(mbusb_usb_dir,  os.path.splitext(iso_name)[0])
@@ -499,9 +501,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 fp = os.path.join(dirpath, f)
                 total_size += os.path.getsize(fp)
         return total_size
-    
 
-                
     def install_syslinux(self, usb_device):
         if required_syslinux_install == "yes":
             if usb_file_system == "vfat" or usb_file_system == "ntfs" or  usb_file_system == "FAT32":
@@ -510,7 +510,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                         if os.system('syslinux -i -d /multibootusb ' + usb_device) == 0:
                             if os.system('dd bs=440 count=1 conv=notrunc if=' + resource_path(os.path.join("tools",  "mbr.bin")) + ' of=' + usb_device[:-1]) == 0:
                                 print "Syslinux and mbr install was success..."
-                    elif  not password == "":
+                    elif not password == "":
                         syslinux_linux = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4'))
                         if os.path.exists("/usr/lib/syslinux/bios/"):
                             os.system('cp -rf /usr/lib/syslinux/bios/*.c32 ' + usb_mount + "/multibootusb")

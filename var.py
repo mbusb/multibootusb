@@ -3,8 +3,8 @@
 
 """
 This module is created just to share global variable among all modules.
-
 """
+
 gbl_usb_device = ""
 gbl_pass = ""
 gbl_mbusb_version = ""

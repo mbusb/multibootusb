@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+Module to detect distros.
+"""
+
 import os, sys, re, platform, var, glob
 from PyQt4 import QtGui
 from multibootusb_ui import Ui_Dialog
 
 
 class AppGui(QtGui.QDialog, Ui_Dialog):
+
     def detect_iso(self, iso_cfg_ext_dir):
 
         if sys.platform.startswith("linux") or platform.system() == "Windows":
@@ -15,7 +20,9 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                     if name.endswith('.cfg'):
                         try:
                             string = open(os.path.join(path, name)).read()
-
+                        except IOError:
+                            var.cfg_read_err = "yes"
+                        else:
                             if re.search(r'ubcd', string, re.I):
                                 return "ubcd"
                             elif re.search(r'pmagic|partedmagic', string, re.I):
@@ -68,8 +75,6 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                 return "ipcop"
                             elif re.search(r'ipfire', string, re.I):
                                 return "ipfire"
-                        except IOError:
-                            cfg_read_err = "yes"
 
 
     def detect_iso_zip_info(self):
