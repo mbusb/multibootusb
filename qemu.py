@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os,  sys,  subprocess
+import os,sys,subprocess,platform
 import var
 from PyQt4 import QtGui
 from multibootusb_ui import Ui_Dialog
@@ -46,8 +46,11 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
             self.ui.lineEdit_2.clear()
             ram = self.qemu_iso_ram()
             if not ram == None:
-                print qemu + ' -enable-kvm -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d'
-                qemu_exit_status = subprocess.Popen('qemu-system-x86_64 -enable-kvm -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d', shell=True).pid
+                if platform.system() == "Windows":
+                    QtGui.QMessageBox.information(self, 'No Support...', 'Sorry.\n\nThis feature is not implemented yet.')
+                else:
+                    print qemu + ' -enable-kvm -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d'
+                    qemu_exit_status = subprocess.Popen('qemu-system-x86_64 -enable-kvm -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d', shell=True).pid
             else:
                 QtGui.QMessageBox.information(self, 'No ram...', 'No ram selected.\n\nPlease choose any ram value and click Boot ISO.')
                 
@@ -59,7 +62,10 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
             ram = self.qemu_usb_ram()
             
         if not ram == None:
-            qemu_exit_status = subprocess.Popen('echo ' + var.gbl_pass + ' | sudo -S qemu-system-x86_64 -enable-kvm -hda ' + var.gbl_usb_device [:-1] + ' -m ' + ram + ' -vga std', shell=True).pid
+            if platform.system() == "Windows":
+                QtGui.QMessageBox.information(self, 'No Support...', 'Sorry.\n\nThis feature is not implemented yet.')
+            else:
+                qemu_exit_status = subprocess.Popen('echo ' + var.gbl_pass + ' | sudo -S qemu-system-x86_64 -enable-kvm -hda ' + var.gbl_usb_device [:-1] + ' -m ' + ram + ' -vga std', shell=True).pid
         else:
             QtGui.QMessageBox.information(self, 'No ram...', 'No ram selected.\n\nPlease choose any ram value and click Boot USB.')
             

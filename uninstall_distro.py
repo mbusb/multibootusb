@@ -26,7 +26,7 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                                       QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
                     
                 if reply == QtGui.QMessageBox.Yes:
-                    self.ui.label.setText ("Uninstalling " + uninstall_distro_name + "...")
+                    self.ui.status.setText ("Uninstalling " + uninstall_distro_name + "...")
                     inintial_usb_size = int(psutil.disk_usage(var.usb_mount)[1])
                     
                     var.distro_uninstall = self.detect_iso(str(var.usb_mount) + "/multibootusb/" +  uninstall_distro_name.strip())
@@ -59,7 +59,7 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                     print ("Distro uninstall Complete..")
                     self.ui.progressBar.setValue(100)
                     self.ui.progressBar.setValue(0)
-                    self.ui.label.clear()
+                    self.ui.status.clear()
                         
                     print "Updating syslinux.cfg file..."
                     string = open(sys_cfg_file).read()

@@ -6,16 +6,21 @@ from PyQt4 import QtGui
 from multibootusb_ui import Ui_Dialog
 
 
-class AppGui(QtGui.QDialog,Ui_Dialog):
-    def update_distro_cfg_files( self,  distro, iso_name, iso_cfg_ext_dir):
+class AppGui(QtGui.QDialog, Ui_Dialog):
+    def update_distro_cfg_files(self,  distro, iso_name, iso_cfg_ext_dir):
         #print "Updating config files..."
-        self.ui.label.setText ("Updating config files...")
+        self.ui.status.setText("Updating config files...")
+        QtGui.qApp.processEvents()
         for dirpath, dirnames, filenames in os.walk(iso_cfg_ext_dir):
             for f in filenames:
                 if f.endswith(".cfg"):
                     cfg_file = os.path.join(dirpath, f)
-                    string = open(cfg_file).read()
-                    replace_text = r'\1/multibootusb/' + os.path.splitext(iso_name)[0]  + '/'
+                    try:
+                        string = open(cfg_file).read()
+                    except IOError:
+                        print "Unable to read " + cfg_file
+                    else:
+                        replace_text = r'\1/multibootusb/' + os.path.splitext(iso_name)[0] + '/'
                     #string = re.sub(r'(append) (\S+)', r'\2\n    \1', re.sub(r'([ \t =,])/', replace_text, string))
                     string = re.sub(r'([ \t =,])/', replace_text, string)
                     if distro == "ubuntu":
@@ -24,9 +29,9 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                     elif distro == "debian":
                         string = re.sub(r'boot=live', 'boot=live ignore_bootid live-media-path=/multibootusb/' + os.path.splitext(iso_name)[0] + '/live',  string)
                     elif distro == "fedora":
-                        string = re.sub(r'root=\S*', 'root=UUID=' +str(var.gbl_usb_uuid) +   ' live_dir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/LiveOS' ,  string)
+                        string = re.sub(r'root=\S*', 'root=UUID=' +str(var.gbl_usb_uuid) +   ' live_dir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/LiveOS',  string)
                     elif distro == "parted-magic":
-                        string = re.sub(r'initrd=', 'directory=/multibootusb/' + os.path.splitext(iso_name)[0]  + '/ initrd=' ,  string)
+                        string = re.sub(r'initrd=', 'directory=/multibootusb/' + os.path.splitext(iso_name)[0] + '/ initrd=' ,  string)
                     elif distro == "ubcd":
                         string = re.sub(r'iso_filename=\S*', 'directory=/multibootusb/' + os.path.splitext(iso_name)[0],  string, flags=re.I)
                     elif distro == "ipcop":
@@ -49,26 +54,28 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                     config_file .write(string)
                     config_file .close()
 
-        self.update_syslinux_cfg_file (iso_cfg_ext_dir, iso_name,  var.gbl_sys_cfg_file )
+        self.update_syslinux_cfg_file(iso_cfg_ext_dir, iso_name,  var.gbl_sys_cfg_file)
         
     def update_syslinux_cfg_file(self, iso_cfg_ext_dir,  iso_name, sys_cfg_file):
         usb_mount_count = len(str(self.ui.usb_mount.text()[9:]))
         isolinux_path = None
         print "Updating config files..."
+        self.ui.status.setText("Updating config files...")
+        QtGui.qApp.processEvents()
         if not var.distro == "windows":
             for dirpath, dirnames, filenames in os.walk(iso_cfg_ext_dir):
                 for f in filenames:
                     if f.endswith("isolinux.cfg"):
                         isolinux_path = os.path.join(dirpath, f)[usb_mount_count:]
-                        isolinux__dir_path =  os.path.dirname(isolinux_path)
+                        isolinux__dir_path = os.path.dirname(isolinux_path)
                         print isolinux_path
                         print isolinux__dir_path
                     elif f.endswith("syslinux.cfg"):
                         isolinux_path = os.path.join(dirpath, f)[usb_mount_count:]
-                        isolinux__dir_path =  os.path.dirname(isolinux_path)
+                        isolinux__dir_path = os.path.dirname(isolinux_path)
                     elif f.endswith("grub.cfg"):
                         isolinux_path = os.path.join(dirpath, f)[usb_mount_count:]
-                        isolinux__dir_path =  os.path.dirname(isolinux_path)
+                        isolinux__dir_path = os.path.dirname(isolinux_path)
         
         if isolinux_path:
             if os.path.exists(sys_cfg_file):
@@ -93,6 +100,6 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                 config_file .write("LABEL windows" + "\n")
                 config_file .write("MENU LABEL windows" + "\n")
                 #config_file .write("CONFIG /" + isolinux_path.replace("\\", "/") + "\n")
-                config_file .write("KERNEL chain.c32 hd0 1 ntldr=/bootmgr"+ "\n")
+                config_file .write("KERNEL chain.c32 hd0 1 ntldr=/bootmgr" + "\n")
                 config_file .write("#end windows" + "\n")
                 config_file .close()

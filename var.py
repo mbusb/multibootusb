@@ -3,8 +3,8 @@
 
 """
 This module is created just to share global variable among all modules.
-
 """
+
 gbl_usb_device = ""
 gbl_pass = ""
 gbl_mbusb_version = ""
@@ -15,3 +15,4 @@ zip = ""
 iso_file_content = ""
 distro = ""
 distro_uninstall = ""
+cfg_read_err = ""

@@ -25,40 +25,40 @@
      </property>
      <widget class="QWidget" name="tab_3">
       <attribute name="title">
-       <string>Multibootusb</string>
+       <string>MultiBootUSB</string>
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="0" column="2" colspan="2">
-          <widget class="QComboBox" name="comboBox"/>
-         </item>
-         <item row="4" column="3">
+         <item row="5" column="3">
           <widget class="QPushButton" name="create">
            <property name="text">
             <string>Create</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="2">
+         <item row="0" column="2" colspan="2">
+          <widget class="QComboBox" name="comboBox"/>
+         </item>
+         <item row="5" column="2">
           <widget class="QPushButton" name="close">
            <property name="text">
             <string>Close</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="0" rowspan="3">
+         <item row="0" column="0" rowspan="4">
           <widget class="QListWidget" name="listWidget"/>
          </item>
-         <item row="3" column="0" colspan="3">
-          <widget class="QLineEdit" name="lineEdit"/>
-         </item>
-         <item row="3" column="3">
+         <item row="4" column="3">
           <widget class="QPushButton" name="browse_iso">
            <property name="text">
             <string>Browse ISO</string>
            </property>
           </widget>
+         </item>
+         <item row="4" column="0" colspan="3">
+          <widget class="QLineEdit" name="lineEdit"/>
          </item>
          <item row="0" column="4">
           <widget class="QLabel" name="labelstep1">
@@ -67,28 +67,28 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="4">
+         <item row="4" column="4">
           <widget class="QLabel" name="labelstep2">
            <property name="text">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Step 2&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="4">
+         <item row="5" column="4">
           <widget class="QLabel" name="labelstep3">
            <property name="text">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Step 3&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
-         <item row="5" column="0" colspan="5">
+         <item row="7" column="0" colspan="5">
           <widget class="QProgressBar" name="progressBar">
            <property name="value">
             <number>0</number>
            </property>
           </widget>
          </item>
-         <item row="2" column="2" colspan="2">
+         <item row="3" column="2" colspan="2">
           <widget class="QGroupBox" name="groupBox">
            <property name="title">
             <string>Uninstall (Optional)</string>
@@ -108,14 +108,7 @@
            </layout>
           </widget>
          </item>
-         <item row="4" column="0" colspan="2">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2" colspan="2">
+         <item row="2" column="2" colspan="2">
           <widget class="QGroupBox" name="groupBox_6">
            <property name="title">
             <string>USB Details</string>
@@ -159,6 +152,46 @@
            </layout>
           </widget>
          </item>
+         <item row="1" column="2" colspan="2">
+          <layout class="QVBoxLayout" name="verticalLayout_11">
+           <item>
+            <widget class="QGroupBox" name="groupBox_11">
+             <property name="title">
+              <string>Detect USB</string>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_8">
+              <item>
+               <widget class="QPushButton" name="detect_usb">
+                <property name="text">
+                 <string>Referesh USB</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0" colspan="5">
+          <widget class="QLabel" name="status">
+           <property name="autoFillBackground">
+            <bool>false</bool>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Plain</enum>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -173,7 +206,7 @@
          <item row="0" column="0">
           <widget class="QGroupBox" name="groupBox_2">
            <property name="autoFillBackground">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
            <property name="title">
             <string>Install Syslinux</string>
@@ -666,7 +699,7 @@
          <item row="1" column="1">
           <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;An advanced bootable usb creator with option to install/uninstall &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;multiple distros. This software is written in python using pyqt. &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Copyright 2010-2013 Sundar&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Author(s)&lt;/span&gt;: Sundar, Ian Bruce&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Licence:&lt;/span&gt; GPL version 2 or later&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Help/Email:&lt;/span&gt; feedback.multibootusb@gmail.com&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Home page: &lt;/span&gt;http://sourceforge.net/projects/multibootusb/&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;An advanced bootable usb creator with option to install/uninstall &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;multiple distros. This software is written in python and pyqt. &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Copyright 2010-2014 Sundar&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Author(s)&lt;/span&gt;: Sundar, Ian Bruce&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Licence:&lt;/span&gt; GPL version 2 or later&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Home page&lt;/span&gt;: &lt;a href=&quot; http://multibootusb.org&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://multibootusb.org&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Help/Email:&lt;/span&gt; feedback.multibootusb@gmail.com&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Source Code:&lt;/span&gt;&lt;a href=&quot;https://github.com/mbusb/multibootusb&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/mbusb/multibootusb&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
