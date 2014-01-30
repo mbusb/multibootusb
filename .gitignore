@@ -1,7 +1,6 @@
 *.py[cod]
 
 # C extensions
-<<<<<<< HEAD
 
 =======
 #*.so
@@ -55,4 +54,4 @@ old_files
 multibootusb.spec
 setup.py
 =======
->>>>>>> f69e8b932e01aa3691f02e1ad3ebd67a3174cbe5
+
