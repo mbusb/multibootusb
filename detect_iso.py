@@ -11,9 +11,7 @@ from multibootusb_ui import Ui_Dialog
 
 
 class AppGui(QtGui.QDialog, Ui_Dialog):
-
     def detect_iso(self, iso_cfg_ext_dir):
-
         if sys.platform.startswith("linux") or platform.system() == "Windows":
             for path, subdirs, files in os.walk(iso_cfg_ext_dir):
                 for name in files:
@@ -41,9 +39,12 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                 return "redhat"
                             elif re.search(r'suse', string, re.I):
                                 return "suse"
-                            elif re.search(r'opensuse', string, re.I): # or re.search(r'config.isoclient', var.iso_file_content, re.I):
+                            elif re.search(r'opensuse', string,
+                                           re.I): # or re.search(r'config.isoclient', var.iso_file_content, re.I):
                                 return "opensuse"
-                            elif re.search(r'slitaz|ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|riplinux|lebel dummy', string, re.I):
+                            elif re.search(
+                                    r'slitaz|ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|riplinux|lebel dummy',
+                                    string, re.I):
                                 return "slitaz"
                             elif re.search(r'systemrescuecd', string, re.I):
                                 return "systemrescuecd"
