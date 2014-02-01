@@ -14,10 +14,11 @@ import platform
 import tempfile
 import subprocess
 import shutil
-import psutil 
+import psutil
 import threading
 import admin
 import var, qemu, detect_iso, update_cfg,  uninstall_distro
+
 
 def resource_path(relativePath):
     try:
@@ -45,11 +46,10 @@ def resource_path(relativePath):
 
 if platform.system() == "Windows":
     import win32com.client
-    #"""
+
     if not admin.isUserAdmin():
         admin.runAsAdmin()
         sys.exit(0)
-    #"""
 
 if sys.platform.startswith("linux"):
     import dbus
@@ -68,9 +68,7 @@ if sys.platform.startswith("linux"):
 
 else:
     mbusb_dir = os.path.join(tempfile.gettempdir(), "multibootusb")
-#    resource_path(relative):
-    #zip = os.path.join(os.getcwd(),  "tools",  "7zip", "windows", "7z.exe")
-    
+
 if not os.path.exists(mbusb_dir):
     os.makedirs(mbusb_dir)
 if not os.path.exists(os.path.join(mbusb_dir,  "preference")):
@@ -284,7 +282,6 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                     if device_props.Get('org.freedesktop.UDisks.Device', "DeviceIsMounted"):
                         device_file = device_props.Get('org.freedesktop.UDisks.Device', "DeviceFile")
                         found.append(device_file)
-
                 #else:
                  #   print "Device not mounted"
 
@@ -367,14 +364,12 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             iso_name = os.path.basename(iso_path)
             self.ui.lineEdit.clear()
             mbusb_dir_content = resource_path(os.path.join("tools","multibootusb"))
-            
-            #print zip + " e "+ iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r"
+
             iso_size = int(os.path.getsize(iso_path))
 
-            self.ui.status.setText("Testing integrity of an ISO")
+            self.ui.status.setText("Testing integrity of " + iso_name)
 
             print "Testing integrity of " + iso_name
-
             # Someboby can help me to animate this image...
             """
             movie = QtGui.QMovie(resource_path(os.path.join("tools","checking.gif")))
@@ -386,42 +381,43 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             """
             QtGui.qApp.processEvents()
 
-            if os.system(zip + " t "+ iso_path ) !=0:
+            if subprocess.call(zip + " t " + iso_path, shell=True) != 0:
                 error_7zip = "yes"
-
+                distro = None
+                print "Integrity check fail..."
             else:
                 # Extract necessary files to find distro...
                 print "Integrity passed..."
-                os.system(zip + " e "+ iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r")
-                var.iso_file_content = subprocess.check_output([zip, 'l', iso_path])
+                subprocess.call(zip + " e " + iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r", shell=True)
+                var.iso_file_content = os.popen(zip + ' l ' + iso_path).read()
                 error_7zip = "no"
                 self.ui.status.clear()
-
-            #print var.iso_file_content
-
-            #os.system(resource_path(os.path.join("tools","7zip","windows","bsdtar.exe"))  + " -C "+ iso_cfg_ext_dir +  " -xvf " + iso_path + " *.cfg")
-
-            if var.cfg_read_err == "yes":
-                QtGui.QMessageBox.information(self, 'Read Error...', 'Could not read config files to identify distro.')
-            else:
                 distro = self.detect_iso(iso_cfg_ext_dir)
+                print var.iso_file_content
 
-                if not distro:
-                    if re.search(r'sources', var.iso_file_content, re.I):
-                        distro = "windows"
+                #os.system(resource_path(os.path.join("tools","7zip","windows","bsdtar.exe"))  + " -C "+ iso_cfg_ext_dir +  " -xvf " + iso_path + " *.cfg")
+
+                if var.cfg_read_err == "yes":
+                    QtGui.QMessageBox.information(self, 'Read Error...',
+                                                  'Could not read config files to identify distro.')
+                else:
+                    if not distro:
+                        if re.search(r'sources', var.iso_file_content, re.I):
+                            distro = "windows"
 
             """
             elif re.search(r'0.img', var.iso_file_content, re.I):
                 distro = "opensuse"
             """
                 #self.detect_iso_zip_info()
-            var.distro = distro
-
-            print var.distro
+            if distro:
+                var.distro = distro
+                print var.distro
 
             if error_7zip == "yes":
-                self.ui.status.setText ("Iso failed integrity check")
-                QtGui.QMessageBox.information(self, 'Integrity error...', 'Please check the integrity of iso.')
+                self.ui.status.setText("Integrity check failed on " + iso_name)
+                QtGui.QMessageBox.information(self, 'Integrity error...',
+                                              'Please check the integrity of downloaded iso.')
                 self.ui.status.clear()
 
             elif not var.distro:
@@ -459,7 +455,6 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                         def copy_process():
                            #subprocess.Popen([zip, 'x', iso_path, '-y',  out_dir ])
                             if var.distro == "opensuse":
-
                                 if sys.platform.startswith("linux"):
                                     if not password == "":
                                         if not os.path.exists ('/tmp/suse/mbusb_suse'):
@@ -471,16 +466,20 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                                         os.system('echo ' + password + ' | sudo -S umount /tmp/mbusb_suse')
                                         os.system('echo ' + password + ' | sudo -S rm -r /tmp/mbusb_suse')
                                 elif platform.system() == "Windows":
-                                    os.system(resource_path(os.path.join("tools", "7zip", "windows", "bsdtar.exe")) + " -xvf " + iso_path + " boot " + install_dir)
+                                    subprocess.call(resource_path(os.path.join("tools", "7zip", "windows",
+                                                                               "bsdtar.exe")) + " -xvf " + iso_path + " boot " + install_dir,
+                                                    shell=True)
 
                                 shutil.copy(iso_path, usb_mount)
                             elif var.distro == "windows":
-                                os.system(zip + " x "+ iso_path + " -y -o" + var.usb_mount + "/")
+                                #os.system(zip + " x "+ iso_path + " -y -o" + var.usb_mount + "/")
+                                subprocess.call(zip + " x " + iso_path + " -y -o" + var.usb_mount + "/", shell=True)
                             elif var.distro == "ipfire":
-                                os.system(zip + " x "+ iso_path + " -y" + out_dir + " boot -r")
-                                os.system(zip + " e "+ iso_path + " -y -o" + var.usb_mount + "/ *.tlz -r")
+                                subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " boot -r", shell=True)
+                                subprocess.call(zip + " e " + iso_path + " -y -o" + var.usb_mount + "/ *.tlz -r",
+                                                shell=True)
                             else:
-                               os.system(zip + " x "+ iso_path + " -y" + out_dir)
+                                subprocess.call(zip + " x " + iso_path + " -y" + out_dir, shell=True)
 
                         thrd = threading.Thread(target=copy_process, name="copy_process")
                         thrd.start()
@@ -520,16 +519,24 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             if usb_file_system == "vfat" or usb_file_system == "ntfs" or  usb_file_system == "FAT32":
                 if sys.platform.startswith("linux"):
                     if password == "":
-                        if os.system('syslinux -i -d /multibootusb ' + usb_device) == 0:
-                            if os.system('dd bs=440 count=1 conv=notrunc if=' + resource_path(os.path.join("tools",  "mbr.bin")) + ' of=' + usb_device[:-1]) == 0:
+                        if subprocess.call('syslinux -i -d /multibootusb ' + usb_device, shell=True) == 0:
+                            if subprocess.call('dd bs=440 count=1 conv=notrunc if=' + resource_path(
+                                    os.path.join("tools", "mbr.bin")) + ' of=' + usb_device[:-1], shell=True) == 0:
                                 print "Syslinux and mbr install was success..."
                     elif not password == "":
                         syslinux_linux = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4'))
                         if os.path.exists("/usr/lib/syslinux/bios/"):
-                            os.system('cp -rf /usr/lib/syslinux/bios/*.c32 ' + usb_mount + "/multibootusb")
-                        #if os.system('echo ' + password + ' | sudo -S syslinux -i -d /multibootusb ' + usb_device)==0:
-                        if os.system('echo ' + password + ' | sudo -S ' + syslinux_linux + ' -i -d /multibootusb ' + usb_device)==0:
-                            if os.system('echo ' + password + ' | sudo -S dd bs=440 count=1 conv=notrunc if=' + resource_path(os.path.join("tools",  "mbr.bin")) + ' of=' + usb_device[:-1]) == 0:
+                            subprocess.call('cp -rf /usr/lib/syslinux/bios/*.c32 ' + usb_mount + "/multibootusb",
+                                            shell=True)
+                            #if os.system('echo ' + password + ' | sudo -S syslinux -i -d /multibootusb ' + usb_device)==0:
+                        if subprocess.call(
+                                                                        'echo ' + password + ' | sudo -S ' + syslinux_linux + ' -i -d /multibootusb ' + usb_device,
+                                                                        shell=True) == 0:
+                            if subprocess.call(
+                                                                            'echo ' + password + ' | sudo -S dd bs=440 count=1 conv=notrunc if=' + resource_path(
+                                                            os.path.join("tools", "mbr.bin")) + ' of=' + usb_device[
+                                                                                                         :-1],
+                                                                            shell=True) == 0:
                                 print "Syslinux and mbr install was success..."
 #                                print "Copying com modules..."
                                   
@@ -539,13 +546,16 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                                 print "syslinux install fail..."
                 else:
                     print resource_path(os.path.join("tools",  "syslinux", "bin", 'syslinux4.exe')) + " -maf -d /multibootusb " + usb_device
-                    if os.system(resource_path(os.path.join("tools",  "syslinux", "bin", 'syslinux4.exe')) + " -maf -d /multibootusb " + usb_device + ":") == 0:
+                    if subprocess.call(resource_path(os.path.join("tools", "syslinux", "bin",
+                                                                  'syslinux4.exe')) + " -maf -d /multibootusb " + usb_device + ":",
+                                       shell=True) == 0:
                         print "syslinux install success."
+                        QtGui.QMessageBox.information(self, 'Installation Completed...',
+                                                      'Syslinux successfully installed.')
                     else:
                         print "syslinux install fail."
-       
+                        QtGui.QMessageBox.information(self, 'Installation Completed...', 'Syslinux install failed.')
 
-    
     def bytes2human(self, n):
     # http://code.activestate.com/recipes/578019
     # >>> bytes2human(10000)
@@ -566,7 +576,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         global editor_exit_status
         if not os.path.exists (sys_cfg_file):
             print "syslinux.cfg file not found..."
-            QtGui.QMessageBox.information(self, 'File not found...',  'Sorry. Unable to locate syslinux.cfg.')
+            QtGui.QMessageBox.information(self, 'File not found...', 'Sorry. Unable to locate syslinux.cfg file.')
         else:
             
             if sys.platform.startswith("linux"):
@@ -602,9 +612,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                     return exe_file
     
         return None
-        
-    
-        
+
     def on_close_Click(self):
         global quit_ready
         
@@ -633,7 +641,6 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             event.accept()
         else:
             event.ignore()
-
 
 app = QtGui.QApplication(sys.argv)
 window = AppGui()
