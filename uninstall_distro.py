@@ -26,7 +26,7 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                                       QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
                     
                 if reply == QtGui.QMessageBox.Yes:
-                    self.ui.status.setText ("Uninstalling " + uninstall_distro_name + "...")
+                    self.ui.status.setText("Uninstalling " + uninstall_distro_name)
                     inintial_usb_size = int(psutil.disk_usage(var.usb_mount)[1])
                     
                     var.distro_uninstall = self.detect_iso(str(var.usb_mount) + "/multibootusb/" +  uninstall_distro_name.strip())
@@ -82,22 +82,7 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                     os.remove(os.path.join(str(var.usb_mount), f))
                 elif os.path.isdir(os.path.join(str(var.usb_mount), f)):
                     shutil.rmtree(os.path.join(str(var.usb_mount), f))
-            """
-            shutil.rmtree (os.path.join(str(var.usb_mount), "SOURCES"))
-            shutil.rmtree (os.path.join(str(var.usb_mount), "BOOT"))
-            shutil.rmtree (os.path.join(str(var.usb_mount), "[BOOT]"))
-            shutil.rmtree (os.path.join(str(var.usb_mount), "EFI"))
-            shutil.rmtree (os.path.join(str(var.usb_mount), "SUPPORT"))
-            shutil.rmtree (os.path.join(str(var.usb_mount), "UPGRADE"))
-            os.remove(os.path.join(str(var.usb_mount), "AUTORUN.INF"))
-            #shutil.rmtree (os.path.join(str(var.usb_mount), "AUTORUN.INF"))
-            os.remove(os.path.join(str(var.usb_mount), "BOOTMGR"))
-            #shutil.rmtree (os.path.join(str(var.usb_mount), "BOOTMGR"))
-            os.remove(os.path.join(str(var.usb_mount), "README.TXT"))
-            #shutil.rmtree (os.path.join(str(var.usb_mount), "README.TXT"))
-            os.remove(os.path.join(str(var.usb_mount), "SETUP.EXE"))
-            #shutil.rmtree (os.path.join(str(var.usb_mount), "SETUP.EXE"))
-            """
+
         if var.distro_uninstall == "ipfire":
             files = os.listdir(str(var.usb_mount))
             for f in files:
