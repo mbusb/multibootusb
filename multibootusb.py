@@ -225,6 +225,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         usb_mount = str(usb_details[3])
         var.usb_mount = usb_mount 
         usb_file_system = str(usb_details[4])
+        var.usb_file_system = usb_file_system
         usb_size_total = int(usb_details[5])
         usb_size_avail = int(usb_details[6])
         usb_size_used = int(usb_details[7])
@@ -243,20 +244,8 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             
     def onCreateClick(self):
         self.create_mbusb()
-        
-    def onInstall_syslinuxClick(self):
-        global required_syslinux_install
-        required_syslinux_install = 'yes'
-        src = str(resource_path(os.path.join("tools","multibootusb")))
-        dst = str(os.path.join(str(usb_mount),  "multibootusb"))
-        print os.path.join(str(usb_mount),  "multibootusb")
-        if self.ui.install_sys_all.isChecked() or self.ui.install_sys_only.isChecked():
-            self.install_syslinux(usb_device)
-        else:
-            QtGui.QMessageBox.information(self, 'No selection...', 'Please select from one of the install syslinux options')
-        if self.ui.install_sys_all.isChecked():
-            self.copytree(src, dst)
-            
+
+
     def copytree(self, src, dst, symlinks=False, ignore=None):
 
         for item in os.listdir(src):
@@ -367,9 +356,10 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
 
             iso_size = int(os.path.getsize(iso_path))
 
-            self.ui.status.setText("Testing integrity of " + iso_name)
-
             print "Testing integrity of " + iso_name
+            self.ui.status.setText("Testing integrity of " + iso_name)
+            QtGui.qApp.processEvents()
+
             # Someboby can help me to animate this image...
             """
             movie = QtGui.QMovie(resource_path(os.path.join("tools","checking.gif")))
@@ -379,7 +369,6 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             #self.ui.status.setPixmap(QtGui.QPixmap(resource_path(os.path.join("tools","checking.gif"))))
             movie.start()
             """
-            QtGui.qApp.processEvents()
 
             if subprocess.call(zip + " t " + iso_path, shell=True) != 0:
                 error_7zip = "yes"
@@ -389,12 +378,14 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 # Extract necessary files to find distro...
                 print "Integrity passed..."
                 subprocess.call(zip + " e " + iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r", shell=True)
+                # Get the list of files from iso. So that later on it can be used for detecting other distros.
                 var.iso_file_content = os.popen(zip + ' l ' + iso_path).read()
                 error_7zip = "no"
                 self.ui.status.clear()
                 distro = self.detect_iso(iso_cfg_ext_dir)
                 print var.iso_file_content
 
+                # Included bsdtar package due to bug in the 7zip which can not list opensuse (actual) files properly.
                 #os.system(resource_path(os.path.join("tools","7zip","windows","bsdtar.exe"))  + " -C "+ iso_cfg_ext_dir +  " -xvf " + iso_path + " *.cfg")
 
                 if var.cfg_read_err == "yes":
@@ -514,19 +505,39 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 total_size += os.path.getsize(fp)
         return total_size
 
+    def bytes2human(self, n):
+        # http://code.activestate.com/recipes/578019
+        # >>> bytes2human(10000)
+        # '9.8K'
+        # >>> bytes2human(100001221)
+        # '95.4M'
+        symbols = ('K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
+        prefix = {}
+        for i, s in enumerate(symbols):
+            prefix[s] = 1 << (i + 1) * 10
+        for s in reversed(symbols):
+            if n >= prefix[s]:
+                value = float(n) / prefix[s]
+                return '%.1f%s' % (value, s)
+        return "%sB" % n
+
     def install_syslinux(self, usb_device):
+        # Crossplatform function to install syslinux on selected device.
+        print "Installing Syslinux on " + usb_device
         if required_syslinux_install == "yes":
-            if usb_file_system == "vfat" or usb_file_system == "ntfs" or  usb_file_system == "FAT32":
+            print var.usb_file_system
+            if var.usb_file_system == "vfat" or var.usb_file_system == "ntfs" or var.usb_file_system == "FAT32":
                 if sys.platform.startswith("linux"):
                     if password == "":
                         if subprocess.call('syslinux -i -d /multibootusb ' + usb_device, shell=True) == 0:
                             if subprocess.call('dd bs=440 count=1 conv=notrunc if=' + resource_path(
                                     os.path.join("tools", "mbr.bin")) + ' of=' + usb_device[:-1], shell=True) == 0:
                                 print "Syslinux and mbr install was success..."
+
                     elif not password == "":
                         syslinux_linux = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4'))
                         if os.path.exists("/usr/lib/syslinux/bios/"):
-                            subprocess.call('cp -rf /usr/lib/syslinux/bios/*.c32 ' + usb_mount + "/multibootusb",
+                            subprocess.call('cp -rf /usr/lib/syslinux/bios/*.c32 ' + var.usb_mount + "/multibootusb",
                                             shell=True)
                             #if os.system('echo ' + password + ' | sudo -S syslinux -i -d /multibootusb ' + usb_device)==0:
                         if subprocess.call(
@@ -538,14 +549,17 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                                                                                                          :-1],
                                                                             shell=True) == 0:
                                 print "Syslinux and mbr install was success..."
-#                                print "Copying com modules..."
-                                  
+                                #                                print "Copying com modules..."
+                                QtGui.QMessageBox.information(self, 'Installation Completed...',
+                                                              'Syslinux successfully installed.')
+
                             else:
                                 print "mbr install fail..."
                         else:
-                                print "syslinux install fail..."
+                            print "syslinux install fail..."
                 else:
-                    print resource_path(os.path.join("tools",  "syslinux", "bin", 'syslinux4.exe')) + " -maf -d /multibootusb " + usb_device
+                    print resource_path(os.path.join("tools", "syslinux", "bin",
+                                                     'syslinux4.exe')) + " -maf -d /multibootusb " + usb_device
                     if subprocess.call(resource_path(os.path.join("tools", "syslinux", "bin",
                                                                   'syslinux4.exe')) + " -maf -d /multibootusb " + usb_device + ":",
                                        shell=True) == 0:
@@ -556,23 +570,23 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                         print "syslinux install fail."
                         QtGui.QMessageBox.information(self, 'Installation Completed...', 'Syslinux install failed.')
 
-    def bytes2human(self, n):
-    # http://code.activestate.com/recipes/578019
-    # >>> bytes2human(10000)
-    # '9.8K'
-    # >>> bytes2human(100001221)
-    # '95.4M'
-        symbols = ('K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
-        prefix = {}
-        for i, s in enumerate(symbols):
-            prefix[s] = 1 << (i+1)*10
-        for s in reversed(symbols):
-            if n >= prefix[s]:
-                value = float(n) / prefix[s]
-                return '%.1f%s' % (value, s)
-        return "%sB" % n
-        
+    def onInstall_syslinuxClick(self):
+        global required_syslinux_install
+        required_syslinux_install = 'yes'
+        src = str(resource_path(os.path.join("tools", "multibootusb")))
+        dst = str(os.path.join(str(usb_mount), "multibootusb"))
+        print os.path.join(str(usb_mount), "multibootusb")
+        if self.ui.install_sys_all.isChecked() or self.ui.install_sys_only.isChecked():
+            self.install_syslinux(var.gbl_usb_device)
+        else:
+            QtGui.QMessageBox.information(self, 'No selection...',
+                                          'Please select from one of the install syslinux options')
+        if self.ui.install_sys_all.isChecked():
+            self.copytree(src, dst)
+
     def onedit_syslinux (self):
+        # Function to edit syslinux.cfg file on editors like gedit, notepad etc.
+        # Suggest me more editor which can be included in to this function.
         global editor_exit_status
         if not os.path.exists (sys_cfg_file):
             print "syslinux.cfg file not found..."
@@ -582,6 +596,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             if sys.platform.startswith("linux"):
                 for editor in editors_linux:
                     if os.system('which ' + editor)==0:
+                        print "Found " + editor
                         editor_exit_status  = subprocess.Popen(editor + " " + sys_cfg_file, shell=True).pid
                         if not editor_exit_status:
                             print "syslinux.cfg file successfully opened for append."
@@ -614,6 +629,8 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         return None
 
     def on_close_Click(self):
+        # I am having trouble here. Unable to find if process like 7zip extraction, qemu, editor opened status etc.
+        # Help required to identify/ running opened processes.
         global quit_ready
         
         if not editor_exit_status == "dummy":
@@ -646,6 +663,6 @@ app = QtGui.QApplication(sys.argv)
 window = AppGui()
 ui = Ui_Dialog()
 window.show()
-window.setWindowTitle("MultibootUSB - " + version)
+window.setWindowTitle("MultiBootUSB - " + version)
 sys.exit(app.exec_())
 
