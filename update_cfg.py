@@ -60,6 +60,9 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                         'from=' + '/multibootusb/' + os.path.splitext(iso_name)[0] + ' initrd=', string)
                     elif distro == "hbcd":
                         string = re.sub(r'/HBCD', '/multibootusb/' + os.path.splitext(iso_name)[0] + '/HBCD', string)
+                    elif distro == "zenwalk":
+                        string = re.sub(r'initrd=', 'from=/multibootusb/' + os.path.splitext(iso_name)[
+                            0] + '/' + iso_name + ' initrd=', string)
 
                     config_file = open(cfg_file, "wb")
                     config_file .write(string)
@@ -88,7 +91,7 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                 if f.endswith("isolinux.cfg"):
                     shutil.copy2(os.path.join(dirpath, f), os.path.join(dirpath, "syslinux.cfg"))
 
-        if distro == "hbcd":
+        if var.distro == "hbcd":
             if os.path.exists(var.usb_mount + "multibootusb", "menu.lst"):
                 config_file = open(os.path.exists(var.usb_mount + "multibootusb", "menu.lst"), "wb")
                 string = re.sub(r'/HBCD', '/multibootusb/' + os.path.splitext(iso_name)[0] + '/HBCD', string)
@@ -139,13 +142,3 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                 config_file .write("#end " + os.path.splitext(iso_name)[0] + "\n")
                 config_file .close()
         """
-        if var.distro == "windows":
-            if os.path.exists(sys_cfg_file):
-                config_file = open(sys_cfg_file, "a")
-                config_file .write("#start windows" + "\n")
-                config_file .write("LABEL windows" + "\n")
-                config_file .write("MENU LABEL windows" + "\n")
-                #config_file .write("CONFIG /" + isolinux_path.replace("\\", "/") + "\n")
-                config_file .write("KERNEL chain.c32 hd0 1 ntldr=/bootmgr" + "\n")
-                config_file .write("#end windows" + "\n")
-                config_file .close()
