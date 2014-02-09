@@ -17,7 +17,7 @@ import shutil
 import psutil
 import threading
 import admin
-import var, qemu, detect_iso, update_cfg,  uninstall_distro
+import var, qemu, detect_iso, update_cfg, uninstall_distro, install_syslinux
 
 
 def resource_path(relativePath):
@@ -56,6 +56,7 @@ if sys.platform.startswith("linux"):
     from os.path import expanduser
     home = expanduser("~")
     mbusb_dir = os.path.join(home, ".multibootusb")
+    var.mbr_bin = resource_path(os.path.join("tools", "mbr.bin"))
 
     for path, subdirs, files in os.walk(resource_path(os.path.join("tools", "syslinux", "bin"))):
         for name in files:
@@ -87,7 +88,6 @@ sys_cfg_file = ""
 required_syslinux_install = ""
 detected_device_details = ""
 process_exist = []  # yet to be implemented
-password = ""
 iso_cfg_ext_dir = os.path.join(mbusb_dir, "iso_cfg_ext_dir")
 editors_linux = ["gedit",  "kate", "kwrite"]
 editors_win = ["notepad++.exe",  "notepad.exe"]
@@ -118,8 +118,9 @@ def resource_path(relative):
     )
 """
 
-class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro.AppGui, QtGui.QDialog, Ui_Dialog):
 
+class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro.AppGui, install_syslinux.AppGui,
+             QtGui.QDialog, Ui_Dialog):
     def __init__(self):
         QtGui.QDialog.__init__(self)
         global version
@@ -153,22 +154,20 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         
         if sys.platform.startswith("linux"):
             if os.geteuid() != 0:
-                global password
-                
+
                 if os.system('which sudo')==0:
                     for x in xrange(3):
-                        input,  ok = QtGui.QInputDialog.getText(self,'Password', 
-                        'Enter user password::', QtGui.QLineEdit.Password)
+                        input, ok = QtGui.QInputDialog.getText(self, 'Password',
+                                                               'Enter user var.password::', QtGui.QLineEdit.Password)
                         if ok:
-                                password = str(input)
-                                var.gbl_pass = password
-                                if os.popen('echo ' + password + ' | sudo -S id -u').read().strip() == '0':
-                                    break
+                            var.password = str(input)
+                            if os.popen('echo ' + var.password + ' | sudo -S id -u').read().strip() == '0':
+                                break
                                 if x == 2:
-                                    print "You have entered wrong password 3 times. Exiting now. "
+                                    print "You have entered wrong var.password 3 times. Exiting now. "
                                     sys.exit(0)
                         else:
-                            print "Password not entered. Exiting now. "
+                            print "var.password not entered. Exiting now. "
                             sys.exit(0)
                 elif os.system('which gksu')==0:
                     os.system("gksu -d " + sys.executable + " " + sys.argv[0])
@@ -383,7 +382,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 error_7zip = "no"
                 self.ui.status.clear()
                 distro = self.detect_iso(iso_cfg_ext_dir)
-                print var.iso_file_content
+                #print var.iso_file_content
 
                 # Included bsdtar package due to bug in the 7zip which can not list opensuse (actual) files properly.
                 #os.system(resource_path(os.path.join("tools","7zip","windows","bsdtar.exe"))  + " -C "+ iso_cfg_ext_dir +  " -xvf " + iso_path + " *.cfg")
@@ -421,7 +420,8 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             else:
                 mbusb_usb_dir = os.path.join(str(usb_mount), "multibootusb")
                 install_dir = os.path.join(mbusb_usb_dir,  os.path.splitext(iso_name)[0])
-                
+                var.install_dir = install_dir
+
                 if os.path.exists(install_dir ):
                     QtGui.QMessageBox.information(self, 'Already exist...', iso_name + ' is already installed on ' + usb_device )
                 else:
@@ -447,15 +447,16 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                            #subprocess.Popen([zip, 'x', iso_path, '-y',  out_dir ])
                             if var.distro == "opensuse":
                                 if sys.platform.startswith("linux"):
-                                    if not password == "":
+                                    if not var.password == "":
                                         if not os.path.exists ('/tmp/suse/mbusb_suse'):
-                                            os.system('echo ' + password + ' | sudo -S mkdir /tmp/mbusb_suse')
-                                        else:    
-                                            os.system('echo ' + password + ' | sudo -S mount -o loop ' + iso_path + ' /tmp/mbusb_suse')
+                                            os.system('echo ' + var.password + ' | sudo -S mkdir /tmp/mbusb_suse')
+                                        else:
+                                            os.system(
+                                                'echo ' + var.password + ' | sudo -S mount -o loop ' + iso_path + ' /tmp/mbusb_suse')
                                             #shutil.copytree ('/tmp/mbusb_suse/boot', os.path.join(install_dir, 'boot'))
                                             os.system('cp -rfv /tmp/mbusb_suse/boot ' + install_dir + '/boot')
-                                        os.system('echo ' + password + ' | sudo -S umount /tmp/mbusb_suse')
-                                        os.system('echo ' + password + ' | sudo -S rm -r /tmp/mbusb_suse')
+                                        os.system('echo ' + var.password + ' | sudo -S umount /tmp/mbusb_suse')
+                                        os.system('echo ' + var.password + ' | sudo -S rm -r /tmp/mbusb_suse')
                                 elif platform.system() == "Windows":
                                     subprocess.call(resource_path(os.path.join("tools", "7zip", "windows",
                                                                                "bsdtar.exe")) + " -xvf " + iso_path + " boot " + install_dir,
@@ -481,14 +482,15 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                             percentage = float(1.0*diff_size)/inintial_size*100
                             self.ui.progressBar.setValue(abs(percentage))
                             QtGui.qApp.processEvents()
-                        print ("All Completed")
+                        print "All Completed..."
                         self.ui.progressBar.setValue(100)
                         self.ui.progressBar.setValue(0)
                         sys_cfg_file = os.path.join(str(usb_mount), "multibootusb", "syslinux.cfg")
+                        #if required_syslinux_install == 'yes':
+                        #   print "Installing syslinux..."
+                        #self.install_syslinux(usb_device)
+                        self.install_syslinux(usb_device)
                         self.update_distro_cfg_files(distro, iso_name, install_dir)
-                        if required_syslinux_install == 'yes':
-                            print "Installing syslinux..."
-                            self.install_syslinux(usb_device)
                         self.update_list_box(sys_cfg_file)
                         self.ui.status.clear()
                         if sys.platform.startswith("linux"):
@@ -523,28 +525,59 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
 
     def install_syslinux(self, usb_device):
         # Crossplatform function to install syslinux on selected device.
-        print "Installing Syslinux on " + usb_device
+        var.distro_isolinux_bin_path = self.detect_distro_isobin(var.install_dir)
+        usb_mount_count = len(str(self.ui.usb_mount.text()[9:]))
+        print var.distro_isolinux_bin_path
+        #isolinux_path = os.path.join(dirpath, f)[usb_mount_count:]
+        var.distro_syslinux_dir_path = os.path.dirname(var.distro_isolinux_bin_path)[usb_mount_count:]
+        print var.distro_syslinux_dir_path
+        var.distro_syslinux_version = self.distro_syslinux_version(var.distro_isolinux_bin_path)
+
+        if not var.distro_syslinux_version == None:
+            if sys.platform.startswith("linux"):
+                extension = var.distro_syslinux_version
+                if var.distro_syslinux_version == "3":
+                    var.syslinux_options = " -d "
+                else:
+                    var.syslinux_options = " -i -d "
+                var.defautl_syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4'))
+
+            else:
+                extension = var.distro_syslinux_version + ".exe"
+
+                var.defautl_syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4.exe'))
+
+            var.syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", "syslinux")) + extension
+            print var.syslinux_version
+
+            self.install_syslinux_distro_dir(var.distro_syslinux_dir_path, usb_device, var.mbr_bin, var.usb_mount,
+                                             default_install=0)
+            var.syslinux_options = " -i -d "
+            self.install_syslinux_distro_dir(var.distro_syslinux_dir_path, usb_device, var.mbr_bin, var.usb_mount,
+                                             default_install=1)
+
         if required_syslinux_install == "yes":
             print var.usb_file_system
             if var.usb_file_system == "vfat" or var.usb_file_system == "ntfs" or var.usb_file_system == "FAT32":
                 if sys.platform.startswith("linux"):
-                    if password == "":
-                        if subprocess.call('syslinux -i -d /multibootusb ' + usb_device, shell=True) == 0:
+                    syslinux_linux = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4'))
+                    if var.password == "":
+                        if subprocess.call(syslinux_linux + ' -i -d /multibootusb ' + usb_device, shell=True) == 0:
                             if subprocess.call('dd bs=440 count=1 conv=notrunc if=' + resource_path(
                                     os.path.join("tools", "mbr.bin")) + ' of=' + usb_device[:-1], shell=True) == 0:
                                 print "Syslinux and mbr install was success..."
 
-                    elif not password == "":
-                        syslinux_linux = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4'))
+                    elif not var.password == "":
+
                         if os.path.exists("/usr/lib/syslinux/bios/"):
                             subprocess.call('cp -rf /usr/lib/syslinux/bios/*.c32 ' + var.usb_mount + "/multibootusb",
                                             shell=True)
-                            #if os.system('echo ' + password + ' | sudo -S syslinux -i -d /multibootusb ' + usb_device)==0:
+                            #if os.system('echo ' + var.password + ' | sudo -S syslinux -i -d /multibootusb ' + usb_device)==0:
                         if subprocess.call(
-                                                                        'echo ' + password + ' | sudo -S ' + syslinux_linux + ' -i -d /multibootusb ' + usb_device,
+                                                                        'echo ' + var.password + ' | sudo -S ' + syslinux_linux + ' -i -d /multibootusb ' + usb_device,
                                                                         shell=True) == 0:
                             if subprocess.call(
-                                                                            'echo ' + password + ' | sudo -S dd bs=440 count=1 conv=notrunc if=' + resource_path(
+                                                                            'echo ' + var.password + ' | sudo -S dd bs=440 count=1 conv=notrunc if=' + resource_path(
                                                             os.path.join("tools", "mbr.bin")) + ' of=' + usb_device[
                                                                                                          :-1],
                                                                             shell=True) == 0:
@@ -571,16 +604,20 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                         QtGui.QMessageBox.information(self, 'Installation Completed...', 'Syslinux install failed.')
 
     def onInstall_syslinuxClick(self):
-        global required_syslinux_install
-        required_syslinux_install = 'yes'
+        var.sys_tab = "yes"
+        if sys.platform.startswith("linux"):
+            var.defautl_syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4'))
+        else:
+            var.defautl_syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4.exe'))
+
         src = str(resource_path(os.path.join("tools", "multibootusb")))
         dst = str(os.path.join(str(usb_mount), "multibootusb"))
-        print os.path.join(str(usb_mount), "multibootusb")
         if self.ui.install_sys_all.isChecked() or self.ui.install_sys_only.isChecked():
-            self.install_syslinux(var.gbl_usb_device)
+            self.install_syslinux_distro_dir(var.distro_syslinux_dir_path, usb_device, var.mbr_bin, var.usb_mount,
+                                             default_install=1)
         else:
             QtGui.QMessageBox.information(self, 'No selection...',
-                                          'Please select from one of the install syslinux options')
+                                          'Please select from one of the option above.')
         if self.ui.install_sys_all.isChecked():
             self.copytree(src, dst)
 
