@@ -23,8 +23,12 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                         else:
                             if re.search(r'ubcd', string, re.I):
                                 return "ubcd"
+                            elif re.search(r'hbcd', string, re.I):
+                                return "hbcd"
                             elif re.search(r'pmagic|partedmagic', string, re.I):
                                 return "parted-magic"
+                            #elif re.search(r'mgalive', string, re.I): # mounting fat filesystem hard coded in to initrd. May not work.
+                            #    return "mageialive"
                             elif re.search(r'archisolabel|misolabel', string, re.I):
                                 return "arch"
                             elif re.search(r'chakraisolabel', string, re.I):
