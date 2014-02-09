@@ -55,22 +55,24 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                                          var.distro) + '.bs'
                 print var.distro_sys_install_bs
                 if var.password == "":
-                    if subprocess.call(var.syslinux_version + ' -i -d ' + syslinux_dir_path + ' ' + usb_device,
-                                       shell=True) == 0:
-                        print "Syslinux install on distro directory was successful..."
+                    if subprocess.call(
+                                                            var.syslinux_version + var.syslinux_options + syslinux_dir_path + ' ' + usb_device,
+                                                            shell=True) == 0:
+
+                        print "Syslinux install was successful..."
                         sys_ins_succ = "yes"
                     else:
-                        print "Syslinux install on distro directory was fail..."
+                        print "Syslinux install was fail..."
                         sys_ins_succ = "no"
 
                 elif not var.password == "":
                     if subprocess.call(
-                                                                                    'echo ' + var.password + ' | sudo -S ' + var.syslinux_version + ' -i -d ' + syslinux_dir_path + ' ' + usb_device,
+                                                                                    'echo ' + var.password + ' | sudo -S ' + var.syslinux_version + var.syslinux_options + syslinux_dir_path + ' ' + usb_device,
                                                                                     shell=True) == 0:
-                        print "Syslinux install on distro directory was successful..."
+                        print "Syslinux install was successful..."
                         sys_ins_succ = "yes"
                     else:
-                        print "Syslinux install on distro directory was fail..."
+                        print "Syslinux install was fail..."
                         sys_ins_succ = "no"
 
                 if sys_ins_succ == "yes" and default_install == 0:
