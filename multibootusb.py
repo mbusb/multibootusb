@@ -9,7 +9,7 @@ from PyQt4 import QtGui
 from multibootusb_ui import Ui_Dialog
 import sys
 import os
-import re 
+import re
 import platform
 import tempfile
 import subprocess
@@ -44,6 +44,7 @@ def resource_path(relativePath):
 
     return path
 
+
 if platform.system() == "Windows":
     import win32com.client
 
@@ -54,6 +55,7 @@ if platform.system() == "Windows":
 if sys.platform.startswith("linux"):
     import dbus
     from os.path import expanduser
+
     home = expanduser("~")
     mbusb_dir = os.path.join(home, ".multibootusb")
     var.mbr_bin = resource_path(os.path.join("tools", "mbr.bin"))
@@ -72,7 +74,7 @@ else:
 
 if not os.path.exists(mbusb_dir):
     os.makedirs(mbusb_dir)
-if not os.path.exists(os.path.join(mbusb_dir,  "preference")):
+if not os.path.exists(os.path.join(mbusb_dir, "preference")):
     os.makedirs(os.path.join(mbusb_dir, "preference"))
 
 usb_device = ""
@@ -89,8 +91,8 @@ required_syslinux_install = ""
 detected_device_details = ""
 process_exist = []  # yet to be implemented
 iso_cfg_ext_dir = os.path.join(mbusb_dir, "iso_cfg_ext_dir")
-editors_linux = ["gedit",  "kate", "kwrite"]
-editors_win = ["notepad++.exe",  "notepad.exe"]
+editors_linux = ["gedit", "kate", "kwrite"]
+editors_win = ["notepad++.exe", "notepad.exe"]
 editor_exit_status = "dummy"
 quit_ready = ""
 version = ""
@@ -100,7 +102,7 @@ zip = ""
 
 if not os.path.exists(iso_cfg_ext_dir):
     os.makedirs(iso_cfg_ext_dir)
-if os.listdir(iso_cfg_ext_dir): 
+if os.listdir(iso_cfg_ext_dir):
     print os.listdir(iso_cfg_ext_dir)
     print "iso extract directory is not empty."
     print "Removing junk files..."
@@ -141,21 +143,21 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         self.ui.boot_iso_qemu.clicked.connect(self.on_Qemu_Boot_iso_Click)
         self.ui.boot_usb_qemu.clicked.connect(self.on_Qemu_Boot_usb_Click)
         self.ui.tabWidget.removeTab(3)
-        
+
         version = open(resource_path(os.path.join("tools", "version.txt")), 'r').read().strip()
         var.gbl_mbusb_version = version
-        
+
         if sys.platform.startswith("linux"):
             zip = resource_path(os.path.join("tools", "7zip", "linux", "7z"))
             var.zip = zip
         else:
             zip = resource_path(os.path.join("tools", "7zip", "windows", "7z.exe"))
             var.zip = zip
-        
+
         if sys.platform.startswith("linux"):
             if os.geteuid() != 0:
 
-                if os.system('which sudo')==0:
+                if os.system('which sudo') == 0:
                     for x in xrange(3):
                         input, ok = QtGui.QInputDialog.getText(self, 'Password',
                                                                'Enter user var.password::', QtGui.QLineEdit.Password)
@@ -169,30 +171,31 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                         else:
                             print "var.password not entered. Exiting now. "
                             sys.exit(0)
-                elif os.system('which gksu')==0:
+                elif os.system('which gksu') == 0:
                     os.system("gksu -d " + sys.executable + " " + sys.argv[0])
                     sys.exit(0)
-                elif os.system('which gksudo')==0:
+                elif os.system('which gksudo') == 0:
                     os.system("gksudo -d " + sys.executable + " " + sys.argv[0])
                     sys.exit(0)
-                elif os.system('which kdesu')==0:
+                elif os.system('which kdesu') == 0:
                     os.system("kdesu -t " + sys.executable + " " + sys.argv[0])
                     sys.exit(0)
-                elif os.system('which kdesudo')==0:
+                elif os.system('which kdesudo') == 0:
                     os.system("kdesudo -t " + sys.executable + " " + sys.argv[0])
                     sys.exit(0)
-                
+
                 else:
-                    QtGui.QMessageBox.information(self, 'No root...', 'multibootusb require Please install either sudo, gksu, kdesu, gksudo or kdesudo then restart multibootusb.')
+                    QtGui.QMessageBox.information(self, 'No root...',
+                                                  'multibootusb require Please install either sudo, gksu, kdesu, gksudo or kdesudo then restart multibootusb.')
                     sys.exit(0)
-        
+
         detected_device = self.find_usb()
-        
+
         for device in detected_device:
             self.ui.comboBox.addItem(str(device))
         if self.ui.comboBox.currentText():
             self.onComboChange()
-            
+
     def onRefereshClick(self):
         detected_device = self.find_usb()
 
@@ -203,44 +206,45 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         self.onComboChange()
 
     def onComboChange(self):
-        
+
         global usb_device
         global usb_file_system
         global usb_mount
-        global sys_cfg_file 
+        global sys_cfg_file
         global usb_size_avail
         global usb_size_total
         global usb_size_used
         global usb_uuid
         global usb_label
-        
+
         usb_details = self.get_usb_details()
-        
+
         usb_device = str(usb_details[0])
         var.gbl_usb_device = usb_device
         usb_uuid = str(usb_details[1])
-        var.gbl_usb_uuid = usb_uuid 
+        var.gbl_usb_uuid = usb_uuid
         usb_label = str(usb_details[2])
+        var.usb_label = usb_label
         usb_mount = str(usb_details[3])
-        var.usb_mount = usb_mount 
+        var.usb_mount = usb_mount
         usb_file_system = str(usb_details[4])
         var.usb_file_system = usb_file_system
         usb_size_total = int(usb_details[5])
         usb_size_avail = int(usb_details[6])
         usb_size_used = int(usb_details[7])
-        sys_cfg_file = os.path.join(str(usb_details[3]), "multibootusb",  "syslinux.cfg")
-        var.gbl_sys_cfg_file = sys_cfg_file 
+        sys_cfg_file = os.path.join(str(usb_details[3]), "multibootusb", "syslinux.cfg")
+        var.gbl_sys_cfg_file = sys_cfg_file
 
-        self.update_list_box(sys_cfg_file) 
-        
+        self.update_list_box(sys_cfg_file)
+
     def browse_iso(self):
         self.ui.lineEdit.clear()
-        iso_link = QtGui.QFileDialog.getOpenFileName(self, 'Select an iso...', "",  "ISO Files (*.iso)")
+        iso_link = QtGui.QFileDialog.getOpenFileName(self, 'Select an iso...', "", "ISO Files (*.iso)")
         if iso_link:
             self.ui.lineEdit.insert(iso_link)
         else:
             print ("File not selected.")
-            
+
     def onCreateClick(self):
         self.create_mbusb()
 
@@ -254,7 +258,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 shutil.copytree(s, d, symlinks, ignore)
             else:
                 shutil.copy2(s, d)
-        
+
     def find_usb(self):
         found = []
         if sys.platform.startswith("linux"):
@@ -266,23 +270,25 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             for dev in ud_manager.EnumerateDevices():
                 device_obj = bus.get_object("org.freedesktop.UDisks", dev)
                 device_props = dbus.Interface(device_obj, dbus.PROPERTIES_IFACE)
-                if device_props.Get('org.freedesktop.UDisks.Device', "DriveConnectionInterface") == "usb" and device_props.Get('org.freedesktop.UDisks.Device', "DeviceIsPartition"):
+                if device_props.Get('org.freedesktop.UDisks.Device',
+                                    "DriveConnectionInterface") == "usb" and device_props.Get(
+                        'org.freedesktop.UDisks.Device', "DeviceIsPartition"):
                     if device_props.Get('org.freedesktop.UDisks.Device', "DeviceIsMounted"):
                         device_file = device_props.Get('org.freedesktop.UDisks.Device', "DeviceFile")
                         found.append(device_file)
-                #else:
-                 #   print "Device not mounted"
+                        #else:
+                        #   print "Device not mounted"
 
             return found
-        
+
         else:
             oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
             oDrives = oFS.Drives
             for drive in oDrives:
                 if drive.DriveType == 1 and drive.IsReady:
-                     found.append(drive)
+                    found.append(drive)
             return found
-            
+
     def get_usb_details(self):
 
         if sys.platform.startswith("linux"):
@@ -291,11 +297,11 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             device_obj = bus.get_object("org.freedesktop.UDisks", "/org/freedesktop/UDisks/devices" + selected_usb_part)
             device_props = dbus.Interface(device_obj, dbus.PROPERTIES_IFACE)
             selected_usb_device = device_props.Get('org.freedesktop.UDisks.Device', "DeviceFile")
-            selected_usb_uuid =   device_props.Get('org.freedesktop.UDisks.Device', "IdUuid")
-            selected_usb_label =   device_props.Get('org.freedesktop.UDisks.Device', "IdLabel")
-            selected_usb_mount_path =   device_props.Get('org.freedesktop.UDisks.Device', "DeviceMountPaths")[0]
+            selected_usb_uuid = device_props.Get('org.freedesktop.UDisks.Device', "IdUuid")
+            selected_usb_label = device_props.Get('org.freedesktop.UDisks.Device', "IdLabel")
+            selected_usb_mount_path = device_props.Get('org.freedesktop.UDisks.Device', "DeviceMountPaths")[0]
             #selected_usb_size = device_props.Get('org.freedesktop.UDisks.Device', "PartitionSize") 
-            selected_usb_file_system = device_props.Get('org.freedesktop.UDisks.Device', "IdType") 
+            selected_usb_file_system = device_props.Get('org.freedesktop.UDisks.Device', "IdType")
             selected_usb_total_size = psutil.disk_usage(selected_usb_mount_path)[0]
             selected_usb_avail_size = psutil.disk_usage(selected_usb_mount_path)[2]
             selected_usb_used_size = psutil.disk_usage(selected_usb_mount_path)[1]
@@ -319,16 +325,18 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         self.ui.usb_label.setText("Label :: " + selected_usb_label)
         self.ui.usb_dev.setText("USB Device :: " + selected_usb_device)
         self.ui.usb_mount.setText("Mount :: " + str(selected_usb_mount_path))
-            #[0] = selected_usb_device
-            #[1] = selected_usb_uuid 
-            #[2] = selected_usb_label  
-            #[3] = selected_usb_mount_path 
-            #[4] = selected_usb_file_system
-            #[5 = selected_usb_total_size
-            #[6] = selected_usb_avail_size
-            #[7] = selected_usb_used_size
-        return (selected_usb_device, selected_usb_uuid, selected_usb_label, selected_usb_mount_path, selected_usb_file_system, selected_usb_total_size, selected_usb_avail_size, selected_usb_used_size)
-        
+        #[0] = selected_usb_device
+        #[1] = selected_usb_uuid
+        #[2] = selected_usb_label
+        #[3] = selected_usb_mount_path
+        #[4] = selected_usb_file_system
+        #[5 = selected_usb_total_size
+        #[6] = selected_usb_avail_size
+        #[7] = selected_usb_used_size
+        return (
+        selected_usb_device, selected_usb_uuid, selected_usb_label, selected_usb_mount_path, selected_usb_file_system,
+        selected_usb_total_size, selected_usb_avail_size, selected_usb_used_size)
+
     def update_list_box(self, sys_cfg_file):
         if sys_cfg_file:
             self.ui.listWidget.clear()
@@ -340,18 +348,20 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
 
     def create_mbusb(self):
         global required_syslinux_install
-        
+
         if not self.ui.comboBox.currentText():
-            QtGui.QMessageBox.information(self, 'No USB...', 'No USB found. (Step 1)\n\nInsert USB disk and restart multibootusb')
+            QtGui.QMessageBox.information(self, 'No USB...',
+                                          'No USB found. (Step 1)\n\nInsert USB disk and restart multibootusb')
             self.ui.lineEdit.clear()
-        elif not self.ui.lineEdit.text() :
-            QtGui.QMessageBox.information(self, 'No ISO...', 'No ISO selected. (Step 2)\n\nPlease choose an iso and click create')
+        elif not self.ui.lineEdit.text():
+            QtGui.QMessageBox.information(self, 'No ISO...',
+                                          'No ISO selected. (Step 2)\n\nPlease choose an iso and click create')
         else:
             iso_path = str(self.ui.lineEdit.text())
             print self.ui.lineEdit.text()
             iso_name = os.path.basename(iso_path)
             self.ui.lineEdit.clear()
-            mbusb_dir_content = resource_path(os.path.join("tools","multibootusb"))
+            mbusb_dir_content = resource_path(os.path.join("tools", "multibootusb"))
 
             iso_size = int(os.path.getsize(iso_path))
 
@@ -377,6 +387,10 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 # Extract necessary files to find distro...
                 print "Integrity passed..."
                 subprocess.call(zip + " e " + iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r", shell=True)
+                subprocess.call(zip + " e " + iso_path + " -y -o" + iso_cfg_ext_dir + "/ isolinux.bin -r", shell=True)
+                if not os.path.exists(os.path.join(iso_cfg_ext_dir, "isolinux.bin")):
+                    var.distro_isolinux_exist = "no"
+
                 # Get the list of files from iso. So that later on it can be used for detecting other distros.
                 var.iso_file_content = os.popen(zip + ' l ' + iso_path).read()
                 error_7zip = "no"
@@ -399,7 +413,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             elif re.search(r'0.img', var.iso_file_content, re.I):
                 distro = "opensuse"
             """
-                #self.detect_iso_zip_info()
+            #self.detect_iso_zip_info()
             if distro:
                 var.distro = distro
                 print var.distro
@@ -411,44 +425,47 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 self.ui.status.clear()
 
             elif not var.distro:
-                QtGui.QMessageBox.information(self, 'No support...', 'Sorry. ' + iso_name + ' is not supported at the moment\n\nPlease email this issue to feedback.multibootusb@gmail.com')
+                QtGui.QMessageBox.information(self, 'No support...',
+                                              'Sorry. ' + iso_name + ' is not supported at the moment\n\nPlease email this issue to feedback.multibootusb@gmail.com')
 
             elif iso_size > usb_size_avail:
                 print iso_size
                 print usb_size_avail
-                QtGui.QMessageBox.information(self, 'No Space...', 'Sorry.\n\nThere is no space available on ' + usb_device)
+                QtGui.QMessageBox.information(self, 'No Space...',
+                                              'Sorry.\n\nThere is no space available on ' + usb_device)
             else:
                 mbusb_usb_dir = os.path.join(str(usb_mount), "multibootusb")
-                install_dir = os.path.join(mbusb_usb_dir,  os.path.splitext(iso_name)[0])
+                install_dir = os.path.join(mbusb_usb_dir, os.path.splitext(iso_name)[0])
                 var.install_dir = install_dir
 
-                if os.path.exists(install_dir ):
-                    QtGui.QMessageBox.information(self, 'Already exist...', iso_name + ' is already installed on ' + usb_device )
+                if os.path.exists(install_dir):
+                    QtGui.QMessageBox.information(self, 'Already exist...',
+                                                  iso_name + ' is already installed on ' + usb_device)
                 else:
                     reply = QtGui.QMessageBox.question(self, 'Review selection...',
-                                    'Selected USB disk:: %s\n' % usb_device +
-                                    'USB mount point:: %s\n' % usb_mount +
-                                    'Selected distro:: %s\n\n' % iso_name + 
-                                    'Would you like to install the selected distro?',
-                                      QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+                                                       'Selected USB disk:: %s\n' % usb_device +
+                                                       'USB mount point:: %s\n' % usb_mount +
+                                                       'Selected distro:: %s\n\n' % iso_name +
+                                                       'Would you like to install the selected distro?',
+                                                       QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
                     if reply == QtGui.QMessageBox.Yes:
                         if not os.path.exists(mbusb_usb_dir):
                             required_syslinux_install = 'yes'
-                            shutil.copytree (mbusb_dir_content,  os.path.join(str(usb_mount),  "multibootusb"))
+                            shutil.copytree(mbusb_dir_content, os.path.join(str(usb_mount), "multibootusb"))
                         else:
-                                required_syslinux_install = 'no'
+                            required_syslinux_install = 'no'
                         os.makedirs(install_dir)
 
                         out_dir = "-o" + install_dir
                         inintial_size = os.path.getsize(iso_path)
-                        self.ui.status.setText ("Installing " + iso_name)
-                        
+                        self.ui.status.setText("Installing " + iso_name)
+
                         def copy_process():
-                           #subprocess.Popen([zip, 'x', iso_path, '-y',  out_dir ])
+                            #subprocess.Popen([zip, 'x', iso_path, '-y',  out_dir ])
                             if var.distro == "opensuse":
                                 if sys.platform.startswith("linux"):
                                     if not var.password == "":
-                                        if not os.path.exists ('/tmp/suse/mbusb_suse'):
+                                        if not os.path.exists('/tmp/suse/mbusb_suse'):
                                             os.system('echo ' + var.password + ' | sudo -S mkdir /tmp/mbusb_suse')
                                         else:
                                             os.system(
@@ -470,6 +487,14 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                                 subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " boot -r", shell=True)
                                 subprocess.call(zip + " e " + iso_path + " -y -o" + var.usb_mount + "/ *.tlz -r",
                                                 shell=True)
+                            elif var.distro == "zenwalk" or var.distro == "zenwalk":
+                                subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " isolinux -r", shell=True)
+                                subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " kernel* -r", shell=True)
+                                shutil.copy(iso_path, install_dir)
+                            elif var.distro == "salix-live":
+                                subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " boot -r", shell=True)
+                                shutil.copy(iso_path, install_dir)
+
                             else:
                                 subprocess.call(zip + " x " + iso_path + " -y" + out_dir, shell=True)
 
@@ -479,7 +504,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                         while thrd.is_alive():
                             current_size = int(psutil.disk_usage(usb_mount)[1])
                             diff_size = int(inintial_usb_size - current_size)
-                            percentage = float(1.0*diff_size)/inintial_size*100
+                            percentage = float(1.0 * diff_size) / inintial_size * 100
                             self.ui.progressBar.setValue(abs(percentage))
                             QtGui.qApp.processEvents()
                         print "All Completed..."
@@ -497,8 +522,9 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                             os.system('sync')
                         for files in os.listdir(iso_cfg_ext_dir):
                             os.remove(os.path.join(iso_cfg_ext_dir, files))
-                        QtGui.QMessageBox.information(self, 'Installation Completed...', iso_name + ' is successfully installed.')
-    
+                        QtGui.QMessageBox.information(self, 'Installation Completed...',
+                                                      iso_name + ' is successfully installed.')
+
     def get_size(self, path):
         total_size = 0
         for dirpath, dirnames, filenames in os.walk(path):
@@ -525,15 +551,18 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
 
     def install_syslinux(self, usb_device):
         # Crossplatform function to install syslinux on selected device.
-        var.distro_isolinux_bin_path = self.detect_distro_isobin(var.install_dir)
         usb_mount_count = len(str(self.ui.usb_mount.text()[9:]))
-        print var.distro_isolinux_bin_path
-        #isolinux_path = os.path.join(dirpath, f)[usb_mount_count:]
-        var.distro_syslinux_dir_path = os.path.dirname(var.distro_isolinux_bin_path)[usb_mount_count:]
-        print var.distro_syslinux_dir_path
-        var.distro_syslinux_version = self.distro_syslinux_version(var.distro_isolinux_bin_path)
+        if not var.distro_isolinux_exist == "no":
+            var.distro_isolinux_bin_path = self.detect_distro_isobin(var.install_dir)
+            print "isolinux.bin found on " + var.distro_isolinux_bin_path
+            var.distro_syslinux_dir_path = os.path.dirname(var.distro_isolinux_bin_path)[usb_mount_count:]
+            var.distro_syslinux_version = self.distro_syslinux_version(var.distro_isolinux_bin_path)
+        else:
+            var.distro_isolinux_bin_path = ""
+            print "isolinux.bin not found..."
 
-        if not var.distro_syslinux_version == None:
+
+        if not var.distro_syslinux_version == "":
             if sys.platform.startswith("linux"):
                 extension = var.distro_syslinux_version
                 if var.distro_syslinux_version == "3":
@@ -545,51 +574,24 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             else:
                 extension = var.distro_syslinux_version + ".exe"
 
-                var.defautl_syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4.exe'))
+                if var.distro_syslinux_version == "3":
+                    var.syslinux_options = " -d "
+                else:
+                    var.syslinux_options = " -i -d "
+                    var.defautl_syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4') + ".exe")
+                    extension = var.distro_syslinux_version + ".exe"
 
             var.syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", "syslinux")) + extension
-            print var.syslinux_version
 
-            self.install_syslinux_distro_dir(var.distro_syslinux_dir_path, usb_device, var.mbr_bin, var.usb_mount,
-                                             default_install=0)
-            var.syslinux_options = " -i -d "
-            self.install_syslinux_distro_dir(var.distro_syslinux_dir_path, usb_device, var.mbr_bin, var.usb_mount,
-                                             default_install=1)
+        if not var.distro_isolinux_exist == "no":
+            self.install_syslinux_distro_dir(var.distro_syslinux_dir_path, usb_device, var.mbr_bin, var.usb_mount, var.syslinux_version,
+                                         var.syslinux_options)  # To install syslinux on distro isolinux directory.
+            self.install_syslinux_distro_dir( "multibootusb", usb_device, var.mbr_bin, var.usb_mount, var.defautl_syslinux_version , " -i -d ")
+        else:
+            self.install_syslinux_distro_dir( "multibootusb", usb_device, var.mbr_bin, var.usb_mount, var.defautl_syslinux_version , " -i -d ")
 
-        if required_syslinux_install == "yes":
-            print var.usb_file_system
-            if var.usb_file_system == "vfat" or var.usb_file_system == "ntfs" or var.usb_file_system == "FAT32":
-                if sys.platform.startswith("linux"):
-                    syslinux_linux = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4'))
-                    if var.password == "":
-                        if subprocess.call(syslinux_linux + ' -i -d /multibootusb ' + usb_device, shell=True) == 0:
-                            if subprocess.call('dd bs=440 count=1 conv=notrunc if=' + resource_path(
-                                    os.path.join("tools", "mbr.bin")) + ' of=' + usb_device[:-1], shell=True) == 0:
-                                print "Syslinux and mbr install was success..."
+            """
 
-                    elif not var.password == "":
-
-                        if os.path.exists("/usr/lib/syslinux/bios/"):
-                            subprocess.call('cp -rf /usr/lib/syslinux/bios/*.c32 ' + var.usb_mount + "/multibootusb",
-                                            shell=True)
-                            #if os.system('echo ' + var.password + ' | sudo -S syslinux -i -d /multibootusb ' + usb_device)==0:
-                        if subprocess.call(
-                                                                        'echo ' + var.password + ' | sudo -S ' + syslinux_linux + ' -i -d /multibootusb ' + usb_device,
-                                                                        shell=True) == 0:
-                            if subprocess.call(
-                                                                            'echo ' + var.password + ' | sudo -S dd bs=440 count=1 conv=notrunc if=' + resource_path(
-                                                            os.path.join("tools", "mbr.bin")) + ' of=' + usb_device[
-                                                                                                         :-1],
-                                                                            shell=True) == 0:
-                                print "Syslinux and mbr install was success..."
-                                #                                print "Copying com modules..."
-                                QtGui.QMessageBox.information(self, 'Installation Completed...',
-                                                              'Syslinux successfully installed.')
-
-                            else:
-                                print "mbr install fail..."
-                        else:
-                            print "syslinux install fail..."
                 else:
                     print resource_path(os.path.join("tools", "syslinux", "bin",
                                                      'syslinux4.exe')) + " -maf -d /multibootusb " + usb_device
@@ -602,6 +604,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                     else:
                         print "syslinux install fail."
                         QtGui.QMessageBox.information(self, 'Installation Completed...', 'Syslinux install failed.')
+            """
 
     def onInstall_syslinuxClick(self):
         var.sys_tab = "yes"
@@ -613,28 +616,28 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         src = str(resource_path(os.path.join("tools", "multibootusb")))
         dst = str(os.path.join(str(usb_mount), "multibootusb"))
         if self.ui.install_sys_all.isChecked() or self.ui.install_sys_only.isChecked():
-            self.install_syslinux_distro_dir(var.distro_syslinux_dir_path, usb_device, var.mbr_bin, var.usb_mount,
-                                             default_install=1)
+            self.install_syslinux_distro_dir( "multibootusb", usb_device, var.mbr_bin, var.usb_mount, var.defautl_syslinux_version , " -i -d ")
+            if self.ui.install_sys_all.isChecked():
+                self.copytree(src, dst)
         else:
             QtGui.QMessageBox.information(self, 'No selection...',
                                           'Please select from one of the option above.')
-        if self.ui.install_sys_all.isChecked():
-            self.copytree(src, dst)
 
-    def onedit_syslinux (self):
+
+    def onedit_syslinux(self):
         # Function to edit syslinux.cfg file on editors like gedit, notepad etc.
         # Suggest me more editor which can be included in to this function.
         global editor_exit_status
-        if not os.path.exists (sys_cfg_file):
+        if not os.path.exists(sys_cfg_file):
             print "syslinux.cfg file not found..."
             QtGui.QMessageBox.information(self, 'File not found...', 'Sorry. Unable to locate syslinux.cfg file.')
         else:
-            
+
             if sys.platform.startswith("linux"):
                 for editor in editors_linux:
-                    if os.system('which ' + editor)==0:
+                    if os.system('which ' + editor) == 0:
                         print "Found " + editor
-                        editor_exit_status  = subprocess.Popen(editor + " " + sys_cfg_file, shell=True).pid
+                        editor_exit_status = subprocess.Popen(editor + " " + sys_cfg_file, shell=True).pid
                         if not editor_exit_status:
                             print "syslinux.cfg file successfully opened for append."
                         break
@@ -642,16 +645,17 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 for editor in editors_win:
                     if not self.which(editor) == None:
                         print editor
-                        editor_exit_status  = subprocess.Popen(editor + " " + sys_cfg_file, shell=True).pid
+                        editor_exit_status = subprocess.Popen(editor + " " + sys_cfg_file, shell=True).pid
                         if not editor_exit_status:
                             print "syslinux.cfg file successfully opened for append."
                         break
-                        
+
     def which(self, program):
         import os
+
         def is_exe(fpath):
             return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-    
+
         fpath, fname = os.path.split(program)
         if fpath:
             if is_exe(program):
@@ -662,19 +666,20 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 exe_file = os.path.join(path, program)
                 if is_exe(exe_file):
                     return exe_file
-    
+
         return None
 
     def on_close_Click(self):
         # I am having trouble here. Unable to find if process like 7zip extraction, qemu, editor opened status etc.
         # Help required to identify/ running opened processes.
         global quit_ready
-        
+
         if not editor_exit_status == "dummy":
             p = psutil.Process(editor_exit_status)
             try:
                 print p.get_open_files()[0]
-                QtGui.QMessageBox.information(self, 'Process exist...',  'syslinux.cfg is open for edit.\nPlease save and close file before terminating multibootusb.')
+                QtGui.QMessageBox.information(self, 'Process exist...',
+                                              'syslinux.cfg is open for edit.\nPlease save and close file before terminating multibootusb.')
             except:
                 print "Process not exit."
                 quit_ready = "yes"
@@ -684,17 +689,18 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             print "Closing multibootusb..."
             QtGui.qApp.closeAllWindows()
 
-    
+
     def closeEvent(self, event):
-        
+
         quit_msg = "Do you really want to exit multibootusb?"
-        reply = QtGui.QMessageBox.question(self, 'Exit...', 
-                     quit_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+        reply = QtGui.QMessageBox.question(self, 'Exit...',
+                                           quit_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
 
         if reply == QtGui.QMessageBox.Yes:
             event.accept()
         else:
             event.ignore()
+
 
 app = QtGui.QApplication(sys.argv)
 window = AppGui()
