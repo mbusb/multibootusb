@@ -27,8 +27,9 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                 return "hbcd"
                             elif re.search(r'pmagic|partedmagic', string, re.I):
                                 return "parted-magic"
-                            #elif re.search(r'mgalive', string, re.I): # mounting fat filesystem hard coded in to initrd. May not work.
-                            #    return "mageialive"
+                            elif re.search(r'mgalive', string,
+                                           re.I):  # mounting fat filesystem hard coded in to initrd. Can be modifed only under linux.
+                                return "mageialive"
                             elif re.search(r'archisolabel|misolabel', string, re.I):
                                 return "arch"
                             elif re.search(r'chakraisolabel', string, re.I):
@@ -44,7 +45,7 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                             elif re.search(r'suse', string, re.I):
                                 return "suse"
                             elif re.search(r'opensuse', string,
-                                           re.I): # or re.search(r'config.isoclient', var.iso_file_content, re.I):
+                                           re.I):  # or re.search(r'config.isoclient', var.iso_file_content, re.I):
                                 return "opensuse"
                             elif re.search(
                                     r'slitaz|ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|riplinux|lebel dummy',
@@ -80,6 +81,10 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                 return "ipcop"
                             elif re.search(r'ipfire', string, re.I):
                                 return "ipfire"
+                            elif re.search(r'zenwalk|slack|salix', string, re.I) and re.search(r'live', string, re.I):
+                                return "salix-live"
+                            elif re.search(r'zenwalk|slack|salix', string, re.I):
+                                return "zenwalk"
 
 
     def detect_iso_zip_info(self):
