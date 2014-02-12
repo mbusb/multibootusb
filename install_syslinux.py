@@ -42,57 +42,40 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                             print "Found syslinux version " + number
                             return number
 
-    def install_syslinux_distro_dir(self, syslinux_dir_path, usb_device, mbr_bin, usb_mount, default_install):
-        self.ui.status.setText("Installing syslinux on distro directory...")
-
-        if default_install == 1:
-            syslinux_dir_path = "multibootusb"
-            var.syslinux_version = var.defautl_syslinux_version
-
+    def install_syslinux_distro_dir(self, distro_syslinux_dir_path, usb_device, mbr_bin, usb_mount, syslinux_version, syslinux_options):
+        print distro_syslinux_dir_path
         if var.usb_file_system == "vfat" or var.usb_file_system == "ntfs" or var.usb_file_system == "FAT32":
             if sys.platform.startswith("linux"):
-                var.distro_sys_install_bs = os.path.join(os.path.dirname(var.distro_isolinux_bin_path),
-                                                         var.distro) + '.bs'
-                print var.distro_sys_install_bs
-                if var.password == "":
-                    if subprocess.call(
-                                                            var.syslinux_version + var.syslinux_options + syslinux_dir_path + ' ' + usb_device,
-                                                            shell=True) == 0:
-
-                        print "Syslinux install was successful..."
-                        sys_ins_succ = "yes"
-                    else:
-                        print "Syslinux install was fail..."
-                        sys_ins_succ = "no"
-
-                elif not var.password == "":
-                    if subprocess.call(
-                                                                                    'echo ' + var.password + ' | sudo -S ' + var.syslinux_version + var.syslinux_options + syslinux_dir_path + ' ' + usb_device,
-                                                                                    shell=True) == 0:
-                        print "Syslinux install was successful..."
-                        sys_ins_succ = "yes"
-                    else:
-                        print "Syslinux install was fail..."
-                        sys_ins_succ = "no"
-
-                if sys_ins_succ == "yes" and default_install == 0:
-                    if subprocess.call('dd if=' + usb_device + ' ' + 'of=' + var.distro_sys_install_bs + ' count=1',
-                                       shell=True) == 0:
-                        print "Boot sector has been successfully copied..."
-
-                if sys.platform.startswith("linux") and default_install == 1:
+                if distro_syslinux_dir_path == "multibootusb":
                     if var.password == "":
-                        if subprocess.call('dd bs=440 count=1 conv=notrunc if=' + mbr_bin + ' of=' + usb_device[:-1],
-                                           shell=True) == 0:
-                            print "mbr install was success..."
-                    elif not var.password == "":
-                        if subprocess.call(
-                                                                        'echo ' + var.password + ' | sudo -S dd bs=440 count=1 conv=notrunc if=' + mbr_bin + ' of=' + usb_device[
-                                                                                                                                                                      :-1],
-                                                                        shell=True) == 0:
+                        syslinux_version = syslinux_version + ""
+                    else:
+                        syslinux_version = 'echo ' + var.password + ' | sudo -S ' + syslinux_version
+                    if subprocess.call(syslinux_version + syslinux_options + distro_syslinux_dir_path + ' ' + usb_device, shell=True) == 0:
+                        print "Syslinux install was successful..."
+                        if subprocess.call('dd bs=440 count=1 conv=notrunc if=' + mbr_bin + ' of=' + usb_device[:-1], shell=True) == 0:
                             print "mbr install was success..."
                             if var.sys_tab == "yes":
                                 QtGui.QMessageBox.information(self, 'Installation Completed...',
-                                                              'Syslinux has been successfully installed on' + str(
-                                                                  usb_device))
-                                #else:
+                                                                'Syslinux has been successfully installed on' + str(
+                                                                    usb_device))
+
+                elif not var.distro_syslinux_dir_path == "multibootusb":
+                    #var.syslinux_version = var.distro_syslinux_version
+                    if var.password == "":
+                        syslinux_version = syslinux_version + ""
+                    else:
+                        syslinux_version = 'echo ' + var.password + ' | sudo -S ' + syslinux_version
+                    var.distro_sys_install_bs = os.path.join(os.path.dirname(var.distro_isolinux_bin_path), var.distro) + '.bs'
+                    if subprocess.call(syslinux_version + syslinux_options + distro_syslinux_dir_path + ' ' + usb_device, shell=True) == 0:
+                        print "Syslinux install was successful on distro directory..."
+                        if subprocess.call('dd if=' + usb_device + ' ' + 'of=' + var.distro_sys_install_bs + ' count=1', shell=True) == 0:
+                            print "Boot sector has been successfully copied..."
+                        else:
+                            print "Boot sector copy failed..."
+                    else:
+                            print "Syslinux install on distro directory failed..."
+            # Syslinux install under Linux ends here.
+
+            else:
+                print "Windows script starts here..."
