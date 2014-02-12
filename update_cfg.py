@@ -7,7 +7,7 @@ from multibootusb_ui import Ui_Dialog
 
 
 class AppGui(QtGui.QDialog, Ui_Dialog):
-    def update_distro_cfg_files(self,  distro, iso_name, iso_cfg_ext_dir):
+    def update_distro_cfg_files(self, distro, iso_name, iso_cfg_ext_dir):
         #print "Updating config files..."
         self.ui.status.setText("Updating config files...")
         QtGui.qApp.processEvents()
@@ -25,32 +25,48 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                     string = re.sub(r'([ \t =,])/', replace_text, string)
                     if distro == "ubuntu":
                         #string = re.sub(r'file=/cdrom/', 'file=/cdrom/multibootusb/' + os.path.splitext(iso_name)[0] + '/',  string)
-                        string = re.sub(r'boot=casper', 'boot=casper cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid ignore_bootid root=UUID=' + str(var.gbl_usb_uuid) + ' live-media-path=/multibootusb/' + os.path.splitext(iso_name)[0] + '/casper',  string) 
+                        string = re.sub(r'boot=casper',
+                                        'boot=casper cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid ignore_bootid root=UUID=' + str(
+                                            var.gbl_usb_uuid) + ' live-media-path=/multibootusb/' +
+                                        os.path.splitext(iso_name)[0] + '/casper', string)
                     elif distro == "debian":
-                        string = re.sub(r'boot=live', 'boot=live ignore_bootid live-media-path=/multibootusb/' + os.path.splitext(iso_name)[0] + '/live',  string)
+                        string = re.sub(r'boot=live', 'boot=live ignore_bootid live-media-path=/multibootusb/' +
+                                                      os.path.splitext(iso_name)[0] + '/live', string)
                     elif distro == "fedora":
                         string = re.sub(r'root=\S*', 'root=UUID=' + str(var.gbl_usb_uuid) + ' live_dir=/multibootusb/' +
                                                      os.path.splitext(iso_name)[0] + '/LiveOS', string)
                     elif distro == "parted-magic":
-                        string = re.sub(r'initrd=', 'directory=/multibootusb/' + os.path.splitext(iso_name)[0] + '/ initrd=' ,  string)
+                        string = re.sub(r'initrd=',
+                                        'directory=/multibootusb/' + os.path.splitext(iso_name)[0] + '/ initrd=',
+                                        string)
                     elif distro == "ubcd":
-                        string = re.sub(r'iso_filename=\S*', 'directory=/multibootusb/' + os.path.splitext(iso_name)[0],  string, flags=re.I)
+                        string = re.sub(r'iso_filename=\S*', 'directory=/multibootusb/' + os.path.splitext(iso_name)[0],
+                                        string, flags=re.I)
                     elif distro == "ipcop":
-                        string = re.sub(r'ipcopboot=cdrom\S*', 'ipcopboot=usb',  string)                     
+                        string = re.sub(r'ipcopboot=cdrom\S*', 'ipcopboot=usb', string)
                     elif distro == "puppy":
-                        string = re.sub(r'pmedia=cd\S*', 'pmedia=usbflash psubdir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/',  string)
+                        string = re.sub(r'pmedia=cd\S*',
+                                        'pmedia=usbflash psubdir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/',
+                                        string)
                     elif distro == "slax":
                         string = re.sub(r'initrd=', '\1 from=/multibootusb/' + os.path.splitext(iso_name)[
                             0] + '/slax fromusb initrd=', string)
                     elif distro == "knoppix":
-                        string = re.sub(r'append', '\1  knoppix_dir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/KNOPPIX',  string)
+                        string = re.sub(r'append',
+                                        '\1  knoppix_dir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/KNOPPIX',
+                                        string)
                     elif distro == "systemrescuecd":
-                        string = re.sub(r'append', '\1 subdir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/',  string, flags=re.I)
+                        string = re.sub(r'append', '\1 subdir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/',
+                                        string, flags=re.I)
                     elif distro == "arch" or distro == "chakra":
-                        string = re.sub(r'isolabel=\S*', 'isodevice=/dev/disk/by-uuid/' + str(var.gbl_usb_uuid),  string, flags=re.I)
-                        string = re.sub(r'isobasedir=', 'isobasedir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/',  string, flags=re.I)
+                        string = re.sub(r'isolabel=\S*', 'isodevice=/dev/disk/by-uuid/' + str(var.gbl_usb_uuid), string,
+                                        flags=re.I)
+                        string = re.sub(r'isobasedir=',
+                                        'isobasedir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/', string,
+                                        flags=re.I)
                     elif distro == "suse" or distro == "opensuse":
-                        string = re.sub(r'append', 'append loader=syslinux isofrom=/dev/disk/by-uuid/' + str(var.gbl_usb_uuid) + ":" + str(iso_name),  string, flags=re.I)
+                        string = re.sub(r'append', 'append loader=syslinux isofrom=/dev/disk/by-uuid/' + str(
+                            var.gbl_usb_uuid) + ":" + str(iso_name), string, flags=re.I)
                     elif distro == "pclinuxos":
                         string = re.sub(r'livecd=',
                                         'fromusb livecd=' + '/multibootusb/' + os.path.splitext(iso_name)[0] + '/',
@@ -63,14 +79,19 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                     elif distro == "zenwalk":
                         string = re.sub(r'initrd=', 'from=/multibootusb/' + os.path.splitext(iso_name)[
                             0] + '/' + iso_name + ' initrd=', string)
+                    elif distro == "mageialive":
+                        string = re.sub(r'LABEL=\S*', 'LABEL=' + var.usb_label, string)
+                    elif distro == "salix-live":
+                        string = re.sub(r'iso_path', '/multibootusb/' + os.path.splitext(iso_name)[
+                            0] + '/' + iso_name, string)
 
                     config_file = open(cfg_file, "wb")
-                    config_file .write(string)
-                    config_file .close()
+                    config_file.write(string)
+                    config_file.close()
 
-        self.update_syslinux_cfg_file(iso_cfg_ext_dir, iso_name,  var.gbl_sys_cfg_file)
-        
-    def update_syslinux_cfg_file(self, iso_cfg_ext_dir,  iso_name, sys_cfg_file):
+        self.update_syslinux_cfg_file(iso_cfg_ext_dir, iso_name, var.gbl_sys_cfg_file)
+
+    def update_syslinux_cfg_file(self, iso_cfg_ext_dir, iso_name, sys_cfg_file):
         usb_mount_count = len(str(self.ui.usb_mount.text()[9:]))
         isolinux_path = None
         print "Updating config files..."
@@ -82,7 +103,11 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                 config_file.write("#start " + os.path.splitext(iso_name)[0] + "\n")
                 config_file.write("LABEL " + os.path.splitext(iso_name)[0] + "\n")
                 config_file.write("MENU LABEL " + os.path.splitext(iso_name)[0] + "\n")
-                config_file.write("BOOT " + var.distro_sys_install_bs[usb_mount_count:] + "\n")
+                if var.distro == "salix-live":
+                    config_file.write(
+                        "LINUX " + '/multibootusb/' + os.path.splitext(iso_name)[0] + '/boot/grub2-linux.img' + "\n")
+                else:
+                    config_file.write("BOOT " + var.distro_sys_install_bs[usb_mount_count:] + "\n")
                 config_file.write("#end " + os.path.splitext(iso_name)[0] + "\n")
                 config_file.close()
 
