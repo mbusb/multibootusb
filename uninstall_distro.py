@@ -73,6 +73,11 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                     
     def remove_dir(self):
         global uninstall_distro_name
+        for path, subdirs, files in os.walk((os.path.join(str(var.usb_mount), "multibootusb", uninstall_distro_name.strip()))):
+            for name in files:
+                if name.endswith('ldlinux.sys'):
+                    os.chmod(os.path.join(path, name), 0777)
+                    os.unlink(os.path.join(path, name))
         if var.distro_uninstall == "opensuse":
             os.remove (os.path.join(str(var.usb_mount), uninstall_distro_name.strip() + ".iso"))
         elif var.distro_uninstall == "windows":
