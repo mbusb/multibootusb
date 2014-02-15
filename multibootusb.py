@@ -7,17 +7,8 @@ Created by Sundar and co-authored by Ian Bruce.
 """
 from PyQt4 import QtGui
 from multibootusb_ui import Ui_Dialog
-import sys
-import os
-import re
-import platform
-import tempfile
-import subprocess
-import shutil
-import psutil
-import threading
-import admin
-import var, qemu, detect_iso, update_cfg, uninstall_distro, install_syslinux
+import sys,os,re,platform,tempfile,subprocess,shutil,psutil,threading
+import admin,var, qemu, detect_iso, update_cfg, uninstall_distro, install_syslinux
 
 
 def resource_path(relativePath):
@@ -359,6 +350,8 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         else:
             iso_path = str(self.ui.lineEdit.text())
             print self.ui.lineEdit.text()
+            if platform.system() == "Windows":
+                iso_path = iso_path.replace("/", "\\")
             iso_name = os.path.basename(iso_path)
             self.ui.lineEdit.clear()
             mbusb_dir_content = resource_path(os.path.join("tools", "multibootusb"))
@@ -490,10 +483,18 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                             elif var.distro == "zenwalk" or var.distro == "zenwalk":
                                 subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " isolinux -r", shell=True)
                                 subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " kernel* -r", shell=True)
-                                shutil.copy(iso_path, install_dir)
+                                if sys.platform == 'win32':
+                                    subprocess.call(["xcopy",iso_path,install_dir], shell=True)
+                                else:
+                                    shutil.copy(iso_path, install_dir)
                             elif var.distro == "salix-live":
                                 subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " boot -r", shell=True)
-                                shutil.copy(iso_path, install_dir)
+                                if platform.system() == "Windows":
+                                    #if subprocess.call(["xcopy",iso_path,install_dir], shell=True):
+                                    if subprocess.call("xcopy " + iso_path + " " + install_dir, shell=True):
+                                        print "ISO copied to " + install_dir
+                                else:
+                                    shutil.copy(iso_path, install_dir)
 
                             else:
                                 subprocess.call(zip + " x " + iso_path + " -y" + out_dir, shell=True)
@@ -558,11 +559,11 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             var.distro_syslinux_dir_path = os.path.dirname(var.distro_isolinux_bin_path)[usb_mount_count:]
             var.distro_syslinux_version = self.distro_syslinux_version(var.distro_isolinux_bin_path)
         else:
-            var.distro_isolinux_bin_path = ""
+            var.distro_isolinux_bin_path = None
             print "isolinux.bin not found..."
 
 
-        if not var.distro_syslinux_version == "":
+        if not var.distro_syslinux_version == None:
             if sys.platform.startswith("linux"):
                 extension = var.distro_syslinux_version
                 if var.distro_syslinux_version == "3":
@@ -590,21 +591,6 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         else:
             self.install_syslinux_distro_dir( "multibootusb", usb_device, var.mbr_bin, var.usb_mount, var.defautl_syslinux_version , " -i -d ")
 
-            """
-
-                else:
-                    print resource_path(os.path.join("tools", "syslinux", "bin",
-                                                     'syslinux4.exe')) + " -maf -d /multibootusb " + usb_device
-                    if subprocess.call(resource_path(os.path.join("tools", "syslinux", "bin",
-                                                                  'syslinux4.exe')) + " -maf -d /multibootusb " + usb_device + ":",
-                                       shell=True) == 0:
-                        print "syslinux install success."
-                        QtGui.QMessageBox.information(self, 'Installation Completed...',
-                                                      'Syslinux successfully installed.')
-                    else:
-                        print "syslinux install fail."
-                        QtGui.QMessageBox.information(self, 'Installation Completed...', 'Syslinux install failed.')
-            """
 
     def onInstall_syslinuxClick(self):
         var.sys_tab = "yes"
