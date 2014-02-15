@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import string, re, sys, os, var, subprocess
+import string, re, sys, os, var, subprocess, platform
 from PyQt4 import QtGui
 from multibootusb_ui import Ui_Dialog
 
@@ -41,6 +41,9 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                         if re.search(r'isolinux ' + number, strin, re.I):
                             print "Found syslinux version " + number
                             return number
+        elif distro_bin == "":
+            print "Distro does not use syslinux"
+            return None
 
     def install_syslinux_distro_dir(self, distro_syslinux_dir_path, usb_device, mbr_bin, usb_mount, syslinux_version, syslinux_options):
         print distro_syslinux_dir_path
@@ -78,4 +81,23 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
             # Syslinux install under Linux ends here.
 
             else:
-                print "Windows script starts here..."
+                if distro_syslinux_dir_path == "multibootusb":
+                    syslinux_options = " -maf -d "
+                    print syslinux_version + syslinux_options + distro_syslinux_dir_path + ' ' + usb_device + ":"
+                    if subprocess.call(syslinux_version + syslinux_options + distro_syslinux_dir_path + ' ' + usb_device + ":", shell=True) == 0:
+                        print "Syslinux install was successful..."
+                        if var.sys_tab == "yes":
+                                QtGui.QMessageBox.information(self, 'Installation Completed...',
+                                                                'Syslinux has been successfully installed on' + str(
+                                                                    usb_device + ":"))
+                    else:
+                        print "Syslinux install was fail..."
+                else:
+                    var.distro_sys_install_bs = os.path.join(os.path.dirname(var.distro_isolinux_bin_path), var.distro) + '.bs'
+                    distro_syslinux_dir_path = "/" + distro_syslinux_dir_path.replace("\\", "/")
+                    print syslinux_version + syslinux_options + distro_syslinux_dir_path + ' ' + usb_device + ": " + var.distro_sys_install_bs
+                    if subprocess.call(syslinux_version + syslinux_options + distro_syslinux_dir_path + ' ' + usb_device + ": " + var.distro_sys_install_bs, shell=True) == 0:
+                        var.distro_sys_install_bs = "/" + os.path.join(os.path.dirname(var.distro_isolinux_bin_path), var.distro) + '.bs'
+                        print "Syslinux install was successful on distro directory..."
+                    else:
+                        print "Syslinux install on distro directory failed..."
