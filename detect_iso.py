@@ -25,6 +25,8 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                 return "ubcd"
                             elif re.search(r'hbcd', string, re.I):
                                 return "hbcd"
+                            elif re.search(r'systemrescuecd', string, re.I):
+                                return "systemrescuecd"
                             elif re.search(r'pmagic|partedmagic', string, re.I):
                                 return "parted-magic"
                             elif re.search(r'mgalive', string,
@@ -51,8 +53,6 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                     r'slitaz|ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|riplinux|lebel dummy',
                                     string, re.I):
                                 return "slitaz"
-                            elif re.search(r'systemrescuecd', string, re.I):
-                                return "systemrescuecd"
                             elif re.search(r'boot=casper', string, re.I):
                                 return "ubuntu"
                             elif re.search(r'slax', string, re.I):
@@ -73,8 +73,6 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                 return "finnix"
                             elif re.search(r'wifiway', string, re.I):
                                 return "wifiway"
-                            #elif re.search(r'slack|salix', string, re.I):
-                            #	return "salix"
                             elif re.search(r'puppy', string, re.I):
                                 return "puppy"
                             elif re.search(r'ipcop', string, re.I):
