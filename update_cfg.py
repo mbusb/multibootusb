@@ -107,7 +107,7 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                     config_file.write(
                         "LINUX " + '/multibootusb/' + os.path.splitext(iso_name)[0] + '/boot/grub2-linux.img' + "\n")
                 else:
-                    config_file.write("BOOT " + var.distro_sys_install_bs[usb_mount_count:] + "\n")
+                    config_file.write("BOOT " + var.distro_sys_install_bs[usb_mount_count:].replace("\\", "/") + "\n")
                 config_file.write("#end " + os.path.splitext(iso_name)[0] + "\n")
                 config_file.close()
 
@@ -133,37 +133,3 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                 config_file.write("KERNEL chain.c32 hd0 1 ntldr=/bootmgr" + "\n")
                 config_file.write("#end windows" + "\n")
                 config_file.close()
-
-        """
-        if not var.distro == "windows":
-            for dirpath, dirnames, filenames in os.walk(iso_cfg_ext_dir):
-                for f in filenames:
-                    if f.endswith("isolinux.cfg"):
-                        isolinux_path = os.path.join(dirpath, f)[usb_mount_count:]
-                        isolinux__dir_path = os.path.dirname(isolinux_path)
-                        print isolinux_path
-                        print isolinux__dir_path
-                    elif f.endswith("syslinux.cfg"):
-                        isolinux_path = os.path.join(dirpath, f)[usb_mount_count:]
-                        isolinux__dir_path = os.path.dirname(isolinux_path)
-                    elif f.endswith("grub.cfg"):
-                        isolinux_path = os.path.join(dirpath, f)[usb_mount_count:]
-                        isolinux__dir_path = os.path.dirname(isolinux_path)
-        
-        if isolinux_path:
-            if os.path.exists(sys_cfg_file):
-                config_file = open(sys_cfg_file, "a")
-                #if var.distro == "ipfire":
-                 #   config_file .write("#start ipfire" + "\n")
-                #else:
-                config_file .write("#start " + os.path.splitext(iso_name)[0] + "\n")
-                config_file .write("LABEL " + os.path.splitext(iso_name)[0] + "\n")
-                config_file .write("MENU LABEL " + os.path.splitext(iso_name)[0] + "\n")
-                config_file .write("CONFIG /" + isolinux_path.replace("\\", "/") + "\n")
-                config_file .write("APPEND /" + isolinux__dir_path.replace("\\", "/") + "\n")
-                #if var.distro == "ipfire":
-                #    config_file .write("#end ipfire" + \n")
-                #else:
-                config_file .write("#end " + os.path.splitext(iso_name)[0] + "\n")
-                config_file .close()
-        """
