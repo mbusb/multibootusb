@@ -41,9 +41,11 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                         if re.search(r'isolinux ' + number, strin, re.I):
                             print "Found syslinux version " + number
                             return number
+        """
         elif distro_bin == "":
             print "Distro does not use syslinux"
             return None
+        """
 
     def install_syslinux_distro_dir(self, distro_syslinux_dir_path, usb_device, mbr_bin, usb_mount, syslinux_version, syslinux_options):
         print distro_syslinux_dir_path
