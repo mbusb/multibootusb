@@ -487,6 +487,12 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                                     subprocess.call(["xcopy",iso_path,install_dir], shell=True)
                                 else:
                                     shutil.copy(iso_path, install_dir)
+                            elif var.distro == "pclinuxos":
+                                subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " isolinux -r", shell=True)
+                                if platform.system() == "Windows":
+                                    subprocess.call(["xcopy",iso_path,install_dir], shell=True)
+                                else:
+                                    shutil.copy(iso_path, install_dir)
                             elif var.distro == "salix-live":
                                 subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " boot -r", shell=True)
                                 if platform.system() == "Windows":
