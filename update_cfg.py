@@ -71,7 +71,7 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                         string = re.sub(r'livecd=',
                                         'fromusb livecd=' + '/multibootusb/' + os.path.splitext(iso_name)[0] + '/',
                                         string)
-                    elif distro == "porteus":
+                    elif distro == "porteus" or distro == "wifislax":
                         string = re.sub(r'initrd=',
                                         'from=' + '/multibootusb/' + os.path.splitext(iso_name)[0] + ' initrd=', string)
                     elif distro == "hbcd":
@@ -98,7 +98,26 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
         self.ui.status.setText("Updating config files...")
         QtGui.qApp.processEvents()
         if os.path.exists(sys_cfg_file):
-            if not var.distro == "windows":
+
+            if var.distro == "hbcd":
+                if os.path.exists(var.usb_mount + "multibootusb", "menu.lst"):
+                    config_file = open(os.path.exists(var.usb_mount + "multibootusb", "menu.lst"), "wb")
+                    string = re.sub(r'/HBCD', '/multibootusb/' + os.path.splitext(iso_name)[0] + '/HBCD', string)
+                    config_file.write(string)
+                    config_file.close()
+
+            if var.distro == "windows":
+                if os.path.exists(sys_cfg_file):
+                    config_file = open(sys_cfg_file, "a")
+                    config_file.write("#start windows" + "\n")
+                    config_file.write("LABEL windows" + "\n")
+                    config_file.write("MENU LABEL windows" + "\n")
+                    #config_file .write("CONFIG /" + isolinux_path.replace("\\", "/") + "\n")
+                    config_file.write("KERNEL chain.c32 hd0 1 ntldr=/bootmgr" + "\n")
+                    config_file.write("#end windows" + "\n")
+                    config_file.close()
+
+            else:
                 config_file = open(sys_cfg_file, "a")
                 config_file.write("#start " + os.path.splitext(iso_name)[0] + "\n")
                 config_file.write("LABEL " + os.path.splitext(iso_name)[0] + "\n")
@@ -106,6 +125,9 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                 if var.distro == "salix-live":
                     config_file.write(
                         "LINUX " + '/multibootusb/' + os.path.splitext(iso_name)[0] + '/boot/grub2-linux.img' + "\n")
+                elif var.distro == "pclinuxos":
+                    config_file.write("kernel " + '/multibootusb/' + os.path.splitext(iso_name)[0] + '/isolinux/vmlinuz' + "\n")
+                    config_file.write("append livecd=livecd root=/dev/rd/3 acpi=on vga=788 keyb=us vmalloc=256M nokmsboot fromusb root=UUID=" + var.gbl_usb_uuid + " bootfromiso=/multibootusb/" + os.path.splitext(iso_name)[0] + "/" + iso_name + " initrd=/multibootusb/" + os.path.splitext(iso_name)[0] + '/isolinux/initrd.gz' + "\n")
                 else:
                     config_file.write("BOOT " + var.distro_sys_install_bs[usb_mount_count:].replace("\\", "/") + "\n")
                 config_file.write("#end " + os.path.splitext(iso_name)[0] + "\n")
@@ -115,21 +137,3 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
             for f in filenames:
                 if f.endswith("isolinux.cfg"):
                     shutil.copy2(os.path.join(dirpath, f), os.path.join(dirpath, "syslinux.cfg"))
-
-        if var.distro == "hbcd":
-            if os.path.exists(var.usb_mount + "multibootusb", "menu.lst"):
-                config_file = open(os.path.exists(var.usb_mount + "multibootusb", "menu.lst"), "wb")
-                string = re.sub(r'/HBCD', '/multibootusb/' + os.path.splitext(iso_name)[0] + '/HBCD', string)
-                config_file.write(string)
-                config_file.close()
-
-        if var.distro == "windows":
-            if os.path.exists(sys_cfg_file):
-                config_file = open(sys_cfg_file, "a")
-                config_file.write("#start windows" + "\n")
-                config_file.write("LABEL windows" + "\n")
-                config_file.write("MENU LABEL windows" + "\n")
-                #config_file .write("CONFIG /" + isolinux_path.replace("\\", "/") + "\n")
-                config_file.write("KERNEL chain.c32 hd0 1 ntldr=/bootmgr" + "\n")
-                config_file.write("#end windows" + "\n")
-                config_file.close()
