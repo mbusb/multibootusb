@@ -565,15 +565,15 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
 
         if not var.distro_syslinux_version == None:
             if sys.platform.startswith("linux"):
-                extension = var.distro_syslinux_version
+                extension = str(var.distro_syslinux_version)
+
                 if var.distro_syslinux_version == "3":
                     var.syslinux_options = " -d "
                 else:
                     var.syslinux_options = " -i -d "
                 var.defautl_syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4'))
-
             else:
-                extension = var.distro_syslinux_version + ".exe"
+                extension = str(var.distro_syslinux_version) + ".exe"
 
                 if var.distro_syslinux_version == "3":
                     var.syslinux_options = " -d "
@@ -581,8 +581,8 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                     var.syslinux_options = " -i -d "
                     var.defautl_syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4') + ".exe")
                     extension = var.distro_syslinux_version + ".exe"
-
-            var.syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", "syslinux")) + extension
+            #var.syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", "syslinux")) + extension
+            var.syslinux_version = var.defautl_syslinux_version[:-1] + extension # Have to use this instead of resource_path as it breaks after building executable.
 
         if not var.distro_isolinux_exist == "no":
             self.install_syslinux_distro_dir(var.distro_syslinux_dir_path, usb_device, var.mbr_bin, var.usb_mount, var.syslinux_version,
