@@ -55,6 +55,8 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                 return "slitaz"
                             elif re.search(r'boot=casper', string, re.I):
                                 return "ubuntu"
+                            elif re.search(r'wifislax', string, re.I):
+                                return "wifislax"
                             elif re.search(r'slax', string, re.I):
                                 return "slax"
                             elif re.search(r'sms|vector|autoexec', string, re.I):
@@ -63,9 +65,7 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                 return "antix"
                             elif re.search(r'porteus', string, re.I):
                                 return "porteus"
-                            elif re.search(r'wifislax', string, re.I):
-                                return "wifislax"
-                            elif re.search(r'livecd=livecd|unity', string, re.I):
+                            elif re.search(r'livecd=livecd|PCLinuxOS', string, re.I):
                                 return "pclinuxos"
                             elif re.search(r'looptype=squashfs', string, re.I):
                                 return "gentoo"
