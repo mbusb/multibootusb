@@ -43,6 +43,7 @@ if platform.system() == "Windows":
         admin.runAsAdmin()
         sys.exit(0)
 
+
 if sys.platform.startswith("linux"):
     import dbus
     from os.path import expanduser
@@ -62,6 +63,12 @@ if sys.platform.startswith("linux"):
 
 else:
     mbusb_dir = os.path.join(tempfile.gettempdir(), "multibootusb")
+    zip = resource_path(os.path.join("tools", "7zip", "windows", "7z.exe"))
+    var.zip = zip
+    qemu_zip = resource_path(os.path.join("tools","qemu.7z"))
+    subprocess.call(zip + " x " + qemu_zip + " -y -o" + resource_path(os.path.join("tools")), shell=True)
+    var.qemu = resource_path(os.path.join("tools","qemu", "qemu-system-x86_64.exe"))
+    var.qemu_dir = resource_path(os.path.join("tools","qemu"))
 
 if not os.path.exists(mbusb_dir):
     os.makedirs(mbusb_dir)
@@ -98,7 +105,15 @@ if os.listdir(iso_cfg_ext_dir):
     print "iso extract directory is not empty."
     print "Removing junk files..."
     for files in os.listdir(iso_cfg_ext_dir):
-        os.remove(os.path.join(iso_cfg_ext_dir, files))
+        if os.path.isdir(os.path.join(iso_cfg_ext_dir, files)):
+            print (os.path.join(iso_cfg_ext_dir, files))
+            os.chmod(os.path.join(iso_cfg_ext_dir, files),0o777)
+            shutil.rmtree(os.path.join(iso_cfg_ext_dir, files))
+        else:
+            print (os.path.join(iso_cfg_ext_dir, files))
+            os.chmod(os.path.join(iso_cfg_ext_dir, files), 0777)
+            os.unlink(os.path.join(iso_cfg_ext_dir, files))
+            os.remove(os.path.join(iso_cfg_ext_dir, files))
 
 """
 def resource_path(relative):
@@ -177,7 +192,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
 
                 else:
                     QtGui.QMessageBox.information(self, 'No root...',
-                                                  'multibootusb require Please install either sudo, gksu, kdesu, gksudo or kdesudo then restart multibootusb.')
+                                                  'multibootusb require Please install sudo, gksu, kdesu, gksudo or kdesudo then restart multibootusb.')
                     sys.exit(0)
 
         detected_device = self.find_usb()
@@ -362,7 +377,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             self.ui.status.setText("Testing integrity of " + iso_name)
             QtGui.qApp.processEvents()
 
-            # Someboby can help me to animate this image...
+            # Somebody can help me to animate this image...
             """
             movie = QtGui.QMovie(resource_path(os.path.join("tools","checking.gif")))
             movie.setCacheMode(QtGui.QMovie.CacheAll)
@@ -381,6 +396,8 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 print "Integrity passed..."
                 subprocess.call(zip + " e " + iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r", shell=True)
                 subprocess.call(zip + " e " + iso_path + " -y -o" + iso_cfg_ext_dir + "/ isolinux.bin -r", shell=True)
+                if not sys.platform.startswith("linux"):
+                    subprocess.call(resource_path(os.path.join("tools","7zip","windows","bsdtar.exe"))  + " -C "+ iso_cfg_ext_dir +  " -xvf " + iso_path + " *.cfg", shell=True)
                 if not os.path.exists(os.path.join(iso_cfg_ext_dir, "isolinux.bin")):
                     var.distro_isolinux_exist = "no"
 
@@ -467,12 +484,14 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                                             os.system('cp -rfv /tmp/mbusb_suse/boot ' + install_dir + '/boot')
                                         os.system('echo ' + var.password + ' | sudo -S umount /tmp/mbusb_suse')
                                         os.system('echo ' + var.password + ' | sudo -S rm -r /tmp/mbusb_suse')
+                                        shutil.copy(iso_path, usb_mount)
                                 elif platform.system() == "Windows":
+                                    print resource_path(os.path.join("tools", "7zip", "windows","bsdtar.exe")) + " -C " + install_dir + " - xvf "+ iso_path + " boot"
                                     subprocess.call(resource_path(os.path.join("tools", "7zip", "windows",
-                                                                               "bsdtar.exe")) + " -xvf " + iso_path + " boot " + install_dir,
+                                                                               "bsdtar.exe")) + " -C " + install_dir + " -xvf "+ iso_path + " boot",
                                                     shell=True)
+                                    subprocess.call(["xcopy",iso_path,var.usb_mount], shell=True)
 
-                                shutil.copy(iso_path, usb_mount)
                             elif var.distro == "windows":
                                 #os.system(zip + " x "+ iso_path + " -y -o" + var.usb_mount + "/")
                                 subprocess.call(zip + " x " + iso_path + " -y -o" + var.usb_mount + "/", shell=True)
@@ -528,7 +547,16 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                         if sys.platform.startswith("linux"):
                             os.system('sync')
                         for files in os.listdir(iso_cfg_ext_dir):
-                            os.remove(os.path.join(iso_cfg_ext_dir, files))
+                            if os.path.isdir(os.path.join(iso_cfg_ext_dir, files)):
+                                print (os.path.join(iso_cfg_ext_dir, files))
+                                os.chmod(os.path.join(iso_cfg_ext_dir, files),0o777)
+                                shutil.rmtree(os.path.join(iso_cfg_ext_dir, files))
+                            else:
+                                print (os.path.join(iso_cfg_ext_dir, files))
+                                os.chmod(os.path.join(iso_cfg_ext_dir, files), 0777)
+                                os.unlink(os.path.join(iso_cfg_ext_dir, files))
+                                os.remove(os.path.join(iso_cfg_ext_dir, files))
+
                         QtGui.QMessageBox.information(self, 'Installation Completed...',
                                                       iso_name + ' is successfully installed.')
 
@@ -559,7 +587,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
     def install_syslinux(self, usb_device):
         # Crossplatform function to install syslinux on selected device.
         usb_mount_count = len(str(self.ui.usb_mount.text()[9:]))
-        if not var.distro_isolinux_exist == "no":
+        if not var.distro_isolinux_exist == "no" or var.distro == "opensuse":
             var.distro_isolinux_bin_path = self.detect_distro_isobin(var.install_dir)
             print "isolinux.bin found on " + var.distro_isolinux_bin_path
             var.distro_syslinux_dir_path = os.path.dirname(var.distro_isolinux_bin_path)[usb_mount_count:]
@@ -586,6 +614,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 else:
                     var.syslinux_options = " -i -d "
                     var.defautl_syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4') + ".exe")
+                    var.defautl_syslinux_version = var.defautl_syslinux_version[:-4]
                     extension = var.distro_syslinux_version + ".exe"
             #var.syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", "syslinux")) + extension
             var.syslinux_version = var.defautl_syslinux_version[:-1] + extension # Have to use this instead of resource_path as it breaks after building executable.
@@ -637,9 +666,8 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 for editor in editors_win:
                     if not self.which(editor) == None:
                         print editor
-                        editor_exit_status = subprocess.Popen(editor + " " + sys_cfg_file, shell=True).pid
-                        if not editor_exit_status:
-                            print "syslinux.cfg file successfully opened for append."
+                        #editor_exit_status = subprocess.Popen(editor + " " + sys_cfg_file, shell=True).pid
+                        var.editor = subprocess.Popen(editor + " " + sys_cfg_file, shell=True).pid
                         break
 
     def which(self, program):
@@ -666,17 +694,31 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         # Help required to identify/ running opened processes.
         global quit_ready
 
-        if not editor_exit_status == "dummy":
-            p = psutil.Process(editor_exit_status)
-            try:
-                print p.get_open_files()[0]
+        if not  var.qemu_usb == "":
+            if psutil.pid_exists(var.qemu_usb):
+                print "QEMU process exist..."
+                QtGui.QMessageBox.information(self, 'Process exist...',
+                                                  'QEMU is running.\nPlease close QEMU before terminating multibootusb.')
+            else:
+                var.qemu_usb = ""
+
+        elif not var.qemu_iso == "":
+            if psutil.pid_exists(var.qemu_iso):
+                print "QEMU process exist..."
+                QtGui.QMessageBox.information(self, 'Process exist...',
+                                                  'QEMU is running.\nPlease close QEMU before terminating multibootusb.')
+            else:
+                var.qemu_iso = ""
+
+        elif not var.editor == "":
+            if psutil.pid_exists(var.editor):
+                print "Syslinux.cfg is opened for edit..."
                 QtGui.QMessageBox.information(self, 'Process exist...',
                                               'syslinux.cfg is open for edit.\nPlease save and close file before terminating multibootusb.')
-            except:
-                print "Process not exit."
-                quit_ready = "yes"
-                QtGui.qApp.closeAllWindows()
-        else:
+            else:
+                var.editor = ""
+
+        if var.qemu_usb == "" or var.qemu_iso == "" or var.editor == "":
             quit_ready = "yes"
             print "Closing multibootusb..."
             QtGui.qApp.closeAllWindows()
@@ -685,6 +727,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
     def closeEvent(self, event):
 
         quit_msg = "Do you really want to exit multibootusb?"
+
         reply = QtGui.QMessageBox.question(self, 'Exit...',
                                            quit_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
 
