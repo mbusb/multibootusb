@@ -44,8 +44,8 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                 return "fedora"
                             elif re.search(r'redhat', string, re.I):
                                 return "redhat"
-                            elif re.search(r'suse', string, re.I):
-                                return "suse"
+                            #elif re.search(r'suse', string, re.I):
+                            #   return "suse"
                             elif re.search(r'opensuse', string,
                                            re.I):  # or re.search(r'config.isoclient', var.iso_file_content, re.I):
                                 return "opensuse"
