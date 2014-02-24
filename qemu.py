@@ -6,11 +6,29 @@ import var
 from PyQt4 import QtGui
 from multibootusb_ui import Ui_Dialog
 
-qemu = ""
-qemu_exist = ""
-qemu_exit_status = "dummy"
-qemu_iso_link = ""
+def resource_path(relativePath):
+    try:
+        # PyInstaller stores data files in a tmp folder refered to as _MEIPASS
+        basePath = sys._MEIPASS
+    except Exception:
+        # If not running as a PyInstaller created binary, try to find the data file as
+        # an installed Python egg
+        try:
+            basePath = os.path.dirname(sys.modules['tools'].__file__)
+        except Exception:
+            basePath = ''
 
+        # If the egg path does not exist, assume we're running as non-packaged
+        if not os.path.exists(os.path.join(basePath, relativePath)):
+            basePath = 'tools'
+
+    path = os.path.join(basePath, relativePath)
+
+    # If the path still doesn't exist, this function won't help you
+    if not os.path.exists(path):
+        return None
+
+    return path
 
 class AppGui(QtGui.QDialog,Ui_Dialog):
 
@@ -47,7 +65,8 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
             ram = self.qemu_iso_ram()
             if not ram == None:
                 if platform.system() == "Windows":
-                    QtGui.QMessageBox.information(self, 'No Support...', 'Sorry.\n\nThis feature is not implemented yet.')
+                    #print var.qemu, " -cdrom ", str(qemu_iso_link), " -boot d -m ", ram
+                    var.qemu_iso = subprocess.Popen(var.qemu + " -cdrom " + str(qemu_iso_link) + " -boot d -m " + ram, shell=True).pid
                 else:
                     print qemu + ' -enable-kvm -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d'
                     qemu_exit_status = subprocess.Popen('qemu-system-x86_64 -enable-kvm -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d', shell=True).pid
@@ -63,7 +82,12 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
             
         if not ram == None:
             if platform.system() == "Windows":
-                QtGui.QMessageBox.information(self, 'No Support...', 'Sorry.\n\nThis feature is not implemented yet.')
+                disk_number = self.get_physical_disk_number(var.usb_mount[:-1])
+                print var.qemu + " -L . -boot c -m "  + ram + " -hda //./PhysicalDrive" + disk_number
+                parent_dir = os.getcwd()
+                os.chdir(var.qemu_dir)
+                var.qemu_usb = subprocess.Popen("qemu-system-x86_64.exe -L . -boot c -m "  + ram + " -hda //./PhysicalDrive" + disk_number, shell=True).pid
+                os.chdir(parent_dir)
             else:
                 qemu_exit_status = subprocess.Popen('echo ' + var.gbl_pass + ' | sudo -S qemu-system-x86_64 -enable-kvm -hda ' + var.gbl_usb_device [:-1] + ' -m ' + ram + ' -vga std', shell=True).pid
         else:
@@ -79,7 +103,6 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
         elif self.ui.ram_iso_1024.isChecked():
             return str(1024)
         elif self.ui.ram_iso_2048.isChecked():
-            return str(2048)
             return str(2048)
         else:
             return None
@@ -106,4 +129,18 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                 print "kvm exists"
         return "yes"
 
-        
+
+    def get_physical_disk_number(self, usb_disk):
+        import wmi
+        c = wmi.WMI ()
+        for physical_disk in c.Win32_DiskDrive ():
+          for partition in physical_disk.associators ("Win32_DiskDriveToDiskPartition"):
+            for logical_disk in partition.associators ("Win32_LogicalDiskToPartition"):
+              if logical_disk.Caption == usb_disk:
+                """
+                print physical_disk.Caption
+                print partition.Caption
+                print logical_disk.Caption
+                """
+                print "Physical Device Number is " + partition.Caption[6:-14]
+                return str(partition.Caption[6:-14])
