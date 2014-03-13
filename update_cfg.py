@@ -65,8 +65,12 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                         'isobasedir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/', string,
                                         flags=re.I)
                     elif distro == "suse" or distro == "opensuse":
-                        string = re.sub(r'append', 'append loader=syslinux isofrom=/dev/disk/by-uuid/' + str(
-                            var.gbl_usb_uuid) + ":" + str(iso_name), string, flags=re.I)
+                        if re.search(r'opensuse_12', string, re.I):
+                            string = re.sub(r'append', 'append loader=syslinux isofrom=/dev/disk/by-uuid/' + str(
+                                var.gbl_usb_uuid) + ":/" + str(iso_name), string, flags=re.I)
+                        else:
+                            string = re.sub(r'append', 'append loader=syslinux isofrom_device=/dev/disk/by-uuid/' + str(
+                                var.gbl_usb_uuid) + ' isofrom_system=/' + str(iso_name), string, flags=re.I)
                     elif distro == "pclinuxos":
                         string = re.sub(r'livecd=',
                                         'fromusb livecd=' + '/multibootusb/' + os.path.splitext(iso_name)[0] + '/',
