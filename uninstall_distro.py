@@ -32,7 +32,7 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                     var.distro_uninstall = self.detect_iso(str(var.usb_mount) + "/multibootusb/" +  uninstall_distro_name.strip())
                     
                     if var.distro_uninstall == "opensuse":
-                        folder_size_to_remove = os.path.getsize(os.path.join(var.usb_mount +  uninstall_distro_name.strip() + ".iso"))
+                        folder_size_to_remove = os.path.getsize(os.path.join(var.usb_mount, uninstall_distro_name.strip()) + ".iso")
                         folder_size_to_remove += self.get_size(str(var.usb_mount) + "/multibootusb/" +  uninstall_distro_name.strip())
                     elif uninstall_distro_name.strip() == "windows":
                         var.distro_uninstall = "windows"
