@@ -6,6 +6,7 @@ MultibootUSB allows user to install multiple live linux on selected usb.
 Created by Sundar and co-authored by Ian Bruce.
 """
 from PyQt4 import QtGui
+from isodump import ISO9660
 from multibootusb_ui import Ui_Dialog
 import sys,os,re,platform,tempfile,subprocess,shutil,psutil,threading
 import admin,var, qemu, detect_iso, update_cfg, uninstall_distro, install_syslinux
@@ -331,6 +332,8 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         self.ui.usb_label.setText("Label :: " + selected_usb_label)
         self.ui.usb_dev.setText("USB Device :: " + selected_usb_device)
         self.ui.usb_mount.setText("Mount :: " + str(selected_usb_mount_path))
+        var.usb_mount_count = len(str(self.ui.usb_mount.text()[9:]))
+        print "USB mount count is " + str(var.usb_mount_count)
         #[0] = selected_usb_device
         #[1] = selected_usb_uuid
         #[2] = selected_usb_label
@@ -364,6 +367,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                                           'No ISO selected. (Step 2)\n\nPlease choose an iso and click create')
         else:
             iso_path = str(self.ui.lineEdit.text())
+            var.iso9660fs = ISO9660(iso_path)
             print self.ui.lineEdit.text()
             if platform.system() == "Windows":
                 iso_path = iso_path.replace("/", "\\")
@@ -372,6 +376,11 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             mbusb_dir_content = resource_path(os.path.join("tools", "multibootusb"))
 
             iso_size = int(os.path.getsize(iso_path))
+
+            mbusb_usb_dir = os.path.join(str(usb_mount), "multibootusb")
+            install_dir = os.path.join(mbusb_usb_dir, os.path.splitext(iso_name)[0])
+            var.install_dir = install_dir
+            var.install_dir_count = len(var.install_dir)
 
             print "Testing integrity of " + iso_name
             self.ui.status.setText("Testing integrity of " + iso_name)
@@ -394,15 +403,30 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             else:
                 # Extract necessary files to find distro...
                 print "Integrity passed..."
-                subprocess.call(zip + " e " + iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r", shell=True)
-                subprocess.call(zip + " e " + iso_path + " -y -o" + iso_cfg_ext_dir + "/ isolinux.bin -r", shell=True)
+                #subprocess.call(zip + " e " + iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r", shell=True)
+                #isodump.extract_directory("iso:/", iso_cfg_ext_dir, iso_path, ".cfg")
+                var.iso9660fs.writeDir("/", iso_cfg_ext_dir, ".cfg")
+                #isodump.extract_directory("iso:/", iso_cfg_ext_dir, iso_path, "isolinux.bin")
+                #isodump.extract_directory("iso:/", "", iso_path, "")
+                var.iso_file_list = var.iso9660fs.readDir("/")
+                #print var.iso_file_list
+                #subprocess.call(zip + " e " + iso_path + " -y -o" + iso_cfg_ext_dir + "/ isolinux.bin -r", shell=True)
+                """
                 if not sys.platform.startswith("linux"):
                     subprocess.call(resource_path(os.path.join("tools","7zip","windows","bsdtar.exe"))  + " -C "+ iso_cfg_ext_dir +  " -xvf " + iso_path + " *.cfg", shell=True)
-                if not os.path.exists(os.path.join(iso_cfg_ext_dir, "isolinux.bin")):
+                """
+                if not any("isolinux.bin" in s for s in var.iso_file_list):
+                #if not os.path.exists(os.path.join(iso_cfg_ext_dir, "isolinux.bin")):
                     var.distro_isolinux_exist = "no"
+                    print "isolinux.bin not found on the distro..."
+                else:
+                    for f in var.iso_file_list:
+                        if 'isolinux.bin' in f:
+                            var.distro_isolinux_bin_path = "/multibootusb" + os.path.dirname(f)
+                            print os.path.dirname(f)
 
                 # Get the list of files from iso. So that later on it can be used for detecting other distros.
-                var.iso_file_content = os.popen(zip + ' l ' + iso_path).read()
+                #var.iso_file_content = os.popen(zip + ' l ' + iso_path).read()
                 error_7zip = "no"
                 self.ui.status.clear()
                 distro = self.detect_iso(iso_cfg_ext_dir)
@@ -418,11 +442,6 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                     if not distro:
                         if re.search(r'sources', var.iso_file_content, re.I):
                             distro = "windows"
-
-            """
-            elif re.search(r'0.img', var.iso_file_content, re.I):
-                distro = "opensuse"
-            """
             #self.detect_iso_zip_info()
             if distro:
                 var.distro = distro
@@ -444,10 +463,6 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 QtGui.QMessageBox.information(self, 'No Space...',
                                               'Sorry.\n\nThere is no space available on ' + usb_device)
             else:
-                mbusb_usb_dir = os.path.join(str(usb_mount), "multibootusb")
-                install_dir = os.path.join(mbusb_usb_dir, os.path.splitext(iso_name)[0])
-                var.install_dir = install_dir
-
                 if os.path.exists(install_dir):
                     QtGui.QMessageBox.information(self, 'Already exist...',
                                                   iso_name + ' is already installed on ' + usb_device)
@@ -466,80 +481,68 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                             required_syslinux_install = 'no'
                         os.makedirs(install_dir)
 
-                        out_dir = "-o" + install_dir
+                        #out_dir = "-o" + install_dir
                         inintial_size = os.path.getsize(iso_path)
                         self.ui.status.setText("Installing " + iso_name)
 
                         def copy_process():
-                            #subprocess.Popen([zip, 'x', iso_path, '-y',  out_dir ])
                             if var.distro == "opensuse":
-                                if sys.platform.startswith("linux"):
-                                    if not var.password == "":
-                                        if not os.path.exists('/tmp/suse/mbusb_suse'):
-                                            os.system('echo ' + var.password + ' | sudo -S mkdir /tmp/mbusb_suse')
-                                        else:
-                                            os.system(
-                                                'echo ' + var.password + ' | sudo -S mount -o loop ' + iso_path + ' /tmp/mbusb_suse')
-                                            #shutil.copytree ('/tmp/mbusb_suse/boot', os.path.join(install_dir, 'boot'))
-                                            os.system('cp -rfv /tmp/mbusb_suse/boot ' + install_dir + '/boot')
-                                        os.system('echo ' + var.password + ' | sudo -S umount /tmp/mbusb_suse')
-                                        os.system('echo ' + var.password + ' | sudo -S rm -r /tmp/mbusb_suse')
-                                        shutil.copy(iso_path, usb_mount)
-                                elif platform.system() == "Windows":
-                                    print resource_path(os.path.join("tools", "7zip", "windows","bsdtar.exe")) + " -C " + install_dir + " - xvf "+ iso_path + " boot"
-                                    subprocess.call(resource_path(os.path.join("tools", "7zip", "windows",
-                                                                               "bsdtar.exe")) + " -C " + install_dir + " -xvf "+ iso_path + " boot",
-                                                    shell=True)
+                                var.iso9660fs.writeDir("/", install_dir, "boot")
+                                if platform.system() == "Windows":
+                                    var.extract_file_name = "Copying " + iso_name
                                     subprocess.call(["xcopy",iso_path,var.usb_mount], shell=True)
-
+                                else:
+                                    var.extract_file_name = "Copying " + iso_name
+                                    shutil.copy(iso_path, var.usb_mount)
                             elif var.distro == "windows":
-                                #os.system(zip + " x "+ iso_path + " -y -o" + var.usb_mount + "/")
-                                subprocess.call(zip + " x " + iso_path + " -y -o" + var.usb_mount + "/", shell=True)
+                                var.iso9660fs.writeDir("/", var.usb_mount)
+                                isodump.extract_directory("iso:/", var.usb_mount, iso_path, "")
                             elif var.distro == "ipfire":
-                                subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " boot -r", shell=True)
-                                subprocess.call(zip + " e " + iso_path + " -y -o" + var.usb_mount + "/ *.tlz -r",
-                                                shell=True)
+                                var.iso9660fs.writeDir("/", install_dir, "boot")
+                                var.iso9660fs.writeDir("/", install_dir, ".tlz")
                             elif var.distro == "zenwalk" or var.distro == "zenwalk":
-                                subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " isolinux -r", shell=True)
-                                subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " kernel* -r", shell=True)
-                                if sys.platform == 'win32':
+                                var.iso9660fs.writeDir("/", install_dir, "isolinux")
+                                var.iso9660fs.writeDir("/", install_dir, "kernel")
+                                if platform.system() == "Windows":
+                                    var.extract_file_name = "Copying " + iso_name
                                     subprocess.call(["xcopy",iso_path,install_dir], shell=True)
                                 else:
+                                    var.extract_file_name = "Copying " + iso_name
                                     shutil.copy(iso_path, install_dir)
                             elif var.distro == "pclinuxos":
-                                subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " isolinux -r", shell=True)
+                                var.iso9660fs.writeDir("/", install_dir, "isolinux")
                                 if platform.system() == "Windows":
+                                    var.extract_file_name = "Copying " + iso_name
                                     subprocess.call(["xcopy",iso_path,install_dir], shell=True)
                                 else:
+                                    var.extract_file_name = "Copying " + iso_name
                                     shutil.copy(iso_path, install_dir)
                             elif var.distro == "salix-live":
-                                subprocess.call(zip + " x " + iso_path + " -y" + out_dir + " boot -r", shell=True)
+                                var.iso9660fs.writeDir("/", install_dir, "boot")
                                 if platform.system() == "Windows":
-                                    #if subprocess.call(["xcopy",iso_path,install_dir], shell=True):
+                                    var.extract_file_name = "Copying " + iso_name
                                     if subprocess.call("xcopy " + iso_path + " " + install_dir, shell=True):
                                         print "ISO copied to " + install_dir
                                 else:
+                                    var.extract_file_name = "Copying " + iso_name
                                     shutil.copy(iso_path, install_dir)
-
                             else:
-                                subprocess.call(zip + " x " + iso_path + " -y" + out_dir, shell=True)
+                                var.iso9660fs.writeDir("/", install_dir)
 
+                        inintial_usb_size = int(psutil.disk_usage(usb_mount)[1])
                         thrd = threading.Thread(target=copy_process, name="copy_process")
                         thrd.start()
-                        inintial_usb_size = int(psutil.disk_usage(usb_mount)[1])
                         while thrd.is_alive():
                             current_size = int(psutil.disk_usage(usb_mount)[1])
                             diff_size = int(inintial_usb_size - current_size)
                             percentage = float(1.0 * diff_size) / inintial_size * 100
+                            self.ui.status.setText(var.extract_file_name)
                             self.ui.progressBar.setValue(abs(percentage))
                             QtGui.qApp.processEvents()
                         print "All Completed..."
                         self.ui.progressBar.setValue(100)
                         self.ui.progressBar.setValue(0)
                         sys_cfg_file = os.path.join(str(usb_mount), "multibootusb", "syslinux.cfg")
-                        #if required_syslinux_install == 'yes':
-                        #   print "Installing syslinux..."
-                        #self.install_syslinux(usb_device)
                         self.install_syslinux(usb_device)
                         self.update_distro_cfg_files(distro, iso_name, install_dir)
                         self.update_list_box(sys_cfg_file)
@@ -548,14 +551,15 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                             os.system('sync')
                         for files in os.listdir(iso_cfg_ext_dir):
                             if os.path.isdir(os.path.join(iso_cfg_ext_dir, files)):
-                                print (os.path.join(iso_cfg_ext_dir, files))
+                                #print (os.path.join(iso_cfg_ext_dir, files))
                                 os.chmod(os.path.join(iso_cfg_ext_dir, files),0o777)
                                 shutil.rmtree(os.path.join(iso_cfg_ext_dir, files))
                             else:
-                                print (os.path.join(iso_cfg_ext_dir, files))
+                                #print (os.path.join(iso_cfg_ext_dir, files))
                                 os.chmod(os.path.join(iso_cfg_ext_dir, files), 0777)
                                 os.unlink(os.path.join(iso_cfg_ext_dir, files))
-                                os.remove(os.path.join(iso_cfg_ext_dir, files))
+                                if os.path.exists(os.path.join(iso_cfg_ext_dir, files)):
+                                    os.remove(os.path.join(iso_cfg_ext_dir, files))
 
                         QtGui.QMessageBox.information(self, 'Installation Completed...',
                                                       iso_name + ' is successfully installed.')
@@ -587,7 +591,8 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
     def install_syslinux(self, usb_device):
         # Crossplatform function to install syslinux on selected device.
         usb_mount_count = len(str(self.ui.usb_mount.text()[9:]))
-        if not var.distro_isolinux_exist == "no" or var.distro == "opensuse":
+
+        if not var.distro_isolinux_exist == "no":
             var.distro_isolinux_bin_path = self.detect_distro_isobin(var.install_dir)
             print "isolinux.bin found on " + var.distro_isolinux_bin_path
             var.distro_syslinux_dir_path = os.path.dirname(var.distro_isolinux_bin_path)[usb_mount_count:]
@@ -595,6 +600,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         else:
             var.distro_isolinux_bin_path = None
             print "isolinux.bin not found..."
+
 
 
         if not var.distro_syslinux_version == None:
