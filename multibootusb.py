@@ -496,10 +496,9 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                                     shutil.copy(iso_path, var.usb_mount)
                             elif var.distro == "windows":
                                 var.iso9660fs.writeDir("/", var.usb_mount)
-                                isodump.extract_directory("iso:/", var.usb_mount, iso_path, "")
                             elif var.distro == "ipfire":
                                 var.iso9660fs.writeDir("/", install_dir, "boot")
-                                var.iso9660fs.writeDir("/", install_dir, ".tlz")
+                                var.iso9660fs.writeDir("/", var.usb_mount, ".tlz")
                             elif var.distro == "zenwalk" or var.distro == "zenwalk":
                                 var.iso9660fs.writeDir("/", install_dir, "isolinux")
                                 var.iso9660fs.writeDir("/", install_dir, "kernel")
