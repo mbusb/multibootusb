@@ -403,18 +403,9 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             else:
                 # Extract necessary files to find distro...
                 print "Integrity passed..."
-                #subprocess.call(zip + " e " + iso_path + " -y -o" + iso_cfg_ext_dir + "/ *.cfg -r", shell=True)
-                #isodump.extract_directory("iso:/", iso_cfg_ext_dir, iso_path, ".cfg")
                 var.iso9660fs.writeDir("/", iso_cfg_ext_dir, ".cfg")
-                #isodump.extract_directory("iso:/", iso_cfg_ext_dir, iso_path, "isolinux.bin")
-                #isodump.extract_directory("iso:/", "", iso_path, "")
                 var.iso_file_list = var.iso9660fs.readDir("/")
                 #print var.iso_file_list
-                #subprocess.call(zip + " e " + iso_path + " -y -o" + iso_cfg_ext_dir + "/ isolinux.bin -r", shell=True)
-                """
-                if not sys.platform.startswith("linux"):
-                    subprocess.call(resource_path(os.path.join("tools","7zip","windows","bsdtar.exe"))  + " -C "+ iso_cfg_ext_dir +  " -xvf " + iso_path + " *.cfg", shell=True)
-                """
                 if not any("isolinux.bin" in s for s in var.iso_file_list):
                 #if not os.path.exists(os.path.join(iso_cfg_ext_dir, "isolinux.bin")):
                     var.distro_isolinux_exist = "no"
@@ -432,15 +423,12 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 distro = self.detect_iso(iso_cfg_ext_dir)
                 #print var.iso_file_content
 
-                # Included bsdtar package due to bug in the 7zip which can not list opensuse (actual) files properly.
-                #os.system(resource_path(os.path.join("tools","7zip","windows","bsdtar.exe"))  + " -C "+ iso_cfg_ext_dir +  " -xvf " + iso_path + " *.cfg")
-
                 if var.cfg_read_err == "yes":
                     QtGui.QMessageBox.information(self, 'Read Error...',
                                                   'Could not read config files to identify distro.')
                 else:
                     if not distro:
-                        if re.search(r'sources', var.iso_file_content, re.I):
+                        if re.search(r'sources', var.iso_file_list, re.I):
                             distro = "windows"
             #self.detect_iso_zip_info()
             if distro:
@@ -500,8 +488,8 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                                 var.iso9660fs.writeDir("/", install_dir, "boot")
                                 var.iso9660fs.writeDir("/", var.usb_mount, ".tlz")
                             elif var.distro == "zenwalk" or var.distro == "zenwalk":
-                                var.iso9660fs.writeDir("/", install_dir, "isolinux")
                                 var.iso9660fs.writeDir("/", install_dir, "kernel")
+                                var.iso9660fs.writeDir("/", install_dir, "isolinux")
                                 if platform.system() == "Windows":
                                     var.extract_file_name = "Copying " + iso_name
                                     subprocess.call(["xcopy",iso_path,install_dir], shell=True)
