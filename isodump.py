@@ -414,6 +414,7 @@ class ISO9660:
 
             if d.fFlag & 0x02 == 0x02:
                 # Check if a clean directory.
+                """
                 try:
                     if len(os.listdir(output)) > 0:
                         sys.stderr.write("The target directory is not empty\n")
@@ -421,6 +422,7 @@ class ISO9660:
                 except(OSError):
                     sys.stderr.write("can't access dirs({0})\n".format(p))
                     return E_FAILURE
+                """
 
                 self.writeDir_r(output, d, pp, r, all_type)
                 return E_SUCCESS
