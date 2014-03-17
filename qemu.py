@@ -61,15 +61,18 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
         elif not qemu_exist == "yes":
             QtGui.QMessageBox.information(self, 'No QEMU...', 'Please install qemu to avail this feature.')
         else:
-            self.ui.lineEdit_2.clear()
             ram = self.qemu_iso_ram()
             if not ram == None:
+                self.ui.lineEdit_2.clear()
                 if platform.system() == "Windows":
                     #print var.qemu, " -cdrom ", str(qemu_iso_link), " -boot d -m ", ram
                     var.qemu_iso = subprocess.Popen(var.qemu + " -cdrom " + str(qemu_iso_link) + " -boot d -m " + ram, shell=True).pid
                 else:
-                    print qemu + ' -enable-kvm -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d'
-                    qemu_exit_status = subprocess.Popen('qemu-system-x86_64 -enable-kvm -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d', shell=True).pid
+                    print var.qemu + ' -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d'
+                    if os.geteuid() == 0:
+                        var.qemu_iso = subprocess.Popen(var.qemu + ' -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d', shell=True).pid
+                    else:
+                        var.qemu_iso = subprocess.Popen('echo ' + var.password + ' | sudo -S ' + var.qemu + ' -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d', shell=True).pid
             else:
                 QtGui.QMessageBox.information(self, 'No ram...', 'No ram selected.\n\nPlease choose any ram value and click Boot ISO.')
                 
@@ -83,13 +86,16 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
         if not ram == None:
             if platform.system() == "Windows":
                 disk_number = self.get_physical_disk_number(var.usb_mount[:-1])
-                print var.qemu + " -L . -boot c -m "  + ram + " -hda //./PhysicalDrive" + disk_number
+                print var.qemu + " -L . -boot c -m " + ram + " -hda //./PhysicalDrive" + disk_number
                 parent_dir = os.getcwd()
                 os.chdir(var.qemu_dir)
                 var.qemu_usb = subprocess.Popen("qemu-system-x86_64.exe -L . -boot c -m "  + ram + " -hda //./PhysicalDrive" + disk_number, shell=True).pid
                 os.chdir(parent_dir)
             else:
-                qemu_exit_status = subprocess.Popen('echo ' + var.gbl_pass + ' | sudo -S qemu-system-x86_64 -enable-kvm -hda ' + var.gbl_usb_device [:-1] + ' -m ' + ram + ' -vga std', shell=True).pid
+                if os.geteuid() == 0:
+                    var.qemu_usb = subprocess.Popen('qemu-system-x86_64 -hda ' + var.gbl_usb_device [:-1] + ' -m ' + ram + ' -vga std', shell=True).pid
+                else:
+                    var.qemu_usb = subprocess.Popen('echo ' + var.password + ' | sudo -S qemu-system-x86_64 -hda ' + var.gbl_usb_device [:-1] + ' -m ' + ram + ' -vga std', shell=True).pid
         else:
             QtGui.QMessageBox.information(self, 'No ram...', 'No ram selected.\n\nPlease choose any ram value and click Boot USB.')
             
@@ -123,11 +129,23 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
             
     def check_qemu_exist(self):
         if sys.platform.startswith("linux"):
-            if os.system('which qemu-x86_64')==0:
-                print "qemu-x86_64 exists"
+            if os.system('which qemu-system-x86_64')==0:
+                print "qemu-system-x86_64 exists"
+                var.qemu = "qemu-system-x86_64"
+                return "yes"
+            else:
+                return "no"
+            """
+            # kvm is not used as of now.
             elif os.system('which kvm')==0:
                 print "kvm exists"
-        return "yes"
+                var.qemu = "kvm"
+                return "yes"
+            """
+
+        else:
+            return "yes"
+
 
 
     def get_physical_disk_number(self, usb_disk):
