@@ -59,8 +59,8 @@ if sys.platform.startswith("linux"):
                 print resource_path(os.path.join("tools", "syslinux", "bin", name))
                 os.system('chmod ' + '+x ' + resource_path(os.path.join("tools", "syslinux", "bin", name)))
 
-    os.system('chmod ' + '+x ' + resource_path(os.path.join("tools", "7zip", "linux", "7z")))
-    print resource_path(os.path.join("tools", "7zip", "linux", "7z"))
+    #os.system('chmod ' + '+x ' + resource_path(os.path.join("tools", "7zip", "linux", "7z")))
+    #print resource_path(os.path.join("tools", "7zip", "linux", "7z"))
 
 else:
     mbusb_dir = os.path.join(tempfile.gettempdir(), "multibootusb")
@@ -172,11 +172,11 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                             var.password = str(input)
                             if os.popen('echo ' + var.password + ' | sudo -S id -u').read().strip() == '0':
                                 break
-                                if x == 2:
-                                    print "You have entered wrong var.password 3 times. Exiting now. "
-                                    sys.exit(0)
+                            if x == 2:
+                                print "You have entered wrong password 3 times. Exiting now. "
+                                sys.exit(0)
                         else:
-                            print "var.password not entered. Exiting now. "
+                            print "Password not entered. Exiting now. "
                             sys.exit(0)
                 elif os.system('which gksu') == 0:
                     os.system("gksu -d " + sys.executable + " " + sys.argv[0])
@@ -396,7 +396,8 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             movie.start()
             """
 
-            if subprocess.call(zip + " t " + iso_path, shell=True) != 0:
+            #if subprocess.call(zip + " t " + iso_path, shell=True) != 0:
+            if not var.iso9660fs.checkIntegrity():
                 error_7zip = "yes"
                 distro = None
                 print "Integrity check fail..."
@@ -438,7 +439,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
             if error_7zip == "yes":
                 self.ui.status.setText("Integrity check failed on " + iso_name)
                 QtGui.QMessageBox.information(self, 'Integrity error...',
-                                              'Please check the integrity of downloaded iso.')
+                                              'Please check the integrity of downloaded ISO.')
                 self.ui.status.clear()
 
             elif not var.distro:
