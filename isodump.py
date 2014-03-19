@@ -102,17 +102,22 @@ class ISO9660:
         self.rootDir = None
         self.rripOffset = -1
 
-        desc_nr = 0;
+        desc_nr = 0
         while True:
-            desc_nr = desc_nr + 1;
-            self.isoFile.seek(BLOCK_SIZE*(15+desc_nr))
-            volume_dsc = self.isoFile.read(BLOCK_SIZE)
-            flag = struct.unpack('B',volume_dsc[0])[0]
-            if flag == 1:
-                self.__readPrimaryVolume__(volume_dsc)
-                continue
-            if flag == 255:
-                break;
+            desc_nr = desc_nr + 1
+            try:
+                self.isoFile.seek(BLOCK_SIZE*(15+desc_nr))
+                volume_dsc = self.isoFile.read(BLOCK_SIZE)
+                flag = struct.unpack('B',volume_dsc[0])[0]
+                if flag == 1:
+                    self.__readPrimaryVolume__(volume_dsc)
+                    continue
+                if flag == 255:
+                    break
+            except(Exception):
+               self.priVol = None
+               self.rootDir = None
+               break
 
     def __del__(self):
         self.isoFile.close()
@@ -162,20 +167,23 @@ class ISO9660:
             ce_off = 0
             head = 0
             len_entry = 0
-    
+            
             while True:
-                head += len_entry
                 #print ("\n%d, %d\n")%(len_buf, head)
+                head += len_entry
                 if len_buf - head < 4: # less than one entry
-                    break;
+                    break
                 entry_buf = entry_buf[len_entry:]
     
                 sig1 = struct.unpack("B", entry_buf[0])[0]
                 sig2 = struct.unpack("B", entry_buf[1])[0]
                 len_entry = struct.unpack("B", entry_buf[2])[0]
                 ver = struct.unpack("B", entry_buf[3])[0]
-                #print "Got a entry in __rripLoop__ (%c,%c) of SUSP with length:(%d),version:(%d)-->"%(sig1,sig2,len_entry, ver),
-    
+                #if len_entry == 0:
+                #    print "Got a entry in __rripLoop__ (%c,%c) of SUSP with length:(%d),version:(%d)-->"%(sig1,sig2,len_entry, ver),
+                if len_entry == 0:
+                   break;
+
                 if sig1 == ord('S') and sig2 == ord('P'):
                     ck1 = struct.unpack("B", entry_buf[4])[0]
                     ck2 = struct.unpack("B", entry_buf[5])[0]
@@ -247,9 +255,11 @@ class ISO9660:
         if dircomps[-1] == '':
             dircomps.pop()
         if dircomps == []:
-            print "you want dump iso:/ ?" 
             return
     
+        if self.priVol == None:
+           return
+
         if len(dircomps) == 1:
             return self.rootDir
     
@@ -281,9 +291,12 @@ class ISO9660:
         Return a directory record reading from a Directory Descriptors.
         """
         dirRec = DirRecord()
-        dirRec.lenDr = struct.unpack("B", desc_buf[0])[0]
-        if dirRec.lenDr == 0:
-            return None;
+        try: 
+            dirRec.lenDr = struct.unpack("B", desc_buf[0])[0]
+            if dirRec.lenDr == 0:
+                return None
+        except:
+           return None
     
         dirRec.lenEattr = struct.unpack("B", desc_buf[1])[0]
         dirRec.locExtent = struct.unpack("<L", desc_buf[2:6])[0]
@@ -344,17 +357,19 @@ class ISO9660:
             while True:
                 dirItem = self.readDirrecord(desc_buf)
                 if dirItem == None:
-                    break;
+                    break
 
                 dirs.append(dirItem)
                 if desc_buf.__len__() > dirItem.lenDr:
                     desc_buf = desc_buf[dirItem.lenDr:]            
                 else:
-                   break;
-        return dirs;
+                   break
+        return dirs
     
     def readPathtableL(self):
         """ Read path table of L typde """
+        if self.priVol == None:
+           return
         block_nr = self.priVol.ptLRd
         total = self.priVol.ptSize
 
@@ -362,7 +377,7 @@ class ISO9660:
         self.isoFile.seek(block_nr*BLOCK_SIZE)
         ptbuf = self.isoFile.read(BLOCK_SIZE * ((total+BLOCK_SIZE-1)/BLOCK_SIZE))
         i = 0
-        r_size = 0;
+        r_size = 0
         while True :
             i = i+1
             t = PathTabelItem()
@@ -372,15 +387,15 @@ class ISO9660:
             t.locExtent = struct.unpack('<L', ptbuf[2:6])[0]
             t.pdirNr = struct.unpack('<H', ptbuf[6:8])[0]
             t.fIdentifier = ptbuf[8:8+t.lenDi]
-            path_table.append(t);
+            path_table.append(t)
             if t.lenDi % 2 :
                 len_pd = 1
             else:
                 len_pd = 0
     
-            r_size += 9+t.lenDi-1+len_pd;
+            r_size += 9+t.lenDi-1+len_pd
             if r_size >= total:         
-                break;
+                break
             ptbuf = ptbuf[9+t.lenDi-1+len_pd:]
         # while True
         return path_table
@@ -411,19 +426,16 @@ class ISO9660:
             if pattern != "":
                 p = r'{0}'.format(pattern)
                 pp = re.compile(p)
-
+            #print "writeDir: flag(%x)"%(d.fFlag)
             if d.fFlag & 0x02 == 0x02:
                 # Check if a clean directory.
-                """
-                try:
-                    if len(os.listdir(output)) > 0:
-                        sys.stderr.write("The target directory is not empty\n")
-                        return E_FAILURE
-                except(OSError):
-                    sys.stderr.write("can't access dirs({0})\n".format(p))
-                    return E_FAILURE
-                """
-
+                #try:
+                #    if len(os.listdir(output)) > 0:
+                #        sys.stderr.write("The target directory is not empty\n")
+                #        return E_FAILURE
+                #except(OSError):
+                #    sys.stderr.write("can't access dirs({0})\n".format(p))
+                #    return E_FAILURE
                 self.writeDir_r(output, d, pp, r, all_type)
                 return E_SUCCESS
             else:
@@ -432,7 +444,7 @@ class ISO9660:
             return E_FAILURE
     
     def writeDir_r(self, det_dir, dire, pp, r, all_type):
-        #print "write dir:(%s)"%(det_dir)
+        #print "writeDir_r:(%s)"%(det_dir)
         dirs = self.readDirItems(dire.locExtent, dire.lenData)
         for d in dirs:
             if not d.fIdentifier in [".", ".."]:
@@ -440,7 +452,7 @@ class ISO9660:
                     match = False
                 else:
                     match = True
-                #print "mathing %s, %s"%(match, d.fIdentifier)
+                #print "mathing %s, %s, (%x)"%(match, d.fIdentifier, d.fFlag)
                 p = det_dir + "/" + d.fIdentifier
                 if d.fFlag & 0x02 == 0x02:
                     if not os.path.exists(p):
@@ -452,8 +464,8 @@ class ISO9660:
                             self.writeDir_r(p, d, pp, r, all_type)
                 elif match:
                     self.writeFile(d, p, all_type)
-                var.extract_file_name = ""
-            # if not d.fIdentifier end #
+                    var.extract_file_name = ""
+            # if not d.fIdentifier end #            
         # for d in dirs end #
     
     def writeFile(self, dirRec, detFile, all_type):
@@ -549,6 +561,45 @@ class ISO9660:
             # if not d.fIdentifier #
         # for d in dirs: #
 
+    def checkIntegrity(self):
+        if self.priVol == None: # no primary volume
+            return False
+
+        if self.priVol.ptSize == 0: # empty ?
+            return True
+
+        path_table = self.readPathtableL()
+        if path_table == []: # pathtable record is broken.
+            return False
+
+        # find last file item to check
+        for dr in reversed(path_table):
+            #print dr.fIdentifier
+            dirs = self.readDirItems(dr.locExtent, BLOCK_SIZE)
+            if len(dirs) > 2:
+                dot = dirs[0]
+                dirs2 = self.readDirItems(dot.locExtent, dot.lenData) # get the whole items.
+                for dr2 in reversed(dirs2): # search last file item.
+                    if dr2.fFlag == 0:
+                        #print "get last file(%s)"%(dr2.fIdentifier)
+                        try:
+                            #self.isoFile.seek(BLOCK_SIZE * dr2.locExtent+dr2.lenData)
+                            lastfile_end = BLOCK_SIZE * dr2.locExtent + dr2.lenData                        
+                            self.isoFile.seek(0, os.SEEK_END)
+                            iso_end = self.isoFile.tell()
+                            #print ("%d-->%d")%(lastfile_end, iso_end)
+                            if iso_end >= lastfile_end:
+                                return True
+                            else:
+                                return False
+                        except(IOError):
+                            #print "exception when seek. iso is broken"
+                            return False
+            elif len(dirs) < 2: # Dir record is broken. At least, should have two entries.
+               return False
+        return True
+       
+###########################################################################    
 def dump_dir_record(dirs):
     """ Dump all the file dirctory records contained in desc_buf """
 
@@ -568,7 +619,7 @@ def dump_pathtable_L(path_table):
     print "Dump path table"
     print "================\n"
     #path_table = readPathtableL()
-    i = 0;
+    i = 0
     for t in path_table:
         i = i + 1
         if t.lenDi == 1:
@@ -582,7 +633,7 @@ def dump_primary_volume(privol=None):
     """ Dump primary volume descriptor """
 
     if privol == None:
-        print "Can't dump, read primary volume first"
+        print "Can't dump, maybe iso is broken"
         return
     print "===== Dump primary volume descriptor =="
 
@@ -591,7 +642,7 @@ def dump_primary_volume(privol=None):
     print "Volume Space size:(0x%x)BLOCKS(2kB)" %privol.volSize
     print "Volume sequence number:(%d)" %(privol.volSeq)
     print "logic block size:(0x%x)" %(privol.blockSize)
-    print "Volume path talbe L's BLOCK number is :(0x%x-->0x%x)" %(privol.ptLRd, privol.ptLRd*BLOCK_SIZE)
+    print "Volume path talbe L's BLOCK number is :(0x%x-->0x%x), size(%d)" %(privol.ptLRd, privol.ptLRd*BLOCK_SIZE, privol.ptSize)
 #    print "Abstract File Identifier: (%s)" %(volume_dsc[739:776])
 #    print "Bibliographic File Identifier: (%s)" %(volume_dsc[776:813])
     print "pathtable locate (%d)" %(privol.ptLRd)
@@ -656,6 +707,11 @@ if __name__ == '__main__':
         usage()
 
     iso9660fs = ISO9660(argv[-1])
+    integrity = iso9660fs.checkIntegrity()
+    if integrity == False:
+        print "iso file is broken"
+        sys.exit(-1)
+
     dump_what = argv[1]
 
     if dump_what == "primary-volume":
@@ -706,4 +762,5 @@ if __name__ == '__main__':
         else:
             print "writeDir(%s)->(%s) with pattern(%s)"%(isodir, o_path, pattern)
             sys.exit(iso9660fs.writeDir(isodir, o_path, pattern, r, True))
+
 
