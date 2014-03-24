@@ -46,7 +46,7 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                         string = re.sub(r'ipcopboot=cdrom\S*', 'ipcopboot=usb', string)
                     elif distro == "puppy":
                         string = re.sub(r'pmedia=cd\S*',
-                                        'pmedia=usbflash psubdir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/',
+                                        'pmedia=usbflash psubok=TRUE psubdir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/',
                                         string)
                     elif distro == "slax":
                         string = re.sub(r'initrd=', '\1 from=/multibootusb/' + os.path.splitext(iso_name)[
@@ -85,9 +85,12 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                             0] + '/' + iso_name + ' initrd=', string)
                     elif distro == "mageialive":
                         string = re.sub(r'LABEL=\S*', 'LABEL=' + var.usb_label, string)
+                    elif distro == "antix":
+                        string = re.sub(r'APPEND', 'image_dir=/multibootusb/' + os.path.splitext(iso_name)[0], string)
+                    elif distro == "solydx":
+                        string = re.sub(r'live-media-path=', 'live-media-path=/multibootusb/' + os.path.splitext(iso_name)[0], string)
                     elif distro == "salix-live":
-                        string = re.sub(r'iso_path', '/multibootusb/' + os.path.splitext(iso_name)[
-                            0] + '/' + iso_name, string)
+                        string = re.sub(r'iso_path', '/multibootusb/' + os.path.splitext(iso_name)[0] + '/' + iso_name, string)
 
                     config_file = open(cfg_file, "wb")
                     config_file.write(string)
