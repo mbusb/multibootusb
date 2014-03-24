@@ -38,6 +38,8 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                 return "chakra"
                             elif re.search(r'boot=live', string, re.I):
                                 return "debian"
+                            elif re.search(r'solydx', string, re.I):
+                                return "solydx"
                             elif re.search(r'knoppix', string, re.I):
                                 return "knoppix"
                             elif re.search(r'root=live', string, re.I):
