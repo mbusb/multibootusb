@@ -420,7 +420,7 @@ class ISO9660:
                 try:
                     os.makedirs(output)
                 except(OSError):
-                    sys.stderr.write("can't make dirs({0})\n".format(p))
+                    sys.stderr.write("can't make dirs({0})\n".format(output))
                     return E_FAILURE
             pp = None
             if pattern != "":
@@ -512,7 +512,7 @@ class ISO9660:
         length = dirRec.lenData
         self.isoFile.seek(BLOCK_SIZE * loc)
         #print "file length(%d)"%(length)
-        r_size = BLOCK_SIZE
+        r_size = BLOCK_SIZE*1024*10 #20M cache
     
         try:
             f_output = open(detFile, 'wb')
@@ -523,11 +523,11 @@ class ISO9660:
         while True:
             if length == 0:
                 break 
-            elif length <= BLOCK_SIZE:
+            elif length <= r_size:
                 r_size = length
                 length = 0
             else:
-                length = length - BLOCK_SIZE
+                length = length - r_size
     
             buf = self.isoFile.read(r_size)
             f_output.write(buf)
