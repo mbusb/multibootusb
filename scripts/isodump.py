@@ -9,7 +9,7 @@ Extract directories and files.
 ## Support RRIP.
 ## 
 
-# Author : LiQiong Lee
+# Author : LiQiong Lee. Created for multibootusb.
 
 import sys
 import struct
