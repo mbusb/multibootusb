@@ -11,6 +11,7 @@
 *.egg-info
 dist
 build
+deb_dist
 eggs
 parts
 #bin
@@ -36,7 +37,6 @@ nosetests.xml
 
 # Translations
 *.mo
-
 # Mr Developer
 .mr.developer.cfg
 .project
@@ -52,6 +52,6 @@ pyinstaller_spec_file_content.txt
 test.py
 old_files
 multibootusb.spec
-deb_dist
+git_commands.txt
 =======
 
