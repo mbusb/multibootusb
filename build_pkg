@@ -1,0 +1,104 @@
+#!/usr/bin/python2.7
+# -*- coding: utf-8 -*-
+"""
+This script is to make distibution packages to platform specific formats.
+"""
+
+import os
+import shutil
+import subprocess
+import sys
+import platform
+
+version = open(os.path.join("tools", "version.txt"), 'r').read().strip()
+if platform.system() == "Windows":
+    release_dir = os.path.join("D", "multibootusb", "release")
+else:
+    print os.path.isdir("/media/Data/multibootusb/release")
+    release_dir = "/media/Data/multibootusb/release"
+    if not os.path.exists(release_dir):
+        print "Release directory can not be reached. Mount the drive and rerun the script. "
+        exit(0)
+
+def clean_dir():
+    deleteDirectory('build')
+    deleteDirectory('dist')
+    deleteDirectory('deb_dist')
+
+def deleteDirectory(path):
+    try:
+        shutil.rmtree(path)
+    except OSError as ose:
+        # Ignore 'no such file or directory' errors
+        if ose.errno != 2:
+            print "OS Error."
+
+"""
+#Useful to delete files.
+def deleteFile(path):
+    try:
+        os.unlink(path)
+    except OSError as ose:
+        if ose.errno != 2:
+            print ose
+"""
+
+arg = sys.argv[1] if len(sys.argv) >= 2 else None
+pyinstallerPath  = "/home/sundar/Downloads/PyInstaller-2.1/pyinstaller.py"
+if arg == 'exe':
+    if len(sys.argv) == 3:
+        pyinstallerPath = sys.argv[2]
+    clean_dir()
+    subprocess.call(['python2.7', pyinstallerPath, 'multibootusb.spec'])
+elif arg == 'deb':
+    print "Ensure thta you have python-stdeb package installed!"
+    stdcfg = ("[DEFAULT]"
+            "Package: multibootusb"
+            "Depends: python-qt4, python-psutil"
+            "Build-Depends: python-all"
+            "Section: system"
+            "XS-Python-Version: = 2.7"
+            "Debian-Version: 1")
+    if not os.path.exists("stdeb.cfg"):
+        with open("stdeb.cfg", "w") as f:
+            f.write(stdcfg)
+    subprocess.call(['python2.7', 'setup.py', '--command-packages=stdeb.command', 'bdist_deb'])
+    if os.path.exists(os.path.join("deb_dist", "multibootusb_" + version + "-1_all.deb")):
+        print "\n\n\n"
+        print "Debian package has been created and can be found here::"
+        print os.path.join("deb_dist", "multibootusb_" + version + "-1_all.deb")
+        print "\n\n\n"
+
+elif arg == 'rpm':
+    setup_cfg = ("[bdist_rpm]"
+            "Group = Applications/System"
+            "Vendor = sundar <feedback.multibootusb@gmail.com>"
+            "Requires = PyQt4, python-psutil"
+            "BuildArch = Sundar"
+            "Icon = multibootusb.png")
+    if not os.path.exists("setup.cfg"):
+        with open("setup.cfg", "w") as f:
+            f.write(setup_cfg)
+    subprocess.call(['python2.7', 'setup.py', 'bdist_rpm'])
+
+elif arg == 'install':
+    subprocess.call(['python2.7', 'setup.py', 'install'])
+
+elif arg == 'source':
+    subprocess.call(['python2.7', 'setup.py', 'sdist'])
+
+elif arg == 'run':
+    subprocess.call(['python2.7', 'multibootusb'])
+elif arg == 'clean':
+    clean()
+
+else:
+    print "Invalid option\nPossible options: dist, deb, rpm, install, source, run, test, clean"
+
+"""
+#Yet to be implemented.
+elif arg == 'test':
+    # Carry the exit code from the tests
+    exitCode = subprocess.call(['python', os.path.join('cryptully', 'test_cryptully.py')])
+    sys.exit(exitCode)
+"""
