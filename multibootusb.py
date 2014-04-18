@@ -449,7 +449,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
 
                                 if sys.platform.startswith("linux"):
                                     if not password == "":
-                                        if not os.path.exists ('/tmp/suse/mbusb_suse'):
+                                        if not os.path.exists('/tmp/suse/mbusb_suse'):
                                             os.system('echo ' + password + ' | sudo -S mkdir /tmp/mbusb_suse')
                                         else:    
                                             os.system('echo ' + password + ' | sudo -S mount -o loop ' + iso_path + ' /tmp/mbusb_suse')
@@ -503,8 +503,9 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         return total_size
 
     def install_syslinux(self, usb_device):
+        # Right now syslinux version 4 is being used as default. More ideas to implement further.
         if required_syslinux_install == "yes":
-            if usb_file_system == "vfat" or usb_file_system == "ntfs" or  usb_file_system == "FAT32":
+            if usb_file_system == "vfat" or usb_file_system == "ntfs" or usb_file_system == "FAT32":
                 if sys.platform.startswith("linux"):
                     if password == "":
                         if os.system('syslinux -i -d /multibootusb ' + usb_device) == 0:
@@ -589,9 +590,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                     return exe_file
     
         return None
-        
-    
-        
+
     def on_close_Click(self):
         global quit_ready
         
