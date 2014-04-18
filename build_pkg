@@ -70,11 +70,11 @@ elif arg == 'deb':
         print "\n\n\n"
 
 elif arg == 'rpm':
-    setup_cfg = ("[bdist_rpm]"
-            "Group = Applications/System"
-            "Vendor = sundar <feedback.multibootusb@gmail.com>"
-            "Requires = PyQt4, python-psutil"
-            "BuildArch = Sundar"
+    setup_cfg = ("[bdist_rpm]\n"
+            "Group = Applications/System\n"
+            "Vendor = sundar <feedback.multibootusb@gmail.com>\n"
+            "Requires = PyQt4, python-psutil\n"
+            "BuildArch = Sundar\n"
             "Icon = multibootusb.png")
     if not os.path.exists("setup.cfg"):
         with open("setup.cfg", "w") as f:
