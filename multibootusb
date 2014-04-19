@@ -32,24 +32,24 @@ def resource_path(relativePath):
     try:
         # PyInstaller stores data files in a tmp folder refered to as _MEIPASS
         basePath = sys._MEIPASS
-    except Exception:
+    except:
         # If not running as a PyInstaller created binary, try to find the data file as
         # an installed Python egg
         try:
-            if os.path.exists(os.path.join(os.path.dirname(__file__), "multibootusb"), relativePath):
-                basePath = os.path.join(os.path.dirname(__file__), "multibootusb", relativePath)
-            elif os.path.exists(os.path.join(sys.prefix, "multibootusb"), relativePath):
-                basePath = os.path.join(sys.prefix, "multibootusb")
-        except Exception:
-           basePath = ''
+            basePath = os.path.join(sys.prefix, "multibootusb")
+        except:
+            basePath = '.'
+
+    if not os.path.exists(os.path.join(basePath, relativePath)):
+        basePath = os.path.join(os.path.dirname(__file__))
 
     path = os.path.join(basePath, relativePath)
 
+    # If the path still doesn't exist, this function won't help you
     if not os.path.exists(path):
         return None
 
     return path
-
 
 if platform.system() == "Windows":
     import win32com.client
@@ -66,7 +66,6 @@ if sys.platform.startswith("linux"):
     home = expanduser("~")
     mbusb_dir = os.path.join(home, ".multibootusb")
     var.mbr_bin = resource_path(os.path.join("tools", "mbr.bin"))
-
 else:
     mbusb_dir = os.path.join(tempfile.gettempdir(), "multibootusb")
     zip = resource_path(os.path.join("tools", "7zip", "windows", "7z.exe"))
@@ -92,11 +91,12 @@ else:
     var.syslinux_dir = "tools"
 print resource_path(os.path.join(var.syslinux_dir))
 
-if os.geteuid() == 0:
-    for path, subdirs, files in os.walk(resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin"))):
-        for name in files:
-            if not name.endswith('.exe'):
-                os.system('chmod ' + '+x ' + resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin", name)))
+if sys.platform.startswith("linux"):
+    if os.geteuid() == 0:
+        for path, subdirs, files in os.walk(resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin"))):
+            for name in files:
+                if not name.endswith('.exe'):
+                    os.system('chmod ' + '+x ' + resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin", name)))
 
 usb_device = ""
 usb_file_system = ""
