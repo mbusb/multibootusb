@@ -24,6 +24,7 @@ from scripts import install_syslinux
 from scripts.isodump import ISO9660
 from scripts.multibootusb_ui import Ui_Dialog
 import sys,os,re,platform,tempfile,subprocess,shutil,psutil,threading
+import zipfile
 
 
 
@@ -35,22 +36,15 @@ def resource_path(relativePath):
         # If not running as a PyInstaller created binary, try to find the data file as
         # an installed Python egg
         try:
-            #basePath = os.path.dirname(sys.modules['tools'].__file__)
-            #basePath = os.path.join(os.path.dirname(__file__))
-            basePath = os.path.join(sys.prefix, "multibootusb")
+            if os.path.exists(os.path.join(os.path.dirname(__file__), "multibootusb"), relativePath):
+                basePath = os.path.join(os.path.dirname(__file__), "multibootusb", relativePath)
+            elif os.path.exists(os.path.join(sys.prefix, "multibootusb"), relativePath):
+                basePath = os.path.join(sys.prefix, "multibootusb")
         except Exception:
-            try:
-                basePath = os.path.join(sys.prefix, "local", "multibootusb")
-            except Exception:
-                basePath = ''
-
-            # If the egg path does not exist, assume we're running as non-packaged
-            if not os.path.exists(os.path.join(basePath, relativePath)):
-                basePath = '.'
+           basePath = ''
 
     path = os.path.join(basePath, relativePath)
 
-    # If the path still doesn't exist, this function won't help you
     if not os.path.exists(path):
         return None
 
@@ -72,11 +66,7 @@ if sys.platform.startswith("linux"):
     home = expanduser("~")
     mbusb_dir = os.path.join(home, ".multibootusb")
     var.mbr_bin = resource_path(os.path.join("tools", "mbr.bin"))
-    if os.geteuid() == 0:
-        for path, subdirs, files in os.walk(resource_path(os.path.join("tools", "syslinux", "bin"))):
-            for name in files:
-                if not name.endswith('.exe'):
-                    os.system('chmod ' + '+x ' + resource_path(os.path.join("tools", "syslinux", "bin", name)))
+
 else:
     mbusb_dir = os.path.join(tempfile.gettempdir(), "multibootusb")
     zip = resource_path(os.path.join("tools", "7zip", "windows", "7z.exe"))
@@ -90,6 +80,23 @@ if not os.path.exists(mbusb_dir):
     os.makedirs(mbusb_dir)
 if not os.path.exists(os.path.join(mbusb_dir, "preference")):
     os.makedirs(os.path.join(mbusb_dir, "preference"))
+if os.path.exists(os.path.join(mbusb_dir, "syslinux", "bin", "syslinux4")):
+    print "Syslinux exist in multibootusb directory."
+else:
+    print "Extracting syslinux to multibootusb directory."
+    with zipfile.ZipFile(resource_path(os.path.join("tools", "syslinux.zip")), "r") as z:
+        z.extractall(mbusb_dir)
+if os.path.exists(os.path.join(mbusb_dir,"syslinux", "bin", "syslinux4")):
+    var.syslinux_dir = mbusb_dir
+else:
+    var.syslinux_dir = "tools"
+print resource_path(os.path.join(var.syslinux_dir))
+
+if os.geteuid() == 0:
+    for path, subdirs, files in os.walk(resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin"))):
+        for name in files:
+            if not name.endswith('.exe'):
+                os.system('chmod ' + '+x ' + resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin", name)))
 
 usb_device = ""
 usb_file_system = ""
@@ -184,10 +191,11 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                         if ok:
                             var.password = str(input)
                             if os.popen('echo ' + var.password + ' | sudo -S id -u').read().strip() == '0':
-                                for path, subdirs, files in os.walk(resource_path(os.path.join("tools", "syslinux", "bin"))):
+                                print resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin"))
+                                for path, subdirs, files in os.walk(resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin"))):
                                     for name in files:
                                         if not name.endswith('.exe'):
-                                            os.system('echo ' + var.password + ' | sudo -S chmod ' + '+x ' + resource_path(os.path.join("tools", "syslinux", "bin", name)))
+                                            os.system('echo ' + var.password + ' | sudo -S chmod ' + '+x ' + resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin", name)))
                                 break
                             if x == 2:
                                 print "You have entered wrong password 3 times. Exiting now. "
@@ -616,7 +624,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                     var.syslinux_options = " -d "
                 else:
                     var.syslinux_options = " -i -d "
-                var.defautl_syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4'))
+                var.defautl_syslinux_version = resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin", 'syslinux4'))
             else:
                 extension = str(var.distro_syslinux_version) + ".exe"
 
@@ -624,10 +632,10 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                     var.syslinux_options = " -d "
                 else:
                     var.syslinux_options = " -i -d "
-                    var.defautl_syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4') + ".exe")
+                    var.defautl_syslinux_version = resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin", 'syslinux4') + ".exe")
                     var.defautl_syslinux_version = var.defautl_syslinux_version[:-4]
                     extension = var.distro_syslinux_version + ".exe"
-            #var.syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", "syslinux")) + extension
+            #var.syslinux_version = resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin", "syslinux")) + extension
             var.syslinux_version = var.defautl_syslinux_version[:-1] + extension # Have to use this instead of resource_path as it breaks after building executable.
 
         if not var.distro_isolinux_exist == "no":
@@ -641,9 +649,9 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
     def onInstall_syslinuxClick(self):
         var.sys_tab = "yes"
         if sys.platform.startswith("linux"):
-            var.defautl_syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4'))
+            var.defautl_syslinux_version = resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin", 'syslinux4'))
         else:
-            var.defautl_syslinux_version = resource_path(os.path.join("tools", "syslinux", "bin", 'syslinux4.exe'))
+            var.defautl_syslinux_version = resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin", 'syslinux4.exe'))
 
         src = str(resource_path(os.path.join("tools", "multibootusb")))
         dst = str(os.path.join(str(usb_mount), "multibootusb"))
