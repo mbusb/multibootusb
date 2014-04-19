@@ -14,6 +14,7 @@ version = open(os.path.join("tools", "version.txt"), 'r').read().strip()
 if platform.system() == "Windows":
     release_dir = os.path.join("D", "multibootusb", "release")
 else:
+    shutil.copy2(os.path.join("resource", "linux", "syslinux.zip"), "tools")
     print os.path.isdir("/media/Data/multibootusb/release")
     release_dir = "/media/Data/multibootusb/release"
     if not os.path.exists(release_dir):
@@ -59,9 +60,9 @@ elif arg == 'deb':
             "Section: system\n"
             "XS-Python-Version: = 2.7\n"
             "Debian-Version: 1")
-    if not os.path.exists("stdeb.cfg"):
-        with open("stdeb.cfg", "w") as f:
-            f.write(stdcfg)
+    #if not os.path.exists("stdeb.cfg"):
+    with open("stdeb.cfg", "w") as f:
+        f.write(stdcfg)
     subprocess.call(['python2.7', 'setup.py', '--command-packages=stdeb.command', 'bdist_deb'])
     if os.path.exists(os.path.join("deb_dist", "multibootusb_" + version + "-1_all.deb")):
         print "\n\n\n"
@@ -74,10 +75,15 @@ elif arg == 'rpm':
             "Group = Applications/System\n"
             "Vendor = sundar <feedback.multibootusb@gmail.com>\n"
             "Requires = PyQt4, python-psutil")
-    if not os.path.exists("setup.cfg"):
-        with open("setup.cfg", "w") as f:
-            f.write(setup_cfg)
+    #if not os.path.exists("setup.cfg"):
+    with open("setup.cfg", "w") as f:
+        f.write(setup_cfg)
     subprocess.call(['python2.7', 'setup.py', 'bdist_rpm'])
+    if os.path.exists(os.path.join("dist", "multibootusb-" + version + "-1.noarch.rpm")):
+        print "\n\n\n"
+        print "RPM package has been created and can be found here::"
+        print os.path.join("dist", "multibootusb-" + version + "-1.noarch.rpm")
+        print "\n\n\n"
 
 elif arg == 'install':
     subprocess.call(['python2.7', 'setup.py', 'install'])
@@ -88,7 +94,7 @@ elif arg == 'source':
 elif arg == 'run':
     subprocess.call(['python2.7', 'multibootusb'])
 elif arg == 'clean':
-    clean()
+    clean_dir()
 
 else:
     print "Invalid option\nPossible options: dist, deb, rpm, install, source, run, test, clean"
