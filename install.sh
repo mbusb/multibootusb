@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
 
-if ["$(hash sudo)"]; then
-	echo "sundar"
-fi
-
-PKGSTOINSTALL=""
-DEPENDENCIES=(PyQt4 python-psutil)
 if [ "$(id -u)" != "0" ]; then
    echo "This script must be run as root/sudo." 1>&2
    echo "Try sudo ./install.sh" 1>&2
@@ -45,10 +39,6 @@ if [ "$(which pacman)" ]; then
 	install_dependency="pacman -S --needed --noconfirm python-pyqt4 python2-psutil" # Thanks Neitsab for "--needed"  argument.
 elif [ "$(which yum)" ]; then
 	distro="fedora"
-	if [[ ! `rpm -q ${DEPENDENCIES[$i]}` ]]; then
-		PKGSTOINSTALL=$PKGSTOINSTALL" "${DEPENDENCIES[$i]}
-	fi
-	echo $PKGSTOINSTALL
 	update_repo="yum check-update"
 	install_dependency="yum install PyQt4 python-psutil -y"
 elif [ "$(which apt-get)" ]; then
