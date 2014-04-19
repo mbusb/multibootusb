@@ -31,7 +31,4 @@ include tools/multibootusb/menu.c32
 include tools/multibootusb/menu.lst
 include tools/multibootusb/syslinux.cfg
 include tools/multibootusb/vesamenu.c32
-include tools/syslinux/bin/syslinux3
-include tools/syslinux/bin/syslinux4
-include tools/syslinux/bin/syslinux5
-include tools/syslinux/bin/syslinux6
+include tools/syslinux.zip
