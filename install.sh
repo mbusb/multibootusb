@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+if ["$(hash sudo)"]; then
+	echo "sundar"
+fi
+
 PKGSTOINSTALL=""
 DEPENDENCIES=(PyQt4 python-psutil)
 if [ "$(id -u)" != "0" ]; then
@@ -8,8 +13,10 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 echo "Checking internet connection..."
-wget --tries=3 --timeout=10 www.google.com -O /tmp/testinternet &>/dev/null 2>&1
-if [ $? != 0 ]; then
+if [ "$(ping -w5 -c3 www.google.com)" ]; then
+	internet="yes"
+	echo "internet connection exits."
+else
 	echo "Unable to connect to internet. Check your internet connection."
 	echo "You should have working internet connection to install dependencies."
 	echo "You can still install multibootusb if you are sure that your system "
@@ -28,9 +35,6 @@ if [ $? != 0 ]; then
 		echo "Wrong option. Try installing the script again. Exiting now."
 		exit 1
 	fi
-else
-	internet="yes"
-	echo "internet connection exits."
 fi
 
 echo "Checking distro..."
@@ -49,6 +53,8 @@ elif [ "$(which yum)" ]; then
 	install_dependency="yum install PyQt4 python-psutil -y"
 elif [ "$(which apt-get)" ]; then
 	distro="debian"
+	if [ "$(dpkg -l | grep python-psutil)" ]; then
+	
 	update_repo="apt-get -q update"
 	install_dependency="apt-get -q -y install python-qt4 python-psutil"
 elif [ "$(which zypper)" ]; then

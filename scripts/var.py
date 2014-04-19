@@ -41,3 +41,4 @@ qemu_dir = ""
 iso_file_list = []
 extract_file_name = ""
 iso9660fs = ""
+syslinux_dir = ""
