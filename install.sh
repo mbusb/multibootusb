@@ -43,8 +43,6 @@ elif [ "$(which yum)" ]; then
 	install_dependency="yum install PyQt4 python-psutil -y"
 elif [ "$(which apt-get)" ]; then
 	distro="debian"
-	if [ "$(dpkg -l | grep python-psutil)" ]; then
-	
 	update_repo="apt-get -q update"
 	install_dependency="apt-get -q -y install python-qt4 python-psutil"
 elif [ "$(which zypper)" ]; then
