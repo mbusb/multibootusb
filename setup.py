@@ -28,5 +28,5 @@ setup(
                   (os.path.join(sys.prefix,"multibootusb", "tools", "multibootusb"),["tools/multibootusb/menu.lst"]),
                   (os.path.join(sys.prefix,"multibootusb", "tools", "multibootusb"),["tools/multibootusb/syslinux.cfg"]),
                   (os.path.join(sys.prefix,"multibootusb", "tools", "multibootusb"),["tools/multibootusb/vesamenu.c32"]),
-                  (os.path.join(sys.prefix,"multibootusb", "tools", "syslinux.zip"),["tools/syslinux.zip"])]
+                  (os.path.join(sys.prefix,"multibootusb", "tools"),["tools/syslinux.zip"])]
 )
