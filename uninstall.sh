@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-
+# Thanks Neitsab for typo correction.
 if [ "$(id -u)" != "0" ]; then
    echo "This script must be run as root/sudo" 1>&2
-   echo "Try sudo ./install.sh" 1>&2
+   echo "Try sudo ./uninstall.sh" 1>&2
    exit 1
 fi
 
