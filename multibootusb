@@ -190,7 +190,6 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                         if ok:
                             var.password = str(input)
                             if os.popen('echo ' + var.password + ' | sudo -S id -u').read().strip() == '0':
-                                print resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin"))
                                 for path, subdirs, files in os.walk(resource_path(os.path.join(var.syslinux_dir, "syslinux", "bin"))):
                                     for name in files:
                                         if not name.endswith('.exe'):
