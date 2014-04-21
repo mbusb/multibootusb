@@ -1,7 +1,12 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 """
-This script is to make distibution packages to platform specific formats.
+This is an internal script to make automation of building binary packages and source.
+This may not work for you without modification in to variables and paths.
+
+Released under General Public Licence (GPL).
+
+Author: Sundar
 """
 
 import os
@@ -10,6 +15,8 @@ import subprocess
 import sys
 import platform
 
+result = ""
+package = ""
 version = open(os.path.join("tools", "version.txt"), 'r').read().strip()
 if platform.system() == "Windows":
     release_dir = os.path.join("D", "multibootusb", "release")
@@ -22,19 +29,36 @@ else:
         exit(0)
 
 def clean_dir():
-    deleteDirectory('build')
-    deleteDirectory('dist')
-    deleteDirectory('deb_dist')
+    if os.path.exists('build'):
+        deleteDirectory('build')
+    if os.path.exists('dist'):
+        deleteDirectory('dist')
+    if os.path.exists('deb_dist'):
+        deleteDirectory('deb_dist')
+    if not os.path.exists('build') and not os.path.exists('dist') and not os.path.exists('deb_dist'):
+        print "Already clean. Nothing to do."
+
 
 def deleteDirectory(path):
     try:
+        for files in os.listdir(path):
+            if os.path.isdir(os.path.join(path, files)):
+                #print (os.path.join(path, files))
+                os.chmod(os.path.join(path, files),0o777)
+                shutil.rmtree(os.path.join(path, files))
+            else:
+                #print (os.path.join(path, files))
+                os.chmod(os.path.join(path, files), 0777)
+                os.unlink(os.path.join(path, files))
+                os.remove(os.path.join(path, files))
         shutil.rmtree(path)
+
     except OSError as ose:
         # Ignore 'no such file or directory' errors
         if ose.errno != 2:
             print "OS Error."
 
-"""
+
 #Useful to delete files.
 def deleteFile(path):
     try:
@@ -42,7 +66,6 @@ def deleteFile(path):
     except OSError as ose:
         if ose.errno != 2:
             print ose
-"""
 
 arg = sys.argv[1] if len(sys.argv) >= 2 else None
 pyinstallerPath  = "/home/sundar/Downloads/PyInstaller-2.1/pyinstaller.py"
@@ -60,26 +83,31 @@ elif arg == 'deb':
             "Section: system\n"
             "XS-Python-Version: = 2.7\n"
             "Debian-Version: 1")
-    #if not os.path.exists("stdeb.cfg"):
     with open("stdeb.cfg", "w") as f:
         f.write(stdcfg)
     subprocess.call(['python2.7', 'setup.py', '--command-packages=stdeb.command', 'bdist_deb'])
     if os.path.exists(os.path.join("deb_dist", "multibootusb_" + version + "-1_all.deb")):
+        result = "success"
+        package = "multibootusb_" + version + "-1_all.deb"
+        package_path = os.path.join("deb_dist", "multibootusb_" + version + "-1_all.deb")
         print "\n\n\n"
         print "Debian package has been created and can be found here::"
         print os.path.join("deb_dist", "multibootusb_" + version + "-1_all.deb")
         print "\n\n\n"
+
 
 elif arg == 'rpm':
     setup_cfg = ("[bdist_rpm]\n"
             "Group = Applications/System\n"
             "Vendor = sundar <feedback.multibootusb@gmail.com>\n"
             "Requires = PyQt4, python-psutil")
-    #if not os.path.exists("setup.cfg"):
     with open("setup.cfg", "w") as f:
         f.write(setup_cfg)
     subprocess.call(['python2.7', 'setup.py', 'bdist_rpm'])
     if os.path.exists(os.path.join("dist", "multibootusb-" + version + "-1.noarch.rpm")):
+        result = "success"
+        package = "multibootusb-" + version + "-1.noarch.rpm"
+        package_path = os.path.join("dist", "multibootusb-" + version + "-1.noarch.rpm")
         print "\n\n\n"
         print "RPM package has been created and can be found here::"
         print os.path.join("dist", "multibootusb-" + version + "-1.noarch.rpm")
@@ -88,8 +116,16 @@ elif arg == 'rpm':
 elif arg == 'install':
     subprocess.call(['python2.7', 'setup.py', 'install'])
 
-elif arg == 'source':
+elif arg == 'src':
     subprocess.call(['python2.7', 'setup.py', 'sdist'])
+    if os.path.exists(os.path.join("dist", "multibootusb-" + version + ".tar.gz")):
+        result = "success"
+        package = "multibootusb-" + version + ".tar.gz"
+        package_path = os.path.join("dist", "multibootusb-" + version + ".tar.gz")
+        print "\n\n\n"
+        print "Source package has been created and can be found here::"
+        print os.path.join("dist", "multibootusb-" + version + ".tar.gz")
+        print "\n\n\n"
 
 elif arg == 'run':
     subprocess.call(['python2.7', 'multibootusb'])
@@ -97,7 +133,18 @@ elif arg == 'clean':
     clean_dir()
 
 else:
-    print "Invalid option\nPossible options: dist, deb, rpm, install, source, run, test, clean"
+    print "Invalid option\nPossible options: dist, deb, rpm, install, src, run, test, clean"
+
+if result == "success":
+    release_dir = os.path.join(release_dir, "multibootusb" + version)
+    if not os.path.exists(release_dir):
+        os.mkdir(release_dir)
+        shutil.copy2(package_path, release_dir)
+    else:
+        shutil.copy2(package_path, release_dir)
+    if os.path.exists(os.path.join(release_dir, package)):
+        print "\n\n\n" + package + "\nhas been copied to\n" + release_dir + "\n\n\n"
+
 
 """
 #Yet to be implemented.
