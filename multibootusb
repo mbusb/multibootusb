@@ -89,7 +89,6 @@ if os.path.exists(os.path.join(mbusb_dir,"syslinux", "bin", "syslinux4")):
     var.syslinux_dir = mbusb_dir
 else:
     var.syslinux_dir = "tools"
-print resource_path(os.path.join(var.syslinux_dir))
 
 if sys.platform.startswith("linux"):
     if os.geteuid() == 0:
