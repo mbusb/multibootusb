@@ -5,7 +5,7 @@ mbusb_version = open(os.path.join("tools", "version.txt"), 'r').read().strip()
 setup(
     name='multibootusb',
     version=mbusb_version,
-    packages=['scripts'],
+    packages=['scripts', 'pyudev'],
     scripts = ['multibootusb'],
     platforms = ['Linux'],
     url='http://multibootusb.org/',
