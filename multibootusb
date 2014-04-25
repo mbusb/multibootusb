@@ -24,7 +24,7 @@ from scripts import install_syslinux
 from scripts.isodump import ISO9660
 from scripts.multibootusb_ui import Ui_Dialog
 import sys,os,re,platform,tempfile,subprocess,shutil,psutil,threading
-import zipfile
+import zipfile, pyudev
 
 
 
@@ -292,22 +292,28 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
     def find_usb(self):
         found = []
         if sys.platform.startswith("linux"):
+            try:
+                context = pyudev.Context()
+                for device in context.list_devices(subsystem='block', DEVTYPE='partition'):
+                    if device['ID_BUS']=="usb":
+                        found.append(device['DEVNAME'])
+            except:
+                print "Falling back to dbus..."
+                bus = dbus.SystemBus()
+                ud_manager_obj = bus.get_object("org.freedesktop.UDisks", "/org/freedesktop/UDisks")
+                ud_manager = dbus.Interface(ud_manager_obj, 'org.freedesktop.UDisks')
 
-            bus = dbus.SystemBus()
-            ud_manager_obj = bus.get_object("org.freedesktop.UDisks", "/org/freedesktop/UDisks")
-            ud_manager = dbus.Interface(ud_manager_obj, 'org.freedesktop.UDisks')
-
-            for dev in ud_manager.EnumerateDevices():
-                device_obj = bus.get_object("org.freedesktop.UDisks", dev)
-                device_props = dbus.Interface(device_obj, dbus.PROPERTIES_IFACE)
-                if device_props.Get('org.freedesktop.UDisks.Device',
-                                    "DriveConnectionInterface") == "usb" and device_props.Get(
-                        'org.freedesktop.UDisks.Device', "DeviceIsPartition"):
-                    if device_props.Get('org.freedesktop.UDisks.Device', "DeviceIsMounted"):
-                        device_file = device_props.Get('org.freedesktop.UDisks.Device', "DeviceFile")
-                        found.append(device_file)
-                        #else:
-                        #   print "Device not mounted"
+                for dev in ud_manager.EnumerateDevices():
+                    device_obj = bus.get_object("org.freedesktop.UDisks", dev)
+                    device_props = dbus.Interface(device_obj, dbus.PROPERTIES_IFACE)
+                    if device_props.Get('org.freedesktop.UDisks.Device',
+                                        "DriveConnectionInterface") == "usb" and device_props.Get(
+                            'org.freedesktop.UDisks.Device', "DeviceIsPartition"):
+                        if device_props.Get('org.freedesktop.UDisks.Device', "DeviceIsMounted"):
+                            device_file = device_props.Get('org.freedesktop.UDisks.Device', "DeviceFile")
+                            found.append(device_file)
+                            #else:
+                            #   print "Device not mounted"
 
             return found
 
@@ -322,19 +328,41 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
     def get_usb_details(self):
 
         if sys.platform.startswith("linux"):
-            selected_usb_part = str(self.ui.comboBox.currentText())[4:]
-            bus = dbus.SystemBus()
-            device_obj = bus.get_object("org.freedesktop.UDisks", "/org/freedesktop/UDisks/devices" + selected_usb_part)
-            device_props = dbus.Interface(device_obj, dbus.PROPERTIES_IFACE)
-            selected_usb_device = device_props.Get('org.freedesktop.UDisks.Device', "DeviceFile")
-            selected_usb_uuid = device_props.Get('org.freedesktop.UDisks.Device', "IdUuid")
-            selected_usb_label = device_props.Get('org.freedesktop.UDisks.Device', "IdLabel")
-            selected_usb_mount_path = device_props.Get('org.freedesktop.UDisks.Device', "DeviceMountPaths")[0]
-            #selected_usb_size = device_props.Get('org.freedesktop.UDisks.Device', "PartitionSize") 
-            selected_usb_file_system = device_props.Get('org.freedesktop.UDisks.Device', "IdType")
-            selected_usb_total_size = psutil.disk_usage(selected_usb_mount_path)[0]
-            selected_usb_avail_size = psutil.disk_usage(selected_usb_mount_path)[2]
-            selected_usb_used_size = psutil.disk_usage(selected_usb_mount_path)[1]
+            try:
+                context = pyudev.Context()
+                for device in context.list_devices(subsystem='block', DEVTYPE='partition'):
+                    if device['ID_BUS']=="usb":
+                        if device['DEVNAME'] == str(self.ui.comboBox.currentText()):
+                #  print('{0} ({1})'.format(device['DEVNAME'], device['DEVTYPE']))
+                    #if device['DEVNAME'] == str(self.ui.comboBox.currentText()):
+                            selected_usb_device = device['DEVNAME']
+                            #selected_usb_device = device['DEVNAME'][:1]
+                            selected_usb_uuid = device['ID_FS_UUID']
+                            selected_usb_label = device['ID_FS_LABEL']
+                            #selected_usb_mount_path = device_props.Get('org.freedesktop.UDisks.Device', "DeviceMountPaths")[0]
+                            for disk in psutil.disk_partitions(all=False):
+                                if disk[0] == device['DEVNAME']:
+                                    selected_usb_mount_path = disk[1]
+                            print selected_usb_mount_path
+                            selected_usb_file_system = device['ID_FS_TYPE']
+                            selected_usb_total_size = psutil.disk_usage(selected_usb_mount_path)[0]
+                            selected_usb_avail_size = psutil.disk_usage(selected_usb_mount_path)[2]
+                            selected_usb_used_size = psutil.disk_usage(selected_usb_mount_path)[1]
+            except:
+                print "Getting drive info from dbus..."
+                selected_usb_part = str(self.ui.comboBox.currentText())[4:]
+                bus = dbus.SystemBus()
+                device_obj = bus.get_object("org.freedesktop.UDisks", "/org/freedesktop/UDisks/devices" + selected_usb_part)
+                device_props = dbus.Interface(device_obj, dbus.PROPERTIES_IFACE)
+                selected_usb_device = device_props.Get('org.freedesktop.UDisks.Device', "DeviceFile")
+                selected_usb_uuid = device_props.Get('org.freedesktop.UDisks.Device', "IdUuid")
+                selected_usb_label = device_props.Get('org.freedesktop.UDisks.Device', "IdLabel")
+                selected_usb_mount_path = device_props.Get('org.freedesktop.UDisks.Device', "DeviceMountPaths")[0]
+                #selected_usb_size = device_props.Get('org.freedesktop.UDisks.Device', "PartitionSize")
+                selected_usb_file_system = device_props.Get('org.freedesktop.UDisks.Device', "IdType")
+                selected_usb_total_size = psutil.disk_usage(selected_usb_mount_path)[0]
+                selected_usb_avail_size = psutil.disk_usage(selected_usb_mount_path)[2]
+                selected_usb_used_size = psutil.disk_usage(selected_usb_mount_path)[1]
 
         else:
             selected_usb_part = str(self.ui.comboBox.currentText())[:2]
