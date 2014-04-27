@@ -87,10 +87,18 @@ else:
     print "Extracting syslinux to multibootusb directory."
     with zipfile.ZipFile(resource_path(os.path.join("tools", "syslinux.zip")), "r") as z:
         z.extractall(mbusb_dir)
-if os.path.exists(os.path.join(mbusb_dir,"syslinux", "bin", "syslinux4")):
-    var.syslinux_dir = mbusb_dir
+
+
+if platform.system() == "Windows":
+    if os.path.exists(os.path.join(mbusb_dir,"syslinux", "bin", "syslinux4.exe")):
+        var.syslinux_dir = mbusb_dir
+    else:
+        var.syslinux_dir = "tools"
 else:
-    var.syslinux_dir = "tools"
+    if os.path.exists(os.path.join(mbusb_dir,"syslinux", "bin", "syslinux4")):
+        var.syslinux_dir = mbusb_dir
+    else:
+        var.syslinux_dir = "tools"
 
 if sys.platform.startswith("linux"):
     if os.geteuid() == 0:
