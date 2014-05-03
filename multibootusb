@@ -351,7 +351,11 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                             selected_usb_device = device['DEVNAME']
                             #selected_usb_device = device['DEVNAME'][:1]
                             selected_usb_uuid = device['ID_FS_UUID']
-                            selected_usb_label = device['ID_FS_LABEL']
+                            try:
+                                selected_usb_label = device['ID_FS_LABEL']
+                            except KeyError as inst:
+                                print "Could not find a label for device " + device['DEVNAME']
+                                raise inst
                             #selected_usb_mount_path = device_props.Get('org.freedesktop.UDisks.Device', "DeviceMountPaths")[0]
                             for disk in psutil.disk_partitions(all=False):
                                 if disk[0] == str(self.ui.comboBox.currentText()):
