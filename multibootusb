@@ -500,8 +500,10 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                                                   'Could not read config files to identify distro.')
                 else:
                     if not distro:
-                        if re.search(r'sources', var.iso_file_list, re.I):
-                            distro = "windows"
+                        for file in var.iso_file_list:
+                            if re.search(r'sources', file, re.I):
+                                distro = "windows"
+                                break
             #self.detect_iso_zip_info()
             if distro:
                 var.distro = distro
