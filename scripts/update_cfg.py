@@ -49,15 +49,31 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                         'pmedia=usbflash psubok=TRUE psubdir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/',
                                         string)
                     elif distro == "slax":
-                        string = re.sub(r'initrd=', '\1 from=/multibootusb/' + os.path.splitext(iso_name)[
+                        string = re.sub(r'initrd=', r'from=/multibootusb/' + os.path.splitext(iso_name)[
                             0] + '/slax fromusb initrd=', string)
                     elif distro == "knoppix":
-                        string = re.sub(r'append',
-                                        '\1  knoppix_dir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/KNOPPIX',
+                        string = re.sub(r'(append)',
+                                        r'\1  knoppix_dir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/KNOPPIX',
                                         string)
                     elif distro == "systemrescuecd":
-                        string = re.sub(r'append', '\1 subdir=/multibootusb/' + os.path.splitext(iso_name)[0] + '/',
-                                        string, flags=re.I)
+                        rows = []
+                        subdir = '/multibootusb/' + os.path.splitext(iso_name)[0] + '/'
+                        for line in string.splitlines(True):
+                            addline = True
+                            if re.match(r'append.*--.*', line, flags=re.I):
+                                line = re.sub(r'(append)(.*)--(.*)', r'\1\2subdir=' + subdir + r' --\3 subdir=' + subdir,
+                                       line, flags=re.I)
+                            elif re.match(r'append', line, flags=re.I):
+                                    line = re.sub(r'(append)', r'\1 subdir=' + subdir, line, flags=re.I)
+                            elif re.match(r'label rescue(32|64)_1', line, flags=re.I):
+                                rows.append(line)
+                                rows.append('append subdir=%s\n' % (subdir,))
+                                addline = False
+
+                            if addline:
+                                rows.append(line)
+
+                        string = ''.join(rows)
                     elif distro == "arch" or distro == "chakra":
                         string = re.sub(r'isolabel=\S*', 'isodevice=/dev/disk/by-uuid/' + str(var.gbl_usb_uuid), string,
                                         flags=re.I)
