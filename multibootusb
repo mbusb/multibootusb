@@ -137,13 +137,16 @@ if os.listdir(iso_cfg_ext_dir):
     for files in os.listdir(iso_cfg_ext_dir):
         if os.path.isdir(os.path.join(iso_cfg_ext_dir, files)):
             print (os.path.join(iso_cfg_ext_dir, files))
-            os.chmod(os.path.join(iso_cfg_ext_dir, files),0o777)
+            os.chmod(os.path.join(iso_cfg_ext_dir, files), 0777)
             shutil.rmtree(os.path.join(iso_cfg_ext_dir, files))
         else:
-            print (os.path.join(iso_cfg_ext_dir, files))
-            os.chmod(os.path.join(iso_cfg_ext_dir, files), 0777)
-            os.unlink(os.path.join(iso_cfg_ext_dir, files))
-            os.remove(os.path.join(iso_cfg_ext_dir, files))
+            try:
+                print (os.path.join(iso_cfg_ext_dir, files))
+                os.chmod(os.path.join(iso_cfg_ext_dir, files), 0777)
+                os.unlink(os.path.join(iso_cfg_ext_dir, files))
+                os.remove(os.path.join(iso_cfg_ext_dir, files))
+            except OSError:
+                print "Can't remove the file. Skip it."
 
 """
 def resource_path(relative):
