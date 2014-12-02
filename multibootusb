@@ -137,13 +137,16 @@ if os.listdir(iso_cfg_ext_dir):
     for files in os.listdir(iso_cfg_ext_dir):
         if os.path.isdir(os.path.join(iso_cfg_ext_dir, files)):
             print (os.path.join(iso_cfg_ext_dir, files))
-            os.chmod(os.path.join(iso_cfg_ext_dir, files),0o777)
+            os.chmod(os.path.join(iso_cfg_ext_dir, files), 0777)
             shutil.rmtree(os.path.join(iso_cfg_ext_dir, files))
         else:
-            print (os.path.join(iso_cfg_ext_dir, files))
-            os.chmod(os.path.join(iso_cfg_ext_dir, files), 0777)
-            os.unlink(os.path.join(iso_cfg_ext_dir, files))
-            os.remove(os.path.join(iso_cfg_ext_dir, files))
+            try:
+                print (os.path.join(iso_cfg_ext_dir, files))
+                os.chmod(os.path.join(iso_cfg_ext_dir, files), 0777)
+                os.unlink(os.path.join(iso_cfg_ext_dir, files))
+                os.remove(os.path.join(iso_cfg_ext_dir, files))
+            except OSError:
+                print "Can't remove the file. Skip it."
 
 """
 def resource_path(relative):
@@ -497,8 +500,10 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                                                   'Could not read config files to identify distro.')
                 else:
                     if not distro:
-                        if re.search(r'sources', var.iso_file_list, re.I):
-                            distro = "windows"
+                        for file in var.iso_file_list:
+                            if re.search(r'sources', file, re.I):
+                                distro = "windows"
+                                break
             #self.detect_iso_zip_info()
             if distro:
                 var.distro = distro
