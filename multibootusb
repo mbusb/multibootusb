@@ -79,6 +79,10 @@ else:
 
 if not os.path.exists(mbusb_dir):
     os.makedirs(mbusb_dir)
+else:
+    print "Cleaning old multibootusb directory."
+    shutil.rmtree(mbusb_dir)
+    os.makedirs(mbusb_dir)
 if not os.path.exists(os.path.join(mbusb_dir, "preference")):
     os.makedirs(os.path.join(mbusb_dir, "preference"))
 if os.path.exists(os.path.join(mbusb_dir, "syslinux", "bin", "syslinux4")):
