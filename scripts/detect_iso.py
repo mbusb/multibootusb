@@ -85,6 +85,8 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                 return "salix-live"
                             elif re.search(r'zenwalk|slack|salix', string, re.I):
                                 return "zenwalk"
+                            elif re.search(r'ubuntu server', string, re.I):
+                                return "ubuntu-server"
 
 
     def detect_iso_zip_info(self):

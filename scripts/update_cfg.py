@@ -21,10 +21,8 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                         print "Unable to read " + cfg_file
                     else:
                         replace_text = r'\1/multibootusb/' + os.path.splitext(iso_name)[0] + '/'
-                    #string = re.sub(r'(append) (\S+)', r'\2\n    \1', re.sub(r'([ \t =,])/', replace_text, string))
                     string = re.sub(r'([ \t =,])/', replace_text, string)
                     if distro == "ubuntu":
-                        #string = re.sub(r'file=/cdrom/', 'file=/cdrom/multibootusb/' + os.path.splitext(iso_name)[0] + '/',  string)
                         string = re.sub(r'boot=casper',
                                         'boot=casper cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid ignore_bootid root=UUID=' + str(
                                             var.gbl_usb_uuid) + ' live-media-path=/multibootusb/' +
@@ -32,6 +30,9 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                     elif distro == "debian":
                         string = re.sub(r'boot=live', 'boot=live ignore_bootid live-media-path=/multibootusb/' +
                                                       os.path.splitext(iso_name)[0] + '/live', string)
+                    elif distro == "ubuntu-server":
+                        string = re.sub(r'file', 'cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid ignore_bootid root=UUID=' + str(
+                                            var.gbl_usb_uuid + 'file'), string)
                     elif distro == "fedora":
                         string = re.sub(r'root=\S*', 'root=UUID=' + str(var.gbl_usb_uuid) + ' live_dir=/multibootusb/' +
                                                      os.path.splitext(iso_name)[0] + '/LiveOS', string)
