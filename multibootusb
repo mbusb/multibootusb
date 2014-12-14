@@ -190,6 +190,9 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         version = open(resource_path(os.path.join("tools", "version.txt")), 'r').read().strip()
         var.gbl_mbusb_version = version
 
+        print version
+        print var.gbl_mbusb_version
+
         if sys.platform.startswith("linux"):
             zip = resource_path(os.path.join("tools", "7zip", "linux", "7z"))
             var.zip = zip
