@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This is an internal script to make automation of building binary/ source packages and uploading to Sourceforge.
-This may not work for you without modification in to variables and paths. And amend wherever required.
+This may not work for you without modification in to variables and paths. Please amend wherever required.
 Originally written for cryptully and modified by me for multibootusb.
 
 Released under General Public Licence (GPL).
