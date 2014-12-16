@@ -24,6 +24,7 @@ include tools/mbr.bin
 include tools/multibootusb.png
 include tools/version.txt
 include tools/multibootusb/chain.c32
+include tools/multibootusb/bg.png
 include tools/multibootusb/extlinux.cfg
 include tools/multibootusb/grub.exe
 include tools/multibootusb/memdisk
