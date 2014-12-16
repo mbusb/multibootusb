@@ -21,6 +21,7 @@ setup(
                   (os.path.join(sys.prefix,"multibootusb", "tools"),["tools/version.txt"]),
                   (os.path.join(sys.prefix,"multibootusb", "tools"),["tools/multibootusb.png"]),
                   (os.path.join(sys.prefix,"multibootusb", "tools", "multibootusb"),["tools/multibootusb/chain.c32"]),
+                  (os.path.join(sys.prefix,"multibootusb", "tools", "multibootusb"),["tools/multibootusb/bg.png"]),
                   (os.path.join(sys.prefix,"multibootusb", "tools", "multibootusb"),["tools/multibootusb/extlinux.cfg"]),
                   (os.path.join(sys.prefix,"multibootusb", "tools", "multibootusb"),["tools/multibootusb/grub.exe"]),
                   (os.path.join(sys.prefix,"multibootusb", "tools", "multibootusb"),["tools/multibootusb/memdisk"]),
