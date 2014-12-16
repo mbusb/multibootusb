@@ -87,6 +87,9 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                 return "zenwalk"
                             elif re.search(r'ubuntu server', string, re.I):
                                 return "ubuntu-server"
+                            elif re.search(r'Welcome to CentOS', string, re.I):
+                                return "centos-net-minimal"
+
 
 
     def detect_iso_zip_info(self):

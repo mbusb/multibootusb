@@ -32,10 +32,12 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                                       os.path.splitext(iso_name)[0] + '/live', string)
                     elif distro == "ubuntu-server":
                         string = re.sub(r'file', 'cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid ignore_bootid root=UUID=' + str(
-                                            var.gbl_usb_uuid + 'file'), string)
+                                            var.gbl_usb_uuid + ' file'), string)
                     elif distro == "fedora":
                         string = re.sub(r'root=\S*', 'root=UUID=' + str(var.gbl_usb_uuid) + ' live_dir=/multibootusb/' +
                                                      os.path.splitext(iso_name)[0] + '/LiveOS', string)
+                    #elif distro == "centos-net-minimal":
+
                     elif distro == "parted-magic":
                         string = re.sub(r'initrd=',
                                         'directory=/multibootusb/' + os.path.splitext(iso_name)[0] + '/ initrd=',
