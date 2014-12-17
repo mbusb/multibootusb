@@ -1,0 +1,66 @@
+Version - 7.2.0
+---------------
+* Updated syslinux version from 6.0.2 to 6.0.3
+* Added background image for syslinux.
+* Increased timeout time to 30 sec.
+* Added following distros:-
+	- CentOS minimal.
+	- Ubuntu Server.
+* Patch from kbytesys to fix systemrescueCD menu items and other string manupulations.
+* Fix for few other bugs.
+
+Version - 7.1.0
+---------------
+* ISO extraction is much faster than previous releases.
+* Included pyudev for better detection of USB drives under Linux.
+* Included install.sh for installing multibootusb under Linux.
+* Included setup.py for installing directly from source.
+* Improved USB detection under Linux.
+* Lot of important bug fix and minor improvements.
+
+Version - 7.0.0
+---------------
+* 7Zip is no more used for extracting ISO files. Thanks to contibution by LiQiong Lee for isodump.py script.
+* Improved ISO extraction speed on certain distros.
+* Added solydx, antix and fixed puppy bug.
+* ISO integrity check is much faster than previos releases.
+* QEMU feature is back on both Linux and Windows.
+* Fixed OpenSuse uninstall issue.
+* Check if any running process while exiting.
+* Added PCLinuxOS.
+* Various other major and minor improvements to all scripts.
+* Changed version numbering to three digit.
+
+Version -7.0 Beta2
+------------------
+* Now multibootusb installs correct version of syslinux shipped with distro.
+* Various optimization for installation of syslinux.
+* Extensive test has been done to make sure to fix bugs.
+* Able to uninstall distros properly under windows.
+* Greater attention is given to ensure that correct version of syslinux is installed in distro directory.
+* Various code optimization.
+* Copying iso files under windows is faster now.
+* Added follwing distros:-
+	- Wifislax
+	- PcLinuxOS
+	- Salix live/install
+	- Slackel live/install
+	- Zenwalk live/install
+* Few other distros which I dont remember
+* Size of windows executable has been reduced (using upx)
+* Added refresh usb button. So that restarting of application is not required to detect USB.
+* Added new lable space to indicate progress of the process.
+* Various other smaller improvements.
+
+Version -7.0 Beta
+-----------------
+* Code base is now in python 2.7
+* Code is hosted at github so that anybody can view the progress of the development.
+* Various bugs present in the older version (6.4.1) has been fixed
+* Stand alone for windows and Linux.
+* PyQt choosen as GUI toolkit.
+* Official website is up and running at and you are viewing it now :-)
+* New logo.
+* Single code base for Linux and windows
+* other improvements which i don’t remember exactly :-) 
+
