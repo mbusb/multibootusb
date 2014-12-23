@@ -9,7 +9,7 @@ ANY WARRANTY expressed or implied, including the implied warranties of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 
-Copyright © 2010-20114  Sundar
+Copyright © 2010-2014  Sundar
 Author(s): Sundar, Ian Bruce
 """
 
@@ -21,6 +21,9 @@ from scripts import detect_iso
 from scripts import update_cfg
 from scripts import uninstall_distro
 from scripts import install_syslinux
+from scripts.persistence import PersistenceGui
+from scripts import persistence
+from scripts import extract
 from scripts.isodump import ISO9660
 from scripts.multibootusb_ui import Ui_Dialog
 import sys,os,re,platform,tempfile,subprocess,shutil,psutil,threading
@@ -70,10 +73,6 @@ if sys.platform.startswith("linux"):
     var.mbr_bin = resource_path(os.path.join("tools", "mbr.bin"))
 else:
     mbusb_dir = os.path.join(tempfile.gettempdir(), "multibootusb")
-    #zip = resource_path(os.path.join("tools", "7zip", "windows", "7z.exe"))
-    #var.zip = zip
-    #qemu_zip = resource_path(os.path.join("tools","qemu.7z"))
-    #subprocess.call(zip + " x " + qemu_zip + " -y -o" + resource_path(os.path.join("tools")), shell=True)
     var.qemu = resource_path(os.path.join("tools","qemu", "qemu-system-x86_64.exe"))
     var.qemu_dir = resource_path(os.path.join("tools","qemu"))
 
@@ -92,6 +91,9 @@ else:
     with zipfile.ZipFile(resource_path(os.path.join("tools", "syslinux.zip")), "r") as z:
         z.extractall(mbusb_dir)
 
+if not os.path.exists(os.path.join(mbusb_dir, "persistence_data")):
+    print "Copying persistence data to multibootusb directory."
+    shutil.copytree(resource_path(os.path.join("tools", "persistence_data")), os.path.join(mbusb_dir, "persistence_data"))
 
 if platform.system() == "Windows":
     if os.path.exists(os.path.join(mbusb_dir,"syslinux", "bin", "syslinux4.exe")):
@@ -186,7 +188,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         self.ui.boot_iso_qemu.clicked.connect(self.on_Qemu_Boot_iso_Click)
         self.ui.boot_usb_qemu.clicked.connect(self.on_Qemu_Boot_usb_Click)
         self.ui.tabWidget.removeTab(3)
-		
+
         version = open(resource_path(os.path.join("tools", "version.txt")), 'r').read().strip()
         var.gbl_mbusb_version = version
 
@@ -516,6 +518,12 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                 var.distro = distro
                 print var.distro
 
+                var.persistence_distro = persistence.persistence_distro(distro)
+                if var.persistence_distro:
+                    self.child_win = PersistenceGui(self)
+                    self.child_win.exec_()
+                    print "Trigger persistence function."
+
             if error_7zip == "yes":
                 self.ui.status.setText("Integrity check failed on " + iso_name)
                 QtGui.QMessageBox.information(self, 'Integrity error...',
@@ -607,9 +615,17 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
                             self.ui.status.setText(var.extract_file_name)
                             self.ui.progressBar.setValue(abs(percentage))
                             QtGui.qApp.processEvents()
-                        print "All Completed..."
+                        print "Distro Install Completed..."
                         self.ui.progressBar.setValue(100)
                         self.ui.progressBar.setValue(0)
+                        if var.persistence_size:
+                            print "Extracting persistence file..."
+                            thrd1 = threading.Thread(target=persistence.persistence_extract(mbusb_dir, install_dir),
+                                                     name="extract_process")
+                            thrd1.start()
+                            while thrd.is_alive():
+                                self.ui.status.setText("Extracting persistence file...")
+                                QtGui.qApp.processEvents()
                         sys_cfg_file = os.path.join(str(usb_mount), "multibootusb", "syslinux.cfg")
                         self.ui.status.setText("Installing syslinux...")
                         self.install_syslinux(usb_device)
@@ -769,7 +785,7 @@ class AppGui(qemu.AppGui, detect_iso.AppGui, update_cfg.AppGui, uninstall_distro
         # Help required to identify/ running opened processes.
         global quit_ready
 
-        if not  var.qemu_usb == "":
+        if not var.qemu_usb == "":
             if psutil.pid_exists(var.qemu_usb):
                 print "QEMU process exist..."
                 QtGui.QMessageBox.information(self, 'Process exist...',
