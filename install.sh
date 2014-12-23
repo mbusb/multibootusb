@@ -36,7 +36,7 @@ echo "Checking distro..."
 if [ "$(which pacman)" ]; then
 	distro="arch"
 	update_repo="pacman -Sy --noconfirm"
-	install_dependency="pacman -S --needed --noconfirm python-pyqt4 udisks python2-psutil" # Thanks Neitsab for "--needed"  argument.
+	install_dependency="pacman -S --needed --noconfirm python2-pyqt4 udisks python2-psutil" # Thanks Neitsab for "--needed"  argument.
 elif [ "$(which yum)" ]; then
 	distro="fedora"
 	update_repo="yum check-update"
