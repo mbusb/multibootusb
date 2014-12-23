@@ -27,17 +27,33 @@ class AppGui(QtGui.QDialog, Ui_Dialog):
                                         'boot=casper cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid ignore_bootid root=UUID=' + str(
                                             var.gbl_usb_uuid) + ' live-media-path=/multibootusb/' +
                                         os.path.splitext(iso_name)[0] + '/casper', string)
+                        if var.persistence_size:
+                            string = re.sub(r'boot=casper', 'boot=casper persistent persistent-path=/multibootusb/' +
+                                            os.path.splitext(iso_name)[0] + "/", string)
                     elif distro == "debian":
                         string = re.sub(r'boot=live', 'boot=live ignore_bootid live-media-path=/multibootusb/' +
-                                                      os.path.splitext(iso_name)[0] + '/live', string)
+                                        os.path.splitext(iso_name)[0] + '/live', string)
+                        if var.persistence_size:
+                            string = re.sub(r'boot=live', 'boot=live persistent persistent-path=/multibootusb/' +
+                                                      os.path.splitext(iso_name)[0] + "/", string)
+
                     elif distro == "ubuntu-server":
                         string = re.sub(r'file', 'cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid ignore_bootid root=UUID=' + str(
                                             var.gbl_usb_uuid + ' file'), string)
                     elif distro == "fedora":
-                        string = re.sub(r'root=\S*', 'root=UUID=' + str(var.gbl_usb_uuid) + ' live_dir=/multibootusb/' +
+                        string = re.sub(r'root=\S*', 'root=UUID=' + str(var.gbl_usb_uuid), string)
+                        if re.search(r'liveimg', string, re.I):
+                            string = re.sub(r'liveimg', 'liveimg live_dir=/multibootusb/' +
                                                      os.path.splitext(iso_name)[0] + '/LiveOS', string)
-                    #elif distro == "centos-net-minimal":
-
+                        elif re.search(r'rd.live.image', string, re.I):
+                            string = re.sub(r'rd.live.image', 'rd.live.image rd.live.dir=/multibootusb/' +
+                                                     os.path.splitext(iso_name)[0] + '/LiveOS', string)
+                        if var.persistence_size:
+                            if re.search(r'liveimg', string, re.I):
+                                string = re.sub(r'liveimg', 'liveimg overlay=UUID=' + var.gbl_usb_uuid, string)
+                            elif re.search(r'rd.live.image', string, re.I):
+                                string = re.sub(r'rd.live.image', 'rd.live.image rd.live.overlay=UUID=' + var.gbl_usb_uuid, string)
+                            string = re.sub(r' ro ', ' rw ', string)
                     elif distro == "parted-magic":
                         string = re.sub(r'initrd=',
                                         'directory=/multibootusb/' + os.path.splitext(iso_name)[0] + '/ initrd=',

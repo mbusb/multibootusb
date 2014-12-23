@@ -42,3 +42,6 @@ iso_file_list = []
 extract_file_name = ""
 iso9660fs = ""
 syslinux_dir = ""
+persistence_size = ""
+persistence_distro = ""
+persistence_usb_path = ""
