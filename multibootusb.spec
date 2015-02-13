@@ -23,14 +23,7 @@ if platform.system() == "Windows":
                  hookspath=None,
                  runtime_hooks=None)
 
-    a.datas += extra_datas('tools', [os.path.join(os.getcwd(),  "tools",  "7zip", "linux", "7z"),
-                                    "tools/7zip/linux/7z.so",
-                                    "tools/7zip/windows/ptime.exe",
-                                    "tools/syslinux/bin/syslinux",
-                                    "tools/syslinux/bin/syslinux3",
-                                    "tools/syslinux/bin/syslinux4",
-                                    "tools/syslinux/bin/syslinux5",
-                                    "tools/syslinux/bin/syslinux6"])
+    a.datas += extra_datas('tools')
 
 else:
     a = Analysis(['./multibootusb'],
