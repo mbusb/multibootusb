@@ -16,8 +16,8 @@ import struct
 import os
 import re
 import stat
-import var
 from ctypes import *
+import config
 
 BLOCK_SIZE = 2048
 S_IFSOCKET = 0o140000
@@ -464,8 +464,7 @@ class ISO9660:
                             self.writeDir_r(p, d, pp, r, all_type)
                 elif match:
                     self.writeFile(d, p, all_type)
-                    var.extract_file_name = ""
-            # if not d.fIdentifier end #            
+            # if not d.fIdentifier end #
         # for d in dirs end #
     
     def writeFile(self, dirRec, detFile, all_type):
@@ -477,7 +476,8 @@ class ISO9660:
             return E_FAILURE
     
         #print "write file (%s)"%(detFile)
-        var.extract_file_name = "Extracting  " + detFile[(var.install_dir_count):]
+        config.iso_extract_file_name = detFile
+        #print config.iso_extract_file_name
         dirname = os.path.dirname(detFile)
         if not os.path.exists(dirname):
             try:

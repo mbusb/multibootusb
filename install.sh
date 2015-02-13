@@ -14,7 +14,7 @@ else
 	echo "Unable to connect to internet. Check your internet connection."
 	echo "You should have working internet connection to install dependencies."
 	echo "You can still install multibootusb if you are sure that your system "
-	echo "already have \"python2.7\", \"pyqt4\" and \"python-psutil\" installed."
+	echo "already have \"python2.7\", \"pyqt4\" installed."
 	echo "Should I go ahead [y/n]"
 	read input
 	if [ $input = "n" ] || [ $input == "N" ] || [ $input == "no" ]  || [ $input == "No" ] || [ $input == "NO" ]; then
@@ -36,23 +36,23 @@ echo "Checking distro..."
 if [ "$(which pacman)" ]; then
 	distro="arch"
 	update_repo="pacman -Sy --noconfirm"
-	install_dependency="pacman -S --needed --noconfirm python2-pyqt4 udisks python2-psutil" # Thanks Neitsab for "--needed"  argument.
+	install_dependency="pacman -S --needed --noconfirm python2-pyqt4 udisks" # Thanks Neitsab for "--needed"  argument.
 elif [ "$(which yum)" ]; then
 	distro="fedora"
 	update_repo="yum check-update"
-	install_dependency="yum install PyQt4 python-psutil -y"
+	install_dependency="yum install PyQt4 -y"
 elif [ "$(which apt-get)" ]; then
 	distro="debian"
 	update_repo="apt-get -q update"
-	install_dependency="apt-get -q -y install python-qt4 python-psutil"
+	install_dependency="apt-get -q -y install python-qt4"
 elif [ "$(which zypper)" ]; then
 	distro="suse"
 	update_repo="zypper refresh"
-	install_dependency="zypper install -y python-qt4 python-psutil"	
+	install_dependency="zypper install -y python-qt4"
 elif [ "$(which urpmi)" ]; then
 	distro="mageia"
 	update_repo="urpmi.update -a"
-	install_dependency="urpmi install -auto python-qt4 python-psutil"
+	install_dependency="urpmi install -auto python-qt4"
 		
 	    
 else
@@ -60,7 +60,7 @@ else
 fi
 
 if [ $internet == "yes" ] && [ $distro == "None" ]; then
-	echo "Unable to find package manager type. You must install dependencies \"python-qt4\" and \"python-psutil\" manually and issue the following commands."
+	echo "Unable to find package manager type. You must install  \"python-qt4\" manually and issue the following commands."
 	echo ""
 	echo ""	
 	echo "cd /path/to/multibootusb/root/directory"
@@ -72,7 +72,7 @@ if [ $internet == "yes" ] && [ $distro == "None" ]; then
 elif [ $internet == "yes" ]; then
     echo "Refreshing package list. This may take some time depending on your internet speed..."
 	$update_repo
-	echo "Installing dependency packages python-qt4 and python-psutil..."
+	echo "Installing dependency packages python-qt4..."
 	$install_dependency
     echo "Installing multibootusb..."
 fi

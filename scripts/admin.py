@@ -26,8 +26,10 @@ This is meant to be used something like this::
 See L{runAsAdmin} for the main interface.
 
 """
-
-import sys, os, traceback, types
+import os
+import traceback
+import types
+import platform
 
 
 def isUserAdmin():
@@ -40,7 +42,7 @@ def isUserAdmin():
     function to return False.
     """
 
-    if os.name == 'nt':
+    if platform.system() == "Windows":
         import ctypes
         # WARNING: requires Windows XP SP2 or higher!
         try:
@@ -49,8 +51,7 @@ def isUserAdmin():
             traceback.print_exc()
             print "Admin check failed, assuming not an admin."
             return False
-    elif os.name == 'posix':
-        # Check for root on Posix
+    elif platform.system() == "Linux":
         return os.getuid() == 0
     else:
         raise RuntimeError, "Unsupported operating system for this module: %s" % (os.name,)
@@ -72,66 +73,127 @@ def runAsAdmin(cmdLine=None, wait=True):
     @WARNING: this function only works on Windows.
     """
 
-    if os.name != 'nt':
-        raise RuntimeError, "This function is only implemented on Windows."
+    #if os.name == 'nt':
+    #    raise RuntimeError, "This function is only implemented on Windows."
+    if platform.system() == "Windows":
 
-    import win32api, win32con, win32event, win32process
-    from win32com.shell.shell import ShellExecuteEx
-    from win32com.shell import shellcon
+        import win32api, win32con, win32event, win32process
+        from win32com.shell.shell import ShellExecuteEx
+        from win32com.shell import shellcon
 
-    python_exe = sys.executable
+        python_exe = sys.executable
 
-    if cmdLine is None:
-        cmdLine = [python_exe] + sys.argv
-    elif type(cmdLine) not in (types.TupleType, types.ListType):
-        raise ValueError, "cmdLine is not a sequence."
-    cmd = '"%s"' % (cmdLine[0],)
-    # XXX TODO: isn't there a function or something we can call to massage command line params?
-    params = " ".join(['"%s"' % (x,) for x in cmdLine[1:]])
-    cmdDir = ''
-    showCmd = win32con.SW_SHOWNORMAL
-    #showCmd = win32con.SW_HIDE
-    lpVerb = 'runas'  # causes UAC elevation prompt.
+        if cmdLine is None:
+            cmdLine = [python_exe] + sys.argv
+        elif type(cmdLine) not in (types.TupleType, types.ListType):
+            raise ValueError, "cmdLine is not a sequence."
+        cmd = '"%s"' % (cmdLine[0],)
+        # XXX TODO: isn't there a function or something we can call to massage command line params?
+        params = " ".join(['"%s"' % (x,) for x in cmdLine[1:]])
+        cmdDir = ''
+        showCmd = win32con.SW_SHOWNORMAL
+        #showCmd = win32con.SW_HIDE
+        lpVerb = 'runas'  # causes UAC elevation prompt.
 
-    # print "Running", cmd, params
+        # print "Running", cmd, params
 
-    # ShellExecute() doesn't seem to allow us to fetch the PID or handle
-    # of the process, so we can't get anything useful from it. Therefore
-    # the more complex ShellExecuteEx() must be used.
+        # ShellExecute() doesn't seem to allow us to fetch the PID or handle
+        # of the process, so we can't get anything useful from it. Therefore
+        # the more complex ShellExecuteEx() must be used.
 
-    # procHandle = win32api.ShellExecute(0, lpVerb, cmd, params, cmdDir, showCmd)
+        # procHandle = win32api.ShellExecute(0, lpVerb, cmd, params, cmdDir, showCmd)
 
-    procInfo = ShellExecuteEx(nShow=showCmd,
-                              fMask=shellcon.SEE_MASK_NOCLOSEPROCESS,
-                              lpVerb=lpVerb,
-                              lpFile=cmd,
-                              lpParameters=params)
+        procInfo = ShellExecuteEx(nShow=showCmd,
+                                  fMask=shellcon.SEE_MASK_NOCLOSEPROCESS,
+                                  lpVerb=lpVerb,
+                                  lpFile=cmd,
+                                  lpParameters=params)
 
-    if wait:
-        procHandle = procInfo['hProcess']
-        obj = win32event.WaitForSingleObject(procHandle, win32event.INFINITE)
-        rc = win32process.GetExitCodeProcess(procHandle)
-        #print "Process handle %s returned code %s" % (procHandle, rc)
-    else:
-        rc = None
+        if wait:
+            procHandle = procInfo['hProcess']
+            obj = win32event.WaitForSingleObject(procHandle, win32event.INFINITE)
+            rc = win32process.GetExitCodeProcess(procHandle)
+            #print "Process handle %s returned code %s" % (procHandle, rc)
+        else:
+            rc = None
 
-    return rc
+        return rc
 
 
-def test():
-    """A simple test function; check if we're admin, and if not relaunch
-    the script as admin.""",
-    rc = 0
-    if not isUserAdmin():
-        print "You're not an admin.", os.getpid(), "params: ", sys.argv
-        #rc = runAsAdmin(["c:\\Windows\\notepad.exe"])
-        rc = runAsAdmin()
-    else:
-        print "You are an admin!", os.getpid(), "params: ", sys.argv
-        rc = 0
-    x = raw_input('Press Enter to exit.')
-    return rc
+from PyQt4 import QtGui
+from gui.ui_password import Ui_Dialog
+import sys
 
+
+class PasswordGui(QtGui.QDialog, Ui_Dialog):
+
+    def __init__(self, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
+
+        self.ui.cancel.clicked.connect(self.reject)
+
+        self.ui.enter.clicked.connect(self.get_password)
+
+        self.close()
+
+    def password(self):
+        out = str(self.ui.lineEdit.text())
+
+        return out
+
+    def get_password(self):
+        self.password()
+        QtGui.qApp.closeAllWindows()
+        return self.password()
 
 if __name__ == "__main__":
-    sys.exit(test())
+    app = QtGui.QApplication(sys.argv)
+    myapp = PasswordGui()
+    myapp.show()
+    sys.exit(app.exec_())
+
+
+def get_password():
+    """
+    This simple function checks for sudo and return the user password as string.
+    If sudo is not found, this function try to launch main script with root access using gksu/gksudo/kdesu/kdesudo, \n
+    if any of the program is already installed.
+    PyQt4 is used for getting user input.
+    Author : sundar
+    """
+    if os.system('which sudo') == 0:
+        password_window = PasswordGui()
+        for x in xrange(3):
+            password_window.exec_()
+            password = str(password_window.get_password()).strip()
+            if password:
+                if os.popen('echo ' + str(password) + ' | sudo -S id -u').read().strip() == '0':
+                    return password
+                if x == 2:
+                    print "You have entered wrong password 3 times. Exiting now. "
+                    QtGui.QMessageBox.warning(None, 'Wrong Password...',
+                                                    "You have entered wrong password for 3 times.\n\n Exiting now.")
+                    sys.exit(0)
+            else:
+                print "Password not entered. Exiting now."
+                sys.exit(0)
+
+    elif os.system('which gksu') == 0:
+        os.system("gksu -d " + sys.executable + " " + sys.argv[0])
+        sys.exit(0)
+    elif os.system('which gksudo') == 0:
+        os.system("gksudo -d " + sys.executable + " " + sys.argv[0])
+        sys.exit(0)
+    elif os.system('which kdesu') == 0:
+        os.system("kdesu -t " + sys.executable + " " + sys.argv[0])
+        sys.exit(0)
+    elif os.system('which kdesudo') == 0:
+        os.system("kdesudo -t " + sys.executable + " " + sys.argv[0])
+        sys.exit(0)
+
+    else:
+        QtGui.QMessageBox.information('No root...',
+                                      'Please install sudo or gksu or kdesu or gksudo or kdesudo then restart multibootusb.')
+        sys.exit(0)

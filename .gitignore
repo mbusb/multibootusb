@@ -40,6 +40,7 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .directory
+test
 .pydevproject
 <<<<<<< HEAD
 
@@ -51,8 +52,9 @@ _eric4project
 pyinstaller_spec_file_content.txt
 test.py
 old_files
-multibootusb.spec
+#multibootusb.spec
 git_commands.txt
 .install_files.txt
+resource
 =======
 

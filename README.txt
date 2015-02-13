@@ -21,13 +21,12 @@ sudo ./install.sh
 That is it. You can find multibootusb under system menu or simply launch from terminal by typing "multibootusb".
 If "install.sh" script fails to install multibootusb successfully then manually install following packages and rerun the install.sh script:-
 
-* python-psutils
 * python-qt4
 
 NOTE: install.sh currently supports only distros based on apt-get, yum, zypper, pacman.
 You can add more if you use other package manager system and email to me for adding into upstream.
 The above how to is only for linux. Windows users may download pre compiled standalone binaries/ .exe from
-https://sourceforge.net/projects/multibootusb/files/Windows/
+https://sourceforge.net/projects/multibootusb/files/
 
 How to uninstall?
 -----------------

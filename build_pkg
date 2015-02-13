@@ -16,6 +16,7 @@ import subprocess
 import sys
 import platform
 
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -24,21 +25,26 @@ class bcolors:
     FAIL = '\033[91m'
     ENDC = '\033[0m'
 
+
 result = ""
 name = "multibootusb"
 version = open(os.path.join("tools", "version.txt"), 'r').read().strip()
-
+print "Building for the version" + version
 
 if platform.system() == "Windows":
     release_dir = os.path.join("D", "multibootusb", "release")
 else:
-    shutil.copy2(os.path.join("resource", "linux", "syslinux.zip"), "tools")
-    print os.path.isdir("/media/Data/multibootusb/release")
-    release_dir = "/media/Data/multibootusb/release"
+    print os.path.isdir("/media/sundar/Data/multibootusb/release")
+    release_dir = "/media/sundar/Data/multibootusb/release"
     if not os.path.exists(release_dir):
         print "Release directory can not be reached. Mount the drive and rerun the script. "
         exit(0)
+    '''
+    else:
+        shutil.copy2(os.path.join("resource", "linux", "syslinux.zip"), "tools")
+    '''
 release_upload_dir = os.path.join(release_dir, version)
+
 
 def clean_dir():
     if not os.path.exists('build') and not os.path.exists('dist') and not os.path.exists('deb_dist'):
@@ -55,23 +61,24 @@ def clean_dir():
     print "Cleaning pthon byte files..."
 
     for path, subdirs, files in os.walk(os.curdir):
-        #print subdirs
+        # print subdirs
         for name in files:
             if name.endswith('.pyc'):
-                print "Cleaning " + os.path.join(path,name)
-                os.chmod(os.path.join(path,name), 0777)
-                os.unlink(os.path.join(path,name))
-                #os.remove(os.path.join(path,name))
+                print "Cleaning " + os.path.join(path, name)
+                os.chmod(os.path.join(path, name), 0777)
+                os.unlink(os.path.join(path, name))
+                # os.remove(os.path.join(path,name))
+
 
 def deleteDirectory(path):
     try:
         for files in os.listdir(path):
             if os.path.isdir(os.path.join(path, files)):
-                #print (os.path.join(path, files))
-                os.chmod(os.path.join(path, files),0o777)
+                # print (os.path.join(path, files))
+                os.chmod(os.path.join(path, files), 0o777)
                 shutil.rmtree(os.path.join(path, files))
             else:
-                #print (os.path.join(path, files))
+                # print (os.path.join(path, files))
                 os.chmod(os.path.join(path, files), 0777)
                 os.unlink(os.path.join(path, files))
                 os.remove(os.path.join(path, files))
@@ -83,7 +90,7 @@ def deleteDirectory(path):
             print "OS Error."
 
 
-#Useful to delete files.
+# Useful to delete files.
 def deleteFile(path):
     try:
         os.unlink(path)
@@ -91,17 +98,23 @@ def deleteFile(path):
         if ose.errno != 2:
             print ose
 
+
 def upload_files():
     print "Uploading files..."
-    cmd = "rsync --rsh=ssh -l -p -r -t -z --stats /media/Data/multibootusb/release/" + version + " multibootusb@frs.sourceforge.net:/home/frs/project/multibootusb/"
-    #if subprocess.call([ cmd ]) == 0:
+    cmd = "rsync --rsh=ssh -l -p -r -t -z --stats /media/sundar/Data/multibootusb/release/" + version + " multibootusb@frs.sourceforge.net:/home/frs/project/multibootusb/"
+    # if subprocess.call([ cmd ]) == 0:
     if os.system(cmd) == 0:
         print bcolors.OKGREEN + "\n\nVersion " + version + " has been successfully uploaded to SF.\n\n" + bcolors.ENDC
     else:
         print bcolors.FAIL + "\n\n\nError while uploading to SF.\n\n\n" + bcolors.ENDC
 
+
 arg = sys.argv[1] if len(sys.argv) >= 2 else None
-pyinstallerPath  = "/home/sundar/Downloads/PyInstaller-2.1/pyinstaller.py"
+if platform.system() == "Windows":
+    pyinstallerPath = "C:\Users\Sundar\Documents\PyInstaller-2.1\pyinstaller.py"
+
+else:
+    pyinstallerPath = "/home/sundar/Downloads/PyInstaller-2.1/pyinstaller.py"
 if arg == 'exe':
     if len(sys.argv) == 3:
         pyinstallerPath = sys.argv[2]
@@ -120,12 +133,12 @@ if arg == 'exe':
 elif arg == 'deb':
     print "Ensure thta you have python-stdeb package installed!"
     stdcfg = ("[DEFAULT]\n"
-            "Package: multibootusb\n"
-            "Depends: python-qt4, python-psutil\n"
-            "Build-Depends: python-all\n"
-            "Section: system\n"
-            "XS-Python-Version: = 2.7\n"
-            "Debian-Version: 1")
+              "Package: multibootusb\n"
+              "Depends: python-qt4\n"
+              "Build-Depends: python-all\n"
+              "Section: system\n"
+              "XS-Python-Version: = 2.7\n"
+              "Debian-Version: 1")
     with open("stdeb.cfg", "w") as f:
         f.write(stdcfg)
     subprocess.call(['python2.7', 'setup.py', '--command-packages=stdeb.command', 'bdist_deb'])
@@ -142,13 +155,13 @@ elif arg == 'deb':
 
 elif arg == 'rpm' or arg == 'suse' or arg == 'mageia':
     if arg == 'suse' or arg == 'mageia':
-        require = "python-qt4, python-psutil"
+        require = "python-qt4"
     else:
-        require = "PyQt4, python-psutil"
+        require = "PyQt4"
     setup_cfg = ("[bdist_rpm]\n"
-            "Group = Applications/System\n"
-            "Vendor = sundar <feedback.multibootusb@gmail.com>\n"
-            "Requires = " + require)
+                 "Group = Applications/System\n"
+                 "Vendor = sundar <feedback.multibootusb@gmail.com>\n"
+                 "Requires = " + require)
     with open("setup.cfg", "w") as f:
         f.write(setup_cfg)
     subprocess.call(['python2.7', 'setup.py', 'bdist_rpm'])
@@ -195,6 +208,7 @@ else:
            "\033[94mexe\033[0m      <-- For making Windows/ Linux standalone executable using pyinstaller\n"
            "\033[94mdeb\033[0m      <-- For making creating package for debian/ubuntu\n"
            "\033[94mrpm\033[0m      <-- For creating package for fedora/redhat/centos\n"
+           "\033[94msuse\033[0m     <-- For creating package for OpenSuse\n"
            "\033[94mmageia\033[0m   <-- For creating package for mageia/mandriva\n"
            "\033[94msrc\033[0m      <-- For creating source package for other distributions\n"
            "\033[94mclean\033[0m    <-- For Cleaning dist, build directory and other temp/python byte files\n"
@@ -205,12 +219,13 @@ else:
 if result == "success":
     if not os.path.exists(release_upload_dir):
         os.mkdir(release_upload_dir)
-    if not os.path.exists(os.path.join(release_upload_dir,sub_dir)):
-        os.mkdir(os.path.join(release_upload_dir,sub_dir))
-        shutil.copy2(package_path, os.path.join(release_upload_dir,sub_dir, package))
+    if not os.path.exists(os.path.join(release_upload_dir, sub_dir)):
+        os.mkdir(os.path.join(release_upload_dir, sub_dir))
+        shutil.copy2(package_path, os.path.join(release_upload_dir, sub_dir, package))
     else:
-        shutil.copy2(package_path, os.path.join(release_upload_dir,sub_dir,package))
-    if os.path.exists(os.path.join(os.path.join(release_upload_dir,sub_dir), package)):
-        print "\n\n\n" + package + "\nhas been copied to\n" + os.path.join(release_upload_dir,sub_dir, package) + "\n\n\n"
+        shutil.copy2(package_path, os.path.join(release_upload_dir, sub_dir, package))
+    if os.path.exists(os.path.join(os.path.join(release_upload_dir, sub_dir), package)):
+        print "\n\n\n" + package + "\nhas been copied to\n" + os.path.join(release_upload_dir, sub_dir,
+                                                                           package) + "\n\n\n"
 
 
