@@ -346,4 +346,8 @@ window = AppGui()
 ui = Ui_Dialog()
 window.show()
 window.setWindowTitle(open(gen_fun.resource_path(os.path.join("tools", "version.txt")), 'r').read().strip())
+if platform.system() == "Linux":
+    window.setWindowIcon(QtGui.QIcon(gen_fun.resource_path(os.path.join("tools", "multibootusb.png"))))
+else:
+    window.setWindowIcon(QtGui.QIcon(gen_fun.resource_path(os.path.join("tools", "multibootusb.ico"))))
 sys.exit(app.exec_())
