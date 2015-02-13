@@ -221,15 +221,26 @@ def usb_details(selected_device):
                 '''
             except:
                 print "Error detecting USB details."
+    if mount_point_strip:
+        print "Device mounted."
+        total_size = bytes2human(disk_usage(mount_point_strip).total)
+        free_size = bytes2human(disk_usage(mount_point_strip).free)
+        used_size = bytes2human(disk_usage(mount_point_strip).used)
+    else:
+        mount_point_strip = "Not mounted."
+        total_size = "Not mounted."
+        free_size = "Device not mounted."
+        used_size = "Device not mounted."
+        print "fail"
 
     drive = {'label': label,
             'mount': mount_point_strip,
             'uuid': uuid,
             'filesystem': file_system,
             'device': selected_device,
-            'total_size': bytes2human(disk_usage(mount_point_strip).total),
-            'free_size': bytes2human(disk_usage(mount_point_strip).free),
-            'used_size': bytes2human(disk_usage(mount_point_strip).used)}
+            'total_size': total_size,
+            'free_size': free_size,
+            'used_size': used_size}
 
 
     return drive
