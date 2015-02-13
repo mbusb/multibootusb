@@ -17,7 +17,6 @@ setup(
     long_description='multibootusb is an advanced cross-platform application for installing/uninstalling Linux operating systems on to a single USB flash drives.',
     data_files=[("/usr/share/applications", ["data/multibootusb.desktop"]),
                 ('/usr/share/pixmaps', ["data/multibootusb.png"]),
-                (os.path.join(sys.prefix, "multibootusb", "tools"), ["tools/checking.gif"]),
                 (os.path.join(sys.prefix, "multibootusb", "tools"), ["tools/mbr.bin"]),
                 (os.path.join(sys.prefix, "multibootusb", "tools"), ["tools/version.txt"]),
                 (os.path.join(sys.prefix, "multibootusb", "tools"), ["tools/multibootusb.png"]),
