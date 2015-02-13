@@ -32,7 +32,7 @@ version = open(os.path.join("tools", "version.txt"), 'r').read().strip()
 print "Building for the version" + version
 
 if platform.system() == "Windows":
-    release_dir = os.path.join("D", "multibootusb", "release")
+    release_dir = os.path.join("E:", "multibootusb", "release")
 else:
     print os.path.isdir("/media/sundar/Data/multibootusb/release")
     release_dir = "/media/sundar/Data/multibootusb/release"
