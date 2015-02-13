@@ -119,6 +119,9 @@ class AppGui(uninstall_distro.AppGui, qemu.AppGui, QtGui.QDialog, Ui_Dialog):
             self.ui.usb_dev.setText("Total Size :: " + usb_details['total_size'])
             self.ui.usb_mount.setText("Mount :: " + usb_details['mount'])
             self.update_list_box(usb_details['mount'])
+        print "Device ststus is " + usb_details['mount'].strip()
+        if usb_details['mount'].strip() == "Not mounted.":
+            QtGui.QMessageBox.information(self, "USB not mounted...", "USB deivce " + usb_disk + " is not mounted. \nPlease mount and rerun multibootusb.")
 
     def update_list_box(self, usb_mount):
         sys_cfg_file = os.path.join(str(usb_mount), "multibootusb", "syslinux.cfg")
