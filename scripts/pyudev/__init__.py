@@ -38,14 +38,14 @@ from __future__ import (print_function, division, unicode_literals,
                         absolute_import)
 
 
-__version__ = '0.17'
+__version__ = '0.16.1'
 __version_info__ = tuple(map(int, __version__.split('.')))
 __all__ = ['Context', 'Device']
-
 '''
-from pyudev.device import *
-from pyudev.core import *
-from pyudev.monitor import *
+import sys
+import os
+path = os.path.abspath(__file__)
+sys.path.append(os.path.dirname(path))
 '''
 from .device import *
 from .core import *

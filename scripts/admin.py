@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8; mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vim: fileencoding=utf-8 tabstop=4 expandtab shiftwidth=4
+# Name:     admin.py
+# Purpose:  Module to ask for admin rights under Linux and Windows
+# Authors:  Originally developed by Preston Landers (for windows) and modified for multibootusb by Sundar
+# Licence:  This file is a part of multibootusb package. You can redistribute it or modify
+# under the terms of the same license as Python 2.6.5
 
 ##
 ## (C) COPYRIGHT © Preston Landers 2010
@@ -126,7 +131,9 @@ import sys
 
 
 class PasswordGui(QtGui.QDialog, Ui_Dialog):
-
+    """
+    GUI to get user password.
+    """
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
         self.ui = Ui_Dialog()
@@ -160,7 +167,7 @@ def get_password():
     This simple function checks for sudo and return the user password as string.
     If sudo is not found, this function try to launch main script with root access using gksu/gksudo/kdesu/kdesudo, \n
     if any of the program is already installed.
-    PyQt4 is used for getting user input.
+    PyQt4 is used as GUI.
     Author : sundar
     """
     if os.system('which sudo') == 0:

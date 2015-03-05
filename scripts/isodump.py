@@ -1,5 +1,10 @@
-#! /usr/bin/python
-
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Name:     isodump.py
+# Purpose:  Module to list and extract iso files.
+# Authors:  LiQiong Lee (written for multibootusb)
+# Licence:  This file is a part of multibootusb package. You can redistribute it or modify
+# under the terms of GNU General Public License version 3
 """ ISO9660fs
 Dump raw meta data of iso9660 file system.
 Extract directories and files.
@@ -9,7 +14,7 @@ Extract directories and files.
 ## Support RRIP.
 ## 
 
-# Author : LiQiong Lee. Created for multibootusb.
+# Author : LiQiong Lee
 
 import sys
 import struct
@@ -246,6 +251,33 @@ class ISO9660:
         # while (True) end #
         return rr
 
+    def checkISOBootable(self):
+        """ Struct of a classical generic MBR.
+
+            0x0000      Bootstrap Code area
+            -----------------------------------------
+            0x01BE    
+            ..          Partition table
+            0x01EE  
+            ------------------------------------------
+            0x01FE         55h
+                                       Boot signature
+            0x01FF         AAh
+
+        """
+        self.isoFile.seek(0x01FE)
+        h = self.isoFile.read(2)
+	s1 = struct.unpack('B', h[0])[0]
+	s2 = struct.unpack('B', h[1])[0]
+
+	#print "-->(0x%x,0x%x)" %(s1, s2)
+
+        if (s1 == 0x55) and (s2 == 0xAA):
+            result = True   # "Bootable"
+        else:
+            result = False  # "Not bootable"
+
+        return result
 
     def searchDir(self, path):
         # /root/abc/ - ['', 'root', 'abc', '']
@@ -476,8 +508,8 @@ class ISO9660:
             return E_FAILURE
     
         #print "write file (%s)"%(detFile)
-        config.iso_extract_file_name = detFile
-        #print config.iso_extract_file_name
+        config.status_text = detFile
+
         dirname = os.path.dirname(detFile)
         if not os.path.exists(dirname):
             try:
@@ -534,6 +566,7 @@ class ISO9660:
             f_output.flush()
         # while True end.
         f_output.close()
+        config.status_text = ""
         return E_SUCCESS
     
     def readDir(self, dir_path, r=True):
@@ -651,6 +684,7 @@ def dump_primary_volume(privol=None):
     print "Root directory is at (%d)block, have(0x%x)bytes" %(privol.rootLoc, privol.rootTotal)
 #    dump_dir_record(None, 23, 1)
 
+
 def dump_boot_record(volume_dsc):
     """ Dump boot record  """
 
@@ -711,7 +745,7 @@ if __name__ == '__main__':
     integrity = iso9660fs.checkIntegrity()
     if integrity == False:
         print "iso file is broken"
-        sys.exit(-1)
+        sys.exit(-1)        
 
     dump_what = argv[1]
 
@@ -763,5 +797,4 @@ if __name__ == '__main__':
         else:
             print "writeDir(%s)->(%s) with pattern(%s)"%(isodir, o_path, pattern)
             sys.exit(iso9660fs.writeDir(isodir, o_path, pattern, r, True))
-
 

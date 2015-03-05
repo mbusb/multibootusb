@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2010, 2011, 2012, 2013 Sebastian Wiesner <lunaryorn@gmail.com>
+# Copyright (C) 2010, 2011, 2012 Sebastian Wiesner <lunaryorn@gmail.com>
 
 # This library is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the
@@ -30,13 +30,11 @@
 from __future__ import (print_function, division, unicode_literals,
                         absolute_import)
 
-from ctypes import (CDLL, Structure, POINTER,
+import os
+import errno
+from ctypes import (CDLL, Structure, POINTER, get_errno,
                     c_char, c_char_p, c_int, c_ulonglong)
 from ctypes.util import find_library
-
-from ._errorcheckers import (check_negative_errorcode,
-                                   check_errno_on_nonzero_return,
-                                   check_errno_on_null_pointer_return)
 
 
 class udev(Structure):
@@ -161,7 +159,80 @@ SIGNATURES = {
         filter_add_match_tag=([udev_monitor_p, c_char_p], c_int),
         filter_update=([udev_monitor_p], c_int),
         filter_remove=([udev_monitor_p], c_int))
+    }
+
+
+ERRNO_EXCEPTIONS = {
+    errno.ENOMEM: MemoryError,
+    errno.EOVERFLOW: OverflowError,
+    errno.EINVAL: ValueError
 }
+
+
+def exception_from_errno(errno):
+    """
+    Create an exception from ``errno``.
+
+    ``errno`` is an integral error number.
+
+    Return an exception object appropriate to ``errno``.
+    """
+    exception = ERRNO_EXCEPTIONS.get(errno)
+    if exception is not None:
+        return exception()
+    else:
+        return EnvironmentError(errno, os.strerror(errno))
+
+
+def check_negative_errorcode(result, func, *args):
+    """
+    Error checker for udev funtions, which return negative error codes.
+
+    If ``result`` is smaller than ``0``, it is interpreted as negative error
+    code, and an appropriate exception is raised:
+
+    - ``-ENOMEM`` raises a :exc:`~exceptions.MemoryError`
+    - ``-EOVERFLOW`` raises a :exc:`~exceptions.OverflowError`
+    - all other error codes raise :exc:`~exceptions.EnvironmentError`
+
+    If result is greater or equal to ``0``, it is returned unchanged.
+    """
+    if result < 0:
+        # udev returns the *negative* errno code at this point
+        errno = -result
+        raise exception_from_errno(errno)
+    else:
+        return result
+
+
+def check_errno(result, func, *args):
+    """
+    Error checker to check the system ``errno`` as returned by
+    :func:`ctypes.get_errno()`.
+
+    If ``result`` is not ``0``, an exception according to this errno is raised.
+    Otherwise nothing happens.
+    """
+    if result != 0:
+        errno = get_errno()
+        if errno != 0:
+            raise exception_from_errno(errno)
+    return result
+
+
+def check_errno_on_null_pointer(result, func, *args):
+    """
+    Error checker to check the system ``errno`` as returned by
+    :func:`ctypes.get_errno()`.
+
+    If ``result`` is a null pointer, an exception according to this errno is
+    raised.  Otherwise nothing happens.
+    """
+    if not result:
+        errno = get_errno()
+        if errno != 0:
+            raise exception_from_errno(errno)
+    return result
 
 
 ERROR_CHECKERS = dict(
@@ -174,15 +245,15 @@ ERROR_CHECKERS = dict(
     udev_enumerate_add_match_tag=check_negative_errorcode,
     udev_enumerate_add_match_sysname=check_negative_errorcode,
     udev_enumerate_add_match_is_initialized=check_negative_errorcode,
-    udev_monitor_set_receive_buffer_size=check_errno_on_nonzero_return,
+    udev_monitor_set_receive_buffer_size=check_errno,
     # libudev doc says, enable_receiving returns a negative errno, but tests
     # show that this is not reliable, so query the real error code
-    udev_monitor_enable_receiving=check_errno_on_nonzero_return,
-    udev_monitor_receive_device=check_errno_on_null_pointer_return,
+    udev_monitor_enable_receiving=check_errno,
+    udev_monitor_receive_device=check_errno_on_null_pointer,
     udev_monitor_filter_add_match_subsystem_devtype=check_negative_errorcode,
     udev_monitor_filter_add_match_tag=check_negative_errorcode,
-    udev_monitor_filter_update=check_errno_on_nonzero_return,
-    udev_monitor_filter_remove=check_errno_on_nonzero_return,
+    udev_monitor_filter_update=check_errno,
+    udev_monitor_filter_remove=check_errno,
 )
 
 
@@ -213,3 +284,6 @@ def load_udev_library():
                 if errorchecker:
                     func.errcheck = errorchecker
     return libudev
+
+
+libudev = load_udev_library()

@@ -1,3 +1,5 @@
+#!/usr/bin/python2.7
+# -*- coding: utf-8 -*-
 from distutils.core import setup
 import os
 import sys
@@ -31,18 +33,15 @@ setup(
                 (os.path.join(sys.prefix, "multibootusb", "tools", "multibootusb"), ["tools/multibootusb/vesamenu.c32"]),
                 (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/1024.ext4.tar.bz2"]),
                 (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/2048.ext4.tar.bz2"]),
-                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/2gb.tar.bz2"]),
-                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/3gb.tar.bz2"]),
+                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/2048.tar.bz2"]),
+                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/3072.tar.bz2"]),
                 (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/512.tar.bz2"]),
-                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/1gb.tar.bz2"]),
+                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/1024.tar.bz2"]),
                 (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/256.ext4.tar.bz2"]),
-                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/2g.ext4.tar.bz2"]),
-                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/3g.ext4.tar.bz2"]),
-                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/4g.ext4.tar.bz2"]),
-                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/768.ext4.tar.bz2"]),
-                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/1g.ext4.tar.bz2"]),
-                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/256.tar.bz2"]),
                 (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/3072.ext4.tar.bz2"]),
+                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/4096.ext4.tar.bz2"]),
+                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/768.ext4.tar.bz2"]),
+                (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/256.tar.bz2"]),
                 (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/4096.ext4.tar.bz2"]),
                 (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/512.ext4.tar.bz2"]),
                 (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/768.tar.bz2"]),

@@ -1,3 +1,10 @@
+#!/usr/bin/python2.7
+# -*- coding: utf-8 -*-
+# Name:     gen_fun.py
+# Purpose:  Module to do generic operations related to multibootusb.
+# Authors:  Sundar
+# Licence:  This file is a part of multibootusb package. You can redistribute it or modify
+# under the terms of GNU General Public License, v.2 or above
 __author__ = 'sundar'
 import os
 import sys
@@ -5,9 +12,15 @@ import shutil
 import zipfile
 import platform
 import usb
+from iso import ISO
 
 
 def resource_path(relativePath):
+    """
+    Function to detect the correct path of file when working with sourcecode/install or binary.
+    :param relativePath: Path to file/data.
+    :return: Modified path to file/data.
+    """
     try:
         basePath = sys._MEIPASS  # Try if we are running as standalone executable
     except:
@@ -31,6 +44,11 @@ def resource_path(relativePath):
 
 
 def copy_mbusb_dir(usb_mount_path):
+    """
+    Copy the multibootusb directory to USB mount path.
+    :param usb_mount_path: Path to USB mount.
+    :return:
+    """
     if not os.path.exists(os.path.join(usb_mount_path, "multibootusb")):
         try:
             shutil.copytree(resource_path(os.path.join("tools", "multibootusb")), os.path.join(usb_mount_path, "multibootusb"))
@@ -42,7 +60,10 @@ def copy_mbusb_dir(usb_mount_path):
 
 
 def mbusb_dir():
-
+    """
+    Cross platform way to detect multibootusb directory on host system.
+    :return: multibootusb directory.
+    """
     import platform
     import tempfile
 
@@ -57,6 +78,12 @@ def mbusb_dir():
 
 
 def install_dir(iso_link, usb_mount_path):
+    """
+    Function to detect ISO install directory on USB.
+    :param iso_link: Path to ISO link.
+    :param usb_mount_path: Path to USB mount.
+    :return: ISO install directory.
+    """
     try:
         iso_name = os.path.basename(str(iso_link))
         dir_name = str(os.path.splitext(iso_name)[0])
@@ -67,12 +94,23 @@ def install_dir(iso_link, usb_mount_path):
 
 
 def distro_install_dir_exist(iso_link, usb_mount_path):
+    """
+    Function to detect if distro install directory exist.
+    :param iso_link: Path to ISO file link .
+    :param usb_mount_path: Path to USB mount.
+    :return: True if distro install directory exist
+    """
     install_directory = install_dir(iso_link, usb_mount_path)
     if os.path.exists(install_directory):
         return True
 
 
 def persistence_size(persistence_option):
+    """
+    Function to detect persistence size.
+    :param persistence_option: String as input.
+    :return: Persistence size as integer.
+    """
     import persistence
     if persistence_option:
         size = persistence.get_persistence_size()
@@ -85,6 +123,12 @@ def persistence_size(persistence_option):
 
 
 def install_size(iso_link, persistence_size):
+    """
+    Function to detect distro install size.
+    :param iso_link: Path to ISO file link.
+    :param persistence_size: Size of persistence.
+    :return: Total distro install size as integer.
+    """
     if not persistence_size == 0:
         iso_size = (os.path.getsize(iso_link) / 1024) + (int(persistence_size) * 1024)
     else:
@@ -94,6 +138,11 @@ def install_size(iso_link, persistence_size):
 
 
 def clean_iso_cfg_ext_dir(iso_cfg_ext_dir):
+    """
+    Clean old ISO config files extracted by previous use of multibootusb.
+    :param iso_cfg_ext_dir: Path to config extract directory.
+    :return:
+    """
     if os.path.exists(iso_cfg_ext_dir):
         filelist = [f for f in os.listdir(iso_cfg_ext_dir)]
         #if not filelist:
@@ -105,7 +154,10 @@ def clean_iso_cfg_ext_dir(iso_cfg_ext_dir):
 
 
 def prepare_mbusb_dir():
-
+    """
+    Prepare multibootusb directory and extract data files for use.
+    :return:
+    """
     home = mbusb_dir()
     if not os.path.exists(home):
         os.makedirs(home)
@@ -166,6 +218,11 @@ def prepare_mbusb_dir():
                     print "Can't remove the file. Skip it."
 
 def which(program):
+    """
+    Function to detect if program is installed. Similar to which program in Linux.
+    :param program: Program/ software name
+    :return: Path to program or None.
+    """
     import os
 
     def is_exe(fpath):

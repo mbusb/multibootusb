@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'multibootusb.ui'
 #
-# Created: Fri Feb 13 21:57:12 2015
+# Created: Tue Mar  3 19:29:32 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(615, 445)
+        Dialog.resize(615, 509)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(_fromUtf8("../../../multibootusb_old release/tools/multibootusb.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Dialog.setWindowIcon(icon)
@@ -354,7 +354,7 @@ class Ui_Dialog(object):
         self.labelstep3.setText(_translate("Dialog", "<html><head/><body><p align=\"center\"><span style=\" font-weight:600;\">Step 3</span></p></body></html>", None))
         self.close.setText(_translate("Dialog", "Close", None))
         self.groupBox_11.setTitle(_translate("Dialog", "Detect USB", None))
-        self.detect_usb.setText(_translate("Dialog", "Referesh USB", None))
+        self.detect_usb.setText(_translate("Dialog", "Refresh USB", None))
         self.labelstep1.setText(_translate("Dialog", "<html><head/><body><p align=\"center\"><span style=\" font-weight:600;\">Step 1</span></p></body></html>", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("Dialog", "MultiBootUSB", None))
         self.groupBox_2.setTitle(_translate("Dialog", "Install Syslinux", None))

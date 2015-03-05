@@ -1,3 +1,15 @@
+Version - 7.4.0
+---------------
+* Portion of the code has been rewritten.
+* Added support for ext2/3/4 and Btrf filesystem.
+* Corrected wrong naming of persistence files.
+* Bug fix for PartedMagic update script.
+* Few typo has been corrected.
+* Included doc strings.
+* Now install and uninstall script is written in python.
+* Upgraded the debian build script (stdeb) to latest version.
+* Lot of other minor bug fixes.
+
 Version - 7.3.0
 ---------------
 * Rewrite of the source code. It is easier to read source code now.

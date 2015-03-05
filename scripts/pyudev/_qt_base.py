@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2010, 2011, 2012, 2013 Sebastian Wiesner <lunaryorn@gmail.com>
+# Copyright (C) 2010, 2011, 2012 Sebastian Wiesner <lunaryorn@gmail.com>
 
 # This library is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the
@@ -30,12 +30,17 @@ from __future__ import (print_function, division, unicode_literals,
                         absolute_import)
 
 
-class MonitorObserverMixin(object):
+class QUDevMonitorObserverMixin(object):
+
     def _setup_notifier(self, monitor, notifier_class):
         self.monitor = monitor
         self.notifier = notifier_class(
             monitor.fileno(), notifier_class.Read, self)
         self.notifier.activated[int].connect(self._process_udev_event)
+        self._action_signal_map = {
+            'add': self.deviceAdded, 'remove': self.deviceRemoved,
+            'change': self.deviceChanged, 'move': self.deviceMoved,
+        }
 
     @property
     def enabled(self):
@@ -65,27 +70,7 @@ class MonitorObserverMixin(object):
         """
         device = self.monitor.poll(timeout=0)
         if device:
-            self._emit_event(device)
-
-    def _emit_event(self, device):
-        self.deviceEvent.emit(device)
-
-
-class QUDevMonitorObserverMixin(MonitorObserverMixin):
-
-    def _setup_notifier(self, monitor, notifier_class):
-        MonitorObserverMixin._setup_notifier(self, monitor, notifier_class)
-        self._action_signal_map = {
-            'add': self.deviceAdded, 'remove': self.deviceRemoved,
-            'change': self.deviceChanged, 'move': self.deviceMoved,
-        }
-        import warnings
-        warnings.warn('Will be removed in 1.0. '
-                      'Use pyudev.pyqt4.MonitorObserver instead.',
-                      DeprecationWarning)
-
-    def _emit_event(self, device):
-        self.deviceEvent.emit(device.action, device)
-        signal = self._action_signal_map.get(device.action)
-        if signal is not None:
-            signal.emit(device)
+            self.deviceEvent.emit(device.action, device)
+            signal = self._action_signal_map.get(device.action)
+            if signal is not None:
+                signal.emit(device)

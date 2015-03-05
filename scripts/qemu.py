@@ -1,16 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import os,sys,subprocess,platform
+# Name:     qemu.py
+# Purpose:  Module to boot ISO and USB disks using QEMU.
+# Authors:  Sundar
+# Licence:  This file is a part of multibootusb package. You can redistribute it or modify
+# under the terms of GNU General Public License, v.2 or above
+import os
+import subprocess
+import platform
 from PyQt4 import QtGui
 from gui.ui_multibootusb import Ui_Dialog
 import gen_fun
 
 
 class AppGui(QtGui.QDialog,Ui_Dialog):
-
+    """
+    ISO and USB booting using QEMU.
+    """
     def on_Qemu_Browse_iso_Click(self):
-
+        """
+        Browse and choose an ISO.
+        :return:
+        """
         self.ui.lineEdit_2.clear()
 
         qemu = self.check_qemu_exist()
@@ -29,7 +40,10 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
             print ("File not selected.")
             
     def on_Qemu_Boot_iso_Click(self):
-
+        """
+        Main function to boot a selected ISO.
+        :return:
+        """
         if not self.ui.lineEdit_2.text():
             QtGui.QMessageBox.information(self, 'No ISO...', 'No ISO selected.\n\nPlease choose an iso and click Boot ISO.')
         else:
@@ -56,18 +70,17 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                         except:
                             QtGui.QMessageBox.information(self, 'Error...', 'Error booting ISO\n'
                                                                             'Unable to start QEMU.')
-                        '''
-                        if os.geteuid() == 0:
-                            var.qemu_iso = subprocess.Popen(var.qemu + ' -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d', shell=True).pid
-                        else:
-                            var.qemu_iso = subprocess.Popen('echo ' + var.password + ' | sudo -S ' + var.qemu + ' -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d', shell=True).pid
-                        '''
                 else:
                     QtGui.QMessageBox.information(self, 'No ram...', 'No ram selected.\n\nPlease choose any ram value and click Boot ISO.')
 
 
     def on_Qemu_Boot_usb_Click(self, user_password, usb_disk):
-
+        """
+        Main function to boot a selected USB disk.
+        :param user_password: User/sudo password.
+        :param usb_disk: Path to usb disk.
+        :return:
+        """
         qemu = self.check_qemu_exist()
 
         if qemu is None:
@@ -102,7 +115,10 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                         QtGui.QMessageBox.information(self, 'Error...', 'Error booting USB\n\nUnable to start QEMU.')
 
     def qemu_iso_ram(self):
-
+        """
+        Choose a ram size for ISO booting.
+        :return: Ram size as string.
+        """
         if self.ui.ram_iso_256.isChecked():
             return str(256)
         elif self.ui.ram_iso_512.isChecked():
@@ -117,6 +133,10 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
             return None
 
     def qemu_usb_ram(self):
+        """
+        Choose a ram size for USB booting.
+        :return: Ram size as string.
+        """
         if self.ui.ram_usb_256.isChecked():
             return str(256)
         if self.ui.ram_usb_512.isChecked():
@@ -131,6 +151,10 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
             return None
             
     def check_qemu_exist(self):
+        """
+        Check if QEMU is available on host system.
+        :return: path to QEMU program or None otherwise.
+        """
         if platform.system() == "Linux":
             if subprocess.call('which qemu-system-x86_64', shell=True) == 0:
                 print "qemu-system-x86_64 exists..."
@@ -150,6 +174,11 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
             return gen_fun.resource_path(os.path.join("tools", "qemu", "qemu-system-x86_64.exe"))
 
     def get_physical_disk_number(self, usb_disk):
+        """
+        Get the physical disk number as detected ny Windows.
+        :param usb_disk: USB disk (Like F:)
+        :return: Disk number.
+        """
         import wmi
         c = wmi.WMI ()
         for physical_disk in c.Win32_DiskDrive ():

@@ -1,6 +1,10 @@
 #!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
-
+# Name:     persistence.py
+# Purpose:  Module to deal with persistence of a selected distro.
+# Authors:  Sundar
+# Licence:  This file is a part of multibootusb package. You can redistribute it or modify
+# under the terms of GNU General Public License, v.2 or above
 from PyQt4 import QtGui
 from gui.ui_persistence_size import Ui_Dialog
 import sys
@@ -9,6 +13,11 @@ import os
 import gen_fun
 
 def persistence_distro(distro):
+    """
+    Function to detect if distro can have persistence option.
+    :param distro: Detected distro name.
+    :return: Distro name as string or None otherwise.
+    """
     if distro == "ubuntu":
         print "Persistence option is available."
         return "ubuntu"
@@ -27,12 +36,26 @@ def persistence_distro(distro):
 
 
 def extract_file(file_path, install_dir):
+    """
+    Function to extract persistence files to distro install directory.
+    :param file_path: Path to persistence file.
+    :param install_dir: Path to distro install directory.
+    :return:
+    """
     tar = tarfile.open(file_path, "r:bz2")
     tar.extractall(install_dir)
     tar.close()
 
 
 def persistence_extract(distro, persistence_size, mbusb_dir, install_dir):
+    """
+    Function to detect and extract persistence files to distro install directory.
+    :param distro: Detected distro name.
+    :param persistence_size: Size of the choosen persistence size.
+    :param mbusb_dir: Path to multibootusb directory on host system.
+    :param install_dir: Path to distro install directory.
+    :return:
+    """
     if distro == "ubuntu" or distro == "debian":
         extension = ".ext4.tar.bz2"
     elif distro == "fedora":
@@ -51,7 +74,9 @@ def persistence_extract(distro, persistence_size, mbusb_dir, install_dir):
 
 
 class PersistenceGui(QtGui.QDialog, Ui_Dialog):
-
+    """
+    Get persistence size using GUI.
+    """
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
         self.ui = Ui_Dialog()
@@ -61,10 +86,18 @@ class PersistenceGui(QtGui.QDialog, Ui_Dialog):
         self.ui.choose.clicked.connect(self.handleChooseClicked)
 
     def handleCloseClicked(self):
+        """
+        Close GUI.
+        :return:
+        """
         print "Closing the persistence size chooser window."
         self.close()
 
     def handleChooseClicked(self):
+        """
+        Function to return the choosen persistence size.
+        :return: Choosen persistence size.
+        """
         size = self.gui_persistence_size()
         if size:
             persistence_size = size
@@ -78,6 +111,10 @@ class PersistenceGui(QtGui.QDialog, Ui_Dialog):
                                       "Please choose persistence size and click Choose.")
 
     def gui_persistence_size(self):
+        """
+        Function to return the choosen persistence size through GUI.
+        :return: Choosen persistence size.
+        """
         if self.ui.size_256.isChecked():
             return str(256)
         elif self.ui.size_512.isChecked():
