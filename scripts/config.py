@@ -7,6 +7,7 @@
 user_password = ""
 iso_link = ""
 usb_disk = ""
+usb_mount = ""
 distro = ""
 install_size = ""
 persistence = ""
