@@ -127,7 +127,7 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
         else:
             print "No USB disk found..."
 
-        print "Device ststus is " + self.usb.get_usb(config.usb_disk).mount
+        print "Device status is " + self.usb.get_usb(config.usb_disk).mount
         if self.usb.get_usb(config.usb_disk).mount == "Not mounted.":
             QtGui.QMessageBox.information(self, "USB not mounted...", "USB deivce " + config.usb_disk + " is not "
                                                                 "mounted. \nPlease mount and rerun multibootusb.")
