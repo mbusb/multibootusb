@@ -181,49 +181,52 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
         elif not self.ui.lineEdit.text():
             QtGui.QMessageBox.information(self, "No ISO...", "No ISO found.\n\nPlease use step 2 to choose an ISO.")
         else:
-            if os.path.exists(iso_link):
-                self.ui.lineEdit.clear()
-                gen_fun.clean_iso_cfg_ext_dir(os.path.join(self.mbusb_dir, "iso_cfg_ext_dir"))  # Need to be cleaned.
-                                                                                # Otherwise it keeps all old distro files.
-                self.iso.iso_extract_file(os.path.join(self.mbusb_dir, "iso_cfg_ext_dir"), ".cfg")
-                self.iso.iso_extract_file(os.path.join(self.mbusb_dir, "iso_cfg_ext_dir"), ".CFG")
-                config.distro = self.iso.distro(os.path.join(self.mbusb_dir, "iso_cfg_ext_dir"))
-                if config.distro:
-                    print "Distro detected is " + config.distro
-                    if not gen_fun.distro_install_dir_exist(iso_link, self.usb.get_usb(config.usb_disk).mount) is True:
-                        persistence_option = persistence.persistence_distro(config.distro)
-                        if persistence_option is not None:
-                            persistence_size = gen_fun.persistence_size(persistence_option)
-                            config.persistence = persistence_size
-                            #iso_size = gen_fun.install_size(iso_link, persistence_size)
-                            config.install_size = gen_fun.install_size(iso_link, persistence_size)
-                        else:
-                            persistence_size = 0  # Later on required for update_cfg() function to update config files.
-                            config.persistence = persistence_size
-                            #iso_size = (os.path.getsize(iso_link) / 1024)
-                            config.install_size = (os.path.getsize(iso_link) / 1024)
-                        print "Persistence choosen is " + str(persistence_size) + " MB"
+            if not self.iso.integrity() is True:
+                QtGui.QMessageBox.information(self, "Integrity...", "ISO integrety failed.\n\nPlease check the downloaded ISO.")
+            else:
+                if os.path.exists(iso_link):
+                    self.ui.lineEdit.clear()
+                    gen_fun.clean_iso_cfg_ext_dir(os.path.join(self.mbusb_dir, "iso_cfg_ext_dir"))  # Need to be cleaned.
+                                                                                    # Otherwise it keeps all old distro files.
+                    self.iso.iso_extract_file(os.path.join(self.mbusb_dir, "iso_cfg_ext_dir"), ".cfg")
+                    self.iso.iso_extract_file(os.path.join(self.mbusb_dir, "iso_cfg_ext_dir"), ".CFG")
+                    config.distro = self.iso.distro(os.path.join(self.mbusb_dir, "iso_cfg_ext_dir"))
+                    if config.distro:
+                        print "Distro detected is " + config.distro
+                        if not gen_fun.distro_install_dir_exist(iso_link, self.usb.get_usb(config.usb_disk).mount) is True:
+                            persistence_option = persistence.persistence_distro(config.distro)
+                            if persistence_option is not None:
+                                persistence_size = gen_fun.persistence_size(persistence_option)
+                                config.persistence = persistence_size
+                                #iso_size = gen_fun.install_size(iso_link, persistence_size)
+                                config.install_size = gen_fun.install_size(iso_link, persistence_size)
+                            else:
+                                persistence_size = 0  # Later on required for update_cfg() function to update config files.
+                                config.persistence = persistence_size
+                                #iso_size = (os.path.getsize(iso_link) / 1024)
+                                config.install_size = (os.path.getsize(iso_link) / 1024)
+                            print "Persistence choosen is " + str(persistence_size) + " MB"
 
-                        if config.install_size >= self.usb.disk_usage(self.usb.get_usb(usb_disk).mount):
-                            QtGui.QMessageBox.information(self, "No Space.", "No space available on  " + usb_disk)
-                        else:
-                            reply = QtGui.QMessageBox.question(self, 'Review selection...',
-                                                       'Selected USB disk:: %s\n' % usb_disk +
-                                                       'USB mount point:: %s\n' % self.usb.get_usb(usb_disk).mount +
-                                                       'Selected distro:: %s\n\n' % self.iso.iso_name() +
-                                                       'Would you like to proceed for installation?',
-                                                       QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+                            if config.install_size >= self.usb.disk_usage(self.usb.get_usb(usb_disk).mount):
+                                QtGui.QMessageBox.information(self, "No Space.", "No space available on  " + usb_disk)
+                            else:
+                                reply = QtGui.QMessageBox.question(self, 'Review selection...',
+                                                           'Selected USB disk:: %s\n' % usb_disk +
+                                                           'USB mount point:: %s\n' % self.usb.get_usb(usb_disk).mount +
+                                                           'Selected distro:: %s\n\n' % self.iso.iso_name() +
+                                                           'Would you like to proceed for installation?',
+                                                           QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
 
-                            if reply == QtGui.QMessageBox.Yes:
-                                self.progress_thread_install.start()
+                                if reply == QtGui.QMessageBox.Yes:
+                                    self.progress_thread_install.start()
+                        else:
+                            QtGui.QMessageBox.information(self, 'Already Exist...',
+                                                      os.path.basename(iso_link) + ' is already installed.')
                     else:
-                        QtGui.QMessageBox.information(self, 'Already Exist...',
-                                                  os.path.basename(iso_link) + ' is already installed.')
-                else:
-                    QtGui.QMessageBox.information(self, 'No support...',
-                                                  'Sorry.\n' + os.path.basename(iso_link) +
-                                                  ' is not supported at the moment\n'
-                                                  'Please email this issue to feedback.multibootusb@gmail.com')
+                        QtGui.QMessageBox.information(self, 'No support...',
+                                                      'Sorry.\n' + os.path.basename(iso_link) +
+                                                      ' is not supported at the moment\n'
+                                                      'Please email this issue to feedback.multibootusb@gmail.com')
 
     def install_syslinux(self):
         """
