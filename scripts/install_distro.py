@@ -55,9 +55,12 @@ class InstallDistro():
         elif config.distro == "Windows":
             print "Extracting iso to " + config.usb_mount
             self.iso.iso_extract_full(config.usb_mount)
+        elif config.distro == "trinity-rescue":
+            self.iso.iso_extract_file(config.usb_mount, "trk3")
         elif config.distro == "ipfire":
             self.iso.iso_extract_file(install_dir, "boot")
             self.iso.iso_extract_file(config.usb_mount, ".tlz")
+            self.iso.iso_extract_file(config.usb_mount, "distro.img")
         elif config.distro == "zenwalk":
             self.iso.iso_extract_file(install_dir, "kernel")
             self.iso.iso_extract_file(install_dir, "kernel")
