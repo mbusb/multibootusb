@@ -259,4 +259,3 @@ class USB():
                 free_size = "Not mounted."
                 used_size = "Not mounted."
             return _ntuple_diskusage(label, mount_point, uuid, file_system, device, total_size, free_size, used_size)
-
