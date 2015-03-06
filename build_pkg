@@ -146,13 +146,15 @@ class pkg():
             '''
 
     def upload(self):
-
-        print "Uploading files..."
-        cmd = "rsync --rsh=ssh -l -p -r -t -z --stats /media/sundar/Data/multibootusb/release/" + self.version + " " + sourceforge_release_path
-        if os.system(cmd) == 0:
-            print bcolors.OKGREEN + "\n\nVersion " + self.version + " has been successfully uploaded to SF.\n\n" + bcolors.ENDC
+        if not platform.system() == "Windows":
+                print "You can upload to SF only from Linux as it needs rsync."
         else:
-            print bcolors.FAIL + "\n\n\nError while uploading to SF.\n\n\n" + bcolors.ENDC
+            print "Uploading files..."
+            cmd = "rsync --rsh=ssh -l -p -r -t -z --stats /media/sundar/Data/multibootusb/release/" + self.version + " " + sourceforge_release_path
+            if os.system(cmd) == 0:
+                print bcolors.OKGREEN + "\n\nVersion " + self.version + " has been successfully uploaded to SF.\n\n" + bcolors.ENDC
+            else:
+                print bcolors.FAIL + "\n\n\nError while uploading to SF.\n\n\n" + bcolors.ENDC
 
     def clean_dir(self):
 
