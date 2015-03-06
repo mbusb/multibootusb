@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'multibootusb.ui'
+# Form implementation generated from reading ui file 'scripts\gui\multibootusb.ui'
 #
-# Created: Tue Mar  3 19:29:32 2015
-#      by: PyQt4 UI code generator 4.10.4
+# Created: Fri Mar 06 12:53:52 2015
+#      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(615, 509)
+        Dialog.resize(615, 445)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(_fromUtf8("../../../multibootusb_old release/tools/multibootusb.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Dialog.setWindowIcon(icon)
@@ -378,7 +378,7 @@ class Ui_Dialog(object):
         self.groupBox_4.setTitle(_translate("Dialog", "Boot USB", None))
         self.ram_usb_768.setText(_translate("Dialog", "768 MB", None))
         self.ram_usb_256.setText(_translate("Dialog", "256 MB", None))
-        self.label_6.setText(_translate("Dialog", "<html><head/><body><p align=\"justify\">Use this option if you want to check USB installation.</p></body></html>", None))
+        self.label_6.setText(_translate("Dialog", "<html><head/><body><p align=\"justify\">Use this option if you want to check USB installation without reboot.</p></body></html>", None))
         self.ram_usb_1024.setText(_translate("Dialog", "1024 MB", None))
         self.label_4.setText(_translate("Dialog", "Choose desired RAM and click on Boot USB button.", None))
         self.ram_usb_512.setText(_translate("Dialog", "512 MB", None))
@@ -396,6 +396,6 @@ class Ui_Dialog(object):
         self.checkBox_3.setText(_translate("Dialog", "Check update", None))
         self.label_10.setText(_translate("Dialog", "<html><head/><body><p>Enable this option if you would like to recieve update information </p><p>right in to your desktop.</p></body></html>", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.settings), _translate("Dialog", "Settings", None))
-        self.label_5.setText(_translate("Dialog", "<html><head/><body><p align=\"center\">An advanced bootable usb creator with option to install/uninstall </p><p align=\"center\">multiple distros. This software is written in python and pyqt. </p><p align=\"center\">Copyright 2010-2014 Sundar</p><p align=\"center\"><span style=\" font-weight:600; text-decoration: underline;\">Author(s)</span>: Sundar, Ian Bruce</p><p align=\"center\"><span style=\" font-weight:600; text-decoration: underline;\">Licence:</span> GPL version 2 or later</p><p align=\"center\"><span style=\" font-weight:600; text-decoration: underline;\">Home page</span>: <a href=\" http://multibootusb.org\"><span style=\" text-decoration: underline; color:#0000ff;\">http://multibootusb.org</span></a></p><p align=\"center\"><span style=\" font-weight:600; text-decoration: underline;\">Help/Email:</span> feedback.multibootusb@gmail.com</p><p align=\"center\"><span style=\" font-weight:600; text-decoration: underline;\">Source Code: </span><a href=\"https://github.com/mbusb/multibootusb\"><span style=\" text-decoration: underline; color:#0000ff;\">https://github.com/mbusb/multibootusb</span></a></p><p><br/></p></body></html>", None))
+        self.label_5.setText(_translate("Dialog", "<html><head/><body><p align=\"center\">An advanced bootable usb creator with option to install/uninstall </p><p align=\"center\">multiple distros. This software is written in python and pyqt. </p><p align=\"center\">Copyright 2010-2015 Sundar</p><p align=\"center\"><span style=\" font-weight:600; text-decoration: underline;\">Author(s)</span>: Sundar, Ian Bruce</p><p align=\"center\"><span style=\" font-weight:600; text-decoration: underline;\">Licence:</span> GPL version 2 or later</p><p align=\"center\"><span style=\" font-weight:600; text-decoration: underline;\">Home page</span>: <a href=\" http://multibootusb.org\"><span style=\" text-decoration: underline; color:#0000ff;\">http://multibootusb.org</span></a></p><p align=\"center\"><span style=\" font-weight:600; text-decoration: underline;\">Help/Email:</span> feedback.multibootusb@gmail.com</p><p align=\"center\"><span style=\" font-weight:600; text-decoration: underline;\">Source Code:</span><a href=\"https://github.com/mbusb/multibootusb\"><span style=\" text-decoration: underline; color:#0000ff;\">https://github.com/mbusb/multibootusb</span></a></p><p><br/></p></body></html>", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("Dialog", "About", None))
 
