@@ -165,18 +165,6 @@ class pkg():
             for directory in dir_list:
                 if os.path.exists(directory):
                     shutil.rmtree(directory)
-            '''
-            if os.path.exists('build'):
-                self.deleteDirectory('build')
-            if os.path.exists('dist'):
-                self.deleteDirectory('dist')
-            if os.path.exists('deb_dist'):
-                print "lkjbsdfhasdgblksdf"
-                shutil.rmtree('deb_dist')
-                self.deleteDirectory('deb_dist')
-            if os.path.exists('MANIFEST'):
-                self.deleteFile('MANIFEST')
-            '''
 
         print "Cleaning pthon byte files..."
 
@@ -242,7 +230,7 @@ if __name__ == '__main__':
     if not os.path.exists(release_dir):
         print "Release directory does not exist.\nPlease mount and rerun the script."
         sys.exit(1)
-    elif not os.path.exists(pyinstallerPath):
+    elif not os.path.exists(pyinstaller_path):
         print "Pyinstaller path does not exist.\nPlease correct the path and rerun the script."
         sys.exit(1)
 
