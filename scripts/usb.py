@@ -11,6 +11,7 @@ import sys
 import os
 import platform
 import ctypes
+import config
 
 
 if platform.system() == "Linux":
@@ -20,7 +21,6 @@ if platform.system() == "Linux":
 
 elif platform.system() == "Windows":
     import win32com.client
-
 
 class USB():
     """
@@ -96,41 +96,50 @@ class USB():
         :return: USB device as list.
         """
         devices = []
-        try:
-            print "Using PyUdev for detecting USB drives..."
-            context = pyudev.Context()
-            for device in context.list_devices(subsystem='block', DEVTYPE='partition', ID_FS_USAGE="filesystem",
-                                               ID_TYPE="disk", ID_BUS="usb"):
-                if device['ID_BUS'] == "usb" and device['DEVTYPE'] == "partition":
-                    devices.append(str(device['DEVNAME']))
-        except:
-            bus = dbus.SystemBus()
+        if platform.system() == "Linux":
             try:
-                print "Falling back to Udisks2.."
-                ud_manager_obj = bus.get_object('org.freedesktop.UDisks2', '/org/freedesktop/UDisks2')
-                ud_manager = dbus.Interface(ud_manager_obj, 'org.freedesktop.DBus.ObjectManager')
-                for k, v in ud_manager.GetManagedObjects().iteritems():
-                    drive_info = v.get('org.freedesktop.UDisks2.Block', {})
-                    if drive_info.get('IdUsage') == "filesystem" and not drive_info.get('HintSystem') and not drive_info.get('ReadOnly'):
-                        device = drive_info.get('Device')
-                        device = bytearray(device).replace(b'\x00', b'').decode('utf-8')
-                        devices.append(device)
+                print "Using PyUdev for detecting USB drives..."
+                context = pyudev.Context()
+                for device in context.list_devices(subsystem='block', DEVTYPE='partition', ID_FS_USAGE="filesystem",
+                                                   ID_TYPE="disk", ID_BUS="usb"):
+                    if device['ID_BUS'] == "usb" and device['DEVTYPE'] == "partition":
+                        devices.append(str(device['DEVNAME']))
             except:
+                bus = dbus.SystemBus()
                 try:
-                    print "Falling back to Udisks1..."
-                    ud_manager_obj = bus.get_object("org.freedesktop.UDisks", "/org/freedesktop/UDisks")
-                    ud_manager = dbus.Interface(ud_manager_obj, 'org.freedesktop.UDisks')
-                    for dev in ud_manager.EnumerateDevices():
-                            device_obj = bus.get_object("org.freedesktop.UDisks", dev)
-                            device_props = dbus.Interface(device_obj, dbus.PROPERTIES_IFACE)
-                            if device_props.Get('org.freedesktop.UDisks.Device',
-                                                "DriveConnectionInterface") == "usb" and device_props.Get(
-                                    'org.freedesktop.UDisks.Device', "DeviceIsPartition"):
-                                if device_props.Get('org.freedesktop.UDisks.Device', "DeviceIsMounted"):
-                                    device_file = device_props.Get('org.freedesktop.UDisks.Device', "DeviceFile")
-                                    devices.append(device_file)
+                    print "Falling back to Udisks2.."
+                    ud_manager_obj = bus.get_object('org.freedesktop.UDisks2', '/org/freedesktop/UDisks2')
+                    ud_manager = dbus.Interface(ud_manager_obj, 'org.freedesktop.DBus.ObjectManager')
+                    for k, v in ud_manager.GetManagedObjects().iteritems():
+                        drive_info = v.get('org.freedesktop.UDisks2.Block', {})
+                        if drive_info.get('IdUsage') == "filesystem" and not drive_info.get('HintSystem') and not drive_info.get('ReadOnly'):
+                            device = drive_info.get('Device')
+                            device = bytearray(device).replace(b'\x00', b'').decode('utf-8')
+                            devices.append(device)
                 except:
-                    print "No USB device found..."
+                    try:
+                        print "Falling back to Udisks1..."
+                        ud_manager_obj = bus.get_object("org.freedesktop.UDisks", "/org/freedesktop/UDisks")
+                        ud_manager = dbus.Interface(ud_manager_obj, 'org.freedesktop.UDisks')
+                        for dev in ud_manager.EnumerateDevices():
+                                device_obj = bus.get_object("org.freedesktop.UDisks", dev)
+                                device_props = dbus.Interface(device_obj, dbus.PROPERTIES_IFACE)
+                                if device_props.Get('org.freedesktop.UDisks.Device',
+                                                    "DriveConnectionInterface") == "usb" and device_props.Get(
+                                        'org.freedesktop.UDisks.Device', "DeviceIsPartition"):
+                                    if device_props.Get('org.freedesktop.UDisks.Device', "DeviceIsMounted"):
+                                        device_file = device_props.Get('org.freedesktop.UDisks.Device', "DeviceFile")
+                                        devices.append(device_file)
+                    except:
+                        print "No USB device found..."
+
+        elif platform.system() == "Windows":
+            import win32com.client
+            oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
+            oDrives = oFS.Drives
+            for drive in oDrives:
+                if drive.DriveType == 1 and drive.IsReady:
+                    devices.append(drive)
 
         if devices:
             #print devices
@@ -154,6 +163,8 @@ class USB():
         import collections
         _ntuple_diskusage = collections.namedtuple('usage', 'label mount uuid filesystem device total_size free_size \
                                                             used_size')
+        drive = {}
+
         if not usb_disk:
             print "You can not pass empty argument."
         else:
@@ -225,15 +236,15 @@ class USB():
                     oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
                     d = oFS.GetDrive(oFS.GetDriveName(oFS.GetAbsolutePathName(selected_usb_part)))
                     selected_usb_device = d.DriveLetter
-                    serno = "%X" % (long(d.SerialNumber) & 0xFFFFFFFF)
-                    uuid = serno[:4] + '-' + serno[4:]
-                    label = d.VolumeName
-                    if label:
+                    label = (d.VolumeName).strip()
+                    if label.strip():
                         print 'Name of the USB partition is %s'%label
                     else:
                         label = "No label."
                     mount_point = selected_usb_device + ":\\"
-                    file_system = d.FileSystem
+                    serno = "%X" % (long(d.SerialNumber) & 0xFFFFFFFF)
+                    uuid = serno[:4] + '-' + serno[4:]
+                    file_system = (d.FileSystem).strip()
                 except:
                     print "Error detecting USB details."
 
@@ -241,10 +252,11 @@ class USB():
                 total_size = self.bytes2human(self.disk_usage(mount_point).total)
                 free_size = self.bytes2human(self.disk_usage(mount_point).free)
                 used_size = self.bytes2human(self.disk_usage(mount_point).used)
-                device = str(usb_disk)
+                device = config.usb_disk
             else:
                 mount_point = "Not mounted."
                 total_size = "Not mounted."
                 free_size = "Not mounted."
                 used_size = "Not mounted."
             return _ntuple_diskusage(label, mount_point, uuid, file_system, device, total_size, free_size, used_size)
+
