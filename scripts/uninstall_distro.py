@@ -11,7 +11,7 @@ import os
 import re
 import shutil
 import threading
-
+import platform
 from usb import USB
 import config
 
@@ -50,12 +50,7 @@ class UnInstall():
             if os.path.exists(os.path.join(config.usb_mount, config.uninstall_distro + ".iso")):
                 os.remove(os.path.join(config.usb_mount, config.uninstall_distro + ".iso"))
         elif distro == "windows":
-            windows_files = ["SOURCES", "BOOT", "[BOOT]", "EFI", "SUPPORT", "UPGRADE", "AUTORUN.INF", "BOOTMGR", "README.TXT", "SETUP.EXE"]
-            for f in windows_files:
-                if os.path.isfile(os.path.join(config.usb_mount, f)):
-                    os.remove(os.path.join(config.usb_mount, f))
-                elif os.path.isdir(os.path.join(config.usb_mount, f)):
-                    shutil.rmtree(os.path.join(config.usb_mount, f))
+            self.delete_frm_file_list(iso_file_list)
         if distro == "ipfire":
             files = os.listdir(config.usb_mount)
             for f in files:
@@ -66,20 +61,39 @@ class UnInstall():
         elif distro == "trinity-rescue":
             shutil.rmtree(os.path.join(config.usb_mount, "trk3"))
         elif distro == "generic":
-            for f in iso_file_list:
-                if os.path.isfile(os.path.join(config.usb_mount, f.replace('\n', '').strip("/"))):
-                    os.remove(os.path.join(config.usb_mount, f.replace('\n', '').strip("/")))
-                elif os.path.isdir(os.path.join(config.usb_mount, f.replace('\n', '').strip("/"))):
-                    shutil.rmtree(os.path.join(config.usb_mount, f.replace('\n', '').strip("/")))
-            if os.path.exists(os.path.join(config.usb_mount, "ldlinux.sys")):
+            self.delete_frm_file_list(iso_file_list)
+        if os.path.exists(os.path.join(config.usb_mount, "multibootusb", config.uninstall_distro)):
+            self.delete_frm_file_list(iso_file_list)
+            shutil.rmtree(os.path.join(config.usb_mount, "multibootusb", config.uninstall_distro))
+
+    def delete_frm_file_list(self, iso_file_list):
+        """
+        Generic way to remove files.
+        :param iso_file_list: Path to file as list.
+        :return:
+        """
+        for f in iso_file_list:
+            if platform.system() == "Windows":
+                f = f.replace('\n', '').strip("/").replace("/", "\\")
+            else:
+                f = f.replace('\n', '').strip("/")
+            print "Removing " + (os.path.join(config.usb_mount, f))
+            if os.path.isfile(os.path.join(config.usb_mount, f)):
+                os.remove(os.path.join(config.usb_mount, f))
+            elif os.path.isdir(os.path.join(config.usb_mount, f)):
+                shutil.rmtree(os.path.join(config.usb_mount, f))
+        if os.path.exists(os.path.join(config.usb_mount, "ldlinux.sys")):
                 os.chmod(os.path.join(config.usb_mount, "ldlinux.sys"), 0777)
                 os.unlink(os.path.join(config.usb_mount, "ldlinux.sys"))
+        if os.path.exists(os.path.join(config.usb_mount, "multibootusb", config.uninstall_distro, "generic.cfg")):
             with open(os.path.join(config.usb_mount, "multibootusb", config.uninstall_distro, "generic.cfg"), "r") as generic_cfg:
-                generic = generic_cfg.read().replace('\n', '')
-            os.remove(os.path.join(config.usb_mount, generic.strip("/")))
+                if platform.system() == "Windows":
+                    generic = generic_cfg.read().replace('\n', '').replace("/", "\\")
+                else:
+                    generic = generic_cfg.read().replace('\n', '')
+                if os.path.exists(os.path.join(config.usb_mount, generic.strip("/"))):
+                    os.remove(os.path.join(config.usb_mount, generic.strip("/")))
 
-        if os.path.exists(os.path.join(config.usb_mount, "multibootusb", config.uninstall_distro)):
-            shutil.rmtree(os.path.join(config.usb_mount, "multibootusb", config.uninstall_distro))
 
     def update_sys_cfg_file(self):
         """
