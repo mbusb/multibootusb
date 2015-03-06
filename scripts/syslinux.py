@@ -37,7 +37,7 @@ class Syslinux():
                     if os.access(syslinux_path, os.X_OK) is False:
                         subprocess.call('chmod +x ' + syslinux_path, shell=True)
                     if config.user_password:
-                        print "Executing ==> " + syslinux_path + " --install " + os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb")
+                        print "\nExecuting ==> " + syslinux_path + " --install " + os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb\n")
                         if subprocess.call('echo ' + config.user_password + ' | sudo -S ' + syslinux_path +
                                                    " --install " + os.path.join(self.usb.get_usb(config.usb_disk).mount,
                                                                                 "multibootusb"), shell=True) == 0:
@@ -50,16 +50,16 @@ class Syslinux():
                                 print "Failed to install default extlinux..."
                                 return False
                     else:
-                        print "Executing ==> " + syslinux_path + " --install " +  os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb")
+                        print "\nExecuting ==> " + syslinux_path + " --install " +  os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb\n")
                         if subprocess.call(syslinux_path + " --install " + os.path.join(self.usb.get_usb(config.usb_disk).mount,
                                                                                     "multibootusb"), shell=True) == 0:
-                            print "Extlinux install on distro directory is success..."
+                            print "\nExtlinux install on distro directory is success...\n"
                             if subprocess.call('dd bs=440 count=1 conv=notrunc if=' + mbr_bin +
                                                                                     ' of=' + config.usb_disk[:-1], shell=True) == 0:
-                                print "mbr install is success..."
+                                print "\nmbr install is success...\n"
                                 return True
                             else:
-                                print "Failed to install default extlinux..."
+                                print "\nFailed to install default extlinux...\n"
                                 return False
 
         elif filesystem == "vfat" or filesystem == "ntfs" or filesystem == "FAT32":
@@ -80,15 +80,15 @@ class Syslinux():
                             print "Failed to install default syslinux..."
                             return False
                 else:
-                    print "Executing ==> " + syslinux + ' -i -d multibootusb ' + config.usb_disk
+                    print "\nExecuting ==> " + syslinux + ' -i -d multibootusb ' + config.usb_disk + "\n"
                     if subprocess.call(syslinux + ' -i -d multibootusb ' + config.usb_disk, shell=True) == 0:
-                        print "Default syslinux install is success..."
+                        print "\nDefault syslinux install is success...\n"
                         if subprocess.call('dd bs=440 count=1 conv=notrunc if=' + mbr_bin + ' of=' + config.usb_disk[:-1],
                                            shell=True) == 0:
-                            print "mbr install is success..."
+                            print "\nmbr install is success...\n"
                             return True
                         else:
-                            print "Failed to install default syslinux..."
+                            print "\nFailed to install default syslinux...\n"
                             return False
 
             elif platform.system() == "Windows":
@@ -143,30 +143,31 @@ class Syslinux():
                         print "Executing ==> " + syslinux_path + option + distro_syslinux_install_dir + ' ' + config.usb_disk
                         if subprocess.call('echo ' + config.user_password + ' | sudo -S ' + syslinux_path + option + distro_syslinux_install_dir + ' ' + config.usb_disk, shell=True) == 0:
                             print "\nSyslinux install on distro directory is success..."
-                            print "Executing ==> " + 'dd if=' + config.usb_disk + ' ' + 'of=' + distro_sys_install_bs + ' count=1'
+                            print "\nExecuting ==> " + 'dd if=' + config.usb_disk + ' ' + 'of=' + distro_sys_install_bs + ' count=1\n'
                             if subprocess.call('echo ' + config.user_password + ' | sudo -S dd if=' + config.usb_disk + ' ' + 'of=' + distro_sys_install_bs + ' count=1', shell=True) == 0:
                                 print "\nBootsector copy is success..."
                             else:
-                                print "Failed to install syslinux on distro directory..."
+                                print "\nFailed to install syslinux on distro directory...\n"
                     else:
                         print "Executing ==> " + syslinux_path + option + distro_syslinux_install_dir + ' ' + config.usb_disk
                         if subprocess.call(syslinux_path + option + distro_syslinux_install_dir + ' ' + self.usb_disk, shell=True) == 0:
                             print "Syslinux install on distro directory is success..."
                             if subprocess.call('dd if=' + self.usb_disk + ' ' + 'of=' + self.usb.get_usb(config.usb_disk).mount + distro_sys_install_bs + ' count=1', shell=True) == 0:
-                                print "\nBootsector copy is success..."
+                                print "\nBootsector copy is success...\n"
                             else:
-                                print "Failed to install syslinux on distro directory..."
+                                print "\nFailed to install syslinux on distro directory...\n"
                 elif platform.system() == "Windows":
                     syslinux_path = gen_fun.resource_path(os.path.join(gen_fun.mbusb_dir(), "syslinux", "bin")) + \
                                "\syslinux" + syslinux_version + ".exe"
                     distro_syslinux_install_dir = "/" + distro_syslinux_install_dir.replace("\\", "/")
-                    print "Executing ==> " + syslinux_path + option + distro_syslinux_install_dir + ' ' + config.usb_disk + ' ' +  \
-                          os.path.join(self.usb.get_usb(config.usb_disk).mount, distro_sys_install_bs).replace("\\", "/")
-                    if subprocess.call(syslinux_path + option + distro_syslinux_install_dir + ' ' + self.usb_disk + ' '
-                        + os.path.join(self.usb.get_usb(config.usb_disk).mount, distro_sys_install_bs).replace("\\", "/"), shell=True) == 0:
-                        print "Syslinux install was successful on distro directory..."
+                    distro_sys_install_bs = distro_sys_install_bs.replace("/", "\\")
+                    print "\nExecuting ==> " + syslinux_path + option + distro_syslinux_install_dir + ' ' + config.usb_disk + ' ' +  \
+                          distro_sys_install_bs + "\n"
+                    if subprocess.call(syslinux_path + option + distro_syslinux_install_dir + ' ' + config.usb_disk + ' '
+                        + distro_sys_install_bs, shell=True) == 0:
+                        print "\nSyslinux install was successful on distro directory...\n"
                     else:
-                        print "Failed to install syslinux on distro directory..."
+                        print "\nFailed to install syslinux on distro directory...\n"
 
             elif filesystem == "ext2" or filesystem == "ext3" or filesystem == "ext4" or filesystem == "Btrfs":
                 distro_syslinux_install_dir = os.path.join(install_dir, self.iso.isolinux_bin_dir().strip("/"))
