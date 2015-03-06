@@ -13,14 +13,14 @@ import threading
 import shutil
 import subprocess
 import gen_fun
-from usb import USB
+
 import config
 import iso
 
 
 class InstallDistro():
     def __init__(self):
-        self.usb_disk = config.usb_disk
+        from usb import USB
         self.usb = USB()
 
     def install(self):
@@ -29,11 +29,11 @@ class InstallDistro():
         :return:
         """
         self.iso = iso.ISO(config.iso_link)
-        install_dir = os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb", self.iso.iso_basename())
-        if not os.path.exists(os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb")):
-            print "Copying multibootusb directory to " + self.usb.get_usb(config.usb_disk).mount
+        install_dir = os.path.join(config.usb_mount, "multibootusb", self.iso.iso_basename())
+        if not os.path.exists(os.path.join(config.usb_mount, "multibootusb")):
+            print "Copying multibootusb directory to " + config.usb_mount
             shutil.copytree(gen_fun.resource_path(os.path.join("tools", "multibootusb")),
-                            os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb"))
+                            os.path.join(config.usb_mount, "multibootusb"))
 
         if not os.path.exists(install_dir):
             os.mkdir(install_dir)
@@ -48,16 +48,16 @@ class InstallDistro():
             self.iso.iso_extract_file(install_dir, "boot")
             config.status_text = "Copying ISO..."
             if platform.system() == "Windows":
-                subprocess.call(["xcopy", config.iso_link, self.usb.get_usb(config.usb_disk).mount], shell=True)  # Have to use xcopy as python file copy is dead slow.
+                subprocess.call(["xcopy", config.iso_link, config.usb_mount], shell=True)  # Have to use xcopy as python file copy is dead slow.
             elif platform.system() == "Linux":
-                print config.iso_link, self.usb.get_usb(config.usb_disk).mount
-                shutil.copy(config.iso_link, self.usb.get_usb(config.usb_disk).mount)
+                print config.iso_link, config.usb_mount
+                shutil.copy(config.iso_link, config.usb_mount)
         elif config.distro == "Windows":
-            print "Extracting iso to " + self.usb.get_usb(config.usb_disk).mount
-            self.iso.iso_extract_full(self.usb.get_usb(config.usb_disk).mount)
+            print "Extracting iso to " + config.usb_mount
+            self.iso.iso_extract_full(config.usb_mount)
         elif config.distro == "ipfire":
             self.iso.iso_extract_file(install_dir, "boot")
-            self.iso.iso_extract_file(self.usb.get_usb(config.usb_disk).mount, ".tlz")
+            self.iso.iso_extract_file(config.usb_mount, ".tlz")
         elif config.distro == "zenwalk":
             self.iso.iso_extract_file(install_dir, "kernel")
             self.iso.iso_extract_file(install_dir, "kernel")
@@ -75,7 +75,7 @@ class InstallDistro():
         elif config.distro == "generic":
             with open(os.path.join(install_dir, "generic.cfg"), "w") as f:
                 f.write(os.path.join(self.iso.isolinux_bin_dir(), "generic") + ".bs")
-            self.iso.iso_extract_full(self.usb.get_usb(config.usb_disk).mount)
+            self.iso.iso_extract_full(config.usb_mount)
         else:
             self.iso.iso_extract_full(install_dir)
 
@@ -90,12 +90,13 @@ class InstallDistro():
         Function to get the progress of install function as percentage.
         :return:
         """
+        print "\n\ninstall_progress " + config.usb_disk + "\n\n"
         thrd = threading.Thread(target=self.install, name="install_progress")
         #thrd.daemon()
-        install_size = self.usb.disk_usage(self.usb.get_usb(config.usb_disk).mount).used / 1024
+        install_size = self.usb.disk_usage(config.usb_mount).used / 1024
         thrd.start()
         while thrd.is_alive():
-            current_size = self.usb.disk_usage(self.usb.get_usb(config.usb_disk).mount).used / 1024
+            current_size = self.usb.disk_usage(config.usb_mount).used / 1024
             diff_size = abs(int(current_size - install_size))
             config.percentage = round(float(1.0 * diff_size) / config.install_size * 100)
             #print config.percentage
