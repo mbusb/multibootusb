@@ -61,8 +61,10 @@ class UnInstall():
             for f in files:
                 if f.endswith('.tlz'):
                     os.remove(os.path.join(config.usb_mount, f))
+            if os.path.exists(os.path.join(config.usb_mount, "distro.img")):
+                os.remove(os.path.join(config.usb_mount, "distro.img"))
         elif distro == "trinity-rescue":
-            shutil.rmtree(os.path.join(config.usb_mount, "multibootusb", "trk3"))
+            shutil.rmtree(os.path.join(config.usb_mount, "trk3"))
         elif distro == "generic":
             for f in iso_file_list:
                 if os.path.isfile(os.path.join(config.usb_mount, f.replace('\n', '').strip("/"))):
@@ -122,7 +124,7 @@ class UnInstall():
                 if f.endswith('.tlz'):
                     folder_size_to_remove += os.path.getsize(os.path.join(config.usb_mount, f))
         elif distro == "trinity-rescue":
-            folder_size_to_remove = self.usb.disk_usage(os.path.join(config.usb_mount, "multibootusb", "trk3")).used
+            folder_size_to_remove = self.usb.disk_usage(os.path.join(config.usb_mount, "trk3")).used
             folder_size_to_remove += self.usb.disk_usage(config.usb_mount + "/multibootusb/" + config.uninstall_distro).used
         else:
 
