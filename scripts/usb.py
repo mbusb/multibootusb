@@ -43,10 +43,12 @@ class USB():
 
     def disk_usage(self, mount_path):
         """
-        Function to detect various size os an USB disk.
-        :param mount_path: Path to USB mount point.
-        :return: total used and free size of an USB.
+        Return disk usage statistics about the given path as a (total, used, free)
+        namedtuple.  Values are expressed in bytes.
         """
+        # Author: Giampaolo Rodola' <g.rodola [AT] gmail [DOT] com>
+        # License: MIT
+        
         _ntuple_diskusage = collections.namedtuple('usage', 'total used free')
 
         if platform.system() == "Linux":
