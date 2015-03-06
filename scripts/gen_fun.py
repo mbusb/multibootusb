@@ -11,9 +11,6 @@ import sys
 import shutil
 import zipfile
 import platform
-import usb
-from iso import ISO
-
 
 def resource_path(relativePath):
     """
@@ -32,7 +29,7 @@ def resource_path(relativePath):
     if not os.path.exists(os.path.join(basePath, relativePath)):
         if os.path.exists(os.path.join(os.path.abspath(".."), relativePath)):
             basePath = os.path.abspath("..")
-        if os.path.exists(os.path.join(os.path.abspath("."), relativePath)):
+        elif os.path.exists(os.path.join(os.path.abspath("."), relativePath)):
             basePath = os.path.abspath(".")
 
     path = os.path.join(basePath, relativePath)
