@@ -137,6 +137,9 @@ class pkg():
             self.clean_dir()
         elif self.pkg_name == "upload":
             self.upload()
+        else:
+            print "Option not found."
+            usage()
             '''
             if result:
                 return result
@@ -256,6 +259,3 @@ if __name__ == '__main__':
         else:
             build = pkg(argv)
             build.build_package()
-
-
-
