@@ -9,6 +9,9 @@ Version - 7.4.0
 * Now install and uninstall script is written in python.
 * Upgraded the debian build script (stdeb) to latest version.
 * Lot of other minor bug fixes.
+* GUI is slightly larger now.
+* Generic way to remove files outside multibootusb directory.
+* Various improvements to build script.
 
 Version - 7.3.0
 ---------------
