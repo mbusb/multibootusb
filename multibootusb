@@ -91,6 +91,7 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
             elif platform.system() == "Windows":
                 admin.runAsAdmin()
                 sys.exit(0)
+
         self.add_device()
 
     def add_device(self):
@@ -104,6 +105,7 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
                 self.ui.comboBox.addItem(str(device))
                 if self.ui.comboBox.currentText():
                     self.onComboChange()
+        #filename = raw_input()
 
         gen_fun.prepare_mbusb_dir()
 
@@ -114,6 +116,8 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
         """
         config.usb_disk = str(self.ui.comboBox.currentText())
         if bool(config.usb_disk):
+            self.usb_disk_details = self.usb.get_usb(config.usb_disk)
+            config.usb_mount = self.usb_disk_details.mount
             self.ui.usb_size_ttl.setText("Filesystem :: " + self.usb.get_usb(config.usb_disk).filesystem)
             self.ui.usb_size_avl.setText("Free Size :: " + self.usb.get_usb(config.usb_disk).free_size)
             self.ui.usb_label.setText("Label :: " + self.usb.get_usb(config.usb_disk).label)
@@ -169,6 +173,7 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
         :return:
         """
         self.iso = ISO(config.iso_link)
+        #config.usb_disk = str(self.ui.comboBox.currentText())
 
         if not usb_disk:
             QtGui.QMessageBox.information(self, "No Device...",
@@ -210,7 +215,6 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
                                                        QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
 
                             if reply == QtGui.QMessageBox.Yes:
-                                print "entered create..."
                                 self.progress_thread_install.start()
                     else:
                         QtGui.QMessageBox.information(self, 'Already Exist...',
@@ -378,6 +382,7 @@ class GuiInstallProgress(QtCore.QThread):
         self.install = InstallDistro()
         self.usb = USB()
         self.thread = GenericThread(self.install.install_progress)
+        #self.thread = self.install.install_progress
 
     def __del__(self):
         self.wait()
@@ -385,7 +390,8 @@ class GuiInstallProgress(QtCore.QThread):
     def run(self):
         self.thread.start()
         self.iso = ISO(config.iso_link)
-        install_dir = os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb", self.iso.iso_basename())
+
+        install_dir = os.path.join(config.usb_mount, "multibootusb", self.iso.iso_basename())
 
         while self.thread.isRunning():
             if config.status_text.strip():
