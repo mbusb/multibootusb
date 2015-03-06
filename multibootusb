@@ -182,7 +182,7 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
             QtGui.QMessageBox.information(self, "No ISO...", "No ISO found.\n\nPlease use step 2 to choose an ISO.")
         else:
             if not self.iso.integrity() is True:
-                QtGui.QMessageBox.information(self, "Integrity...", "ISO integrety failed.\n\nPlease check the downloaded ISO.")
+                QtGui.QMessageBox.information(self, "Integrity...", "ISO integrity failed.\n\nPlease check the downloaded ISO.")
             else:
                 if os.path.exists(iso_link):
                     self.ui.lineEdit.clear()
