@@ -229,6 +229,7 @@ class ISO():
             distro = self.detect_iso_from_file_list()
             if distro:
                 return distro
+                # FIXME: See the below comments.
                 '''
                 else:
                     FIXME: The idea of detecting as generic is to work like a unetbootin if other methods fails.
