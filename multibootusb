@@ -164,7 +164,6 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
             if platform.system() == "Windows":
                 if "/" in config.iso_link:
                     config.iso_link = config.iso_link.strip().replace("/", "\\")
-            print """self.ui.lineEdit.insert(str(config.iso_link))""" + config.iso_link
             self.ui.lineEdit.insert(str(config.iso_link))
         else:
             print ("File not selected...")
