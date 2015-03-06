@@ -159,8 +159,12 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
     def browse_iso(self):
         if str(self.ui.lineEdit.text()):
             self.ui.lineEdit.clear()
-        config.iso_link = str(QtGui.QFileDialog.getOpenFileName(self, 'Select an iso...', expanduser("~"), 'ISO Files (*.iso)'))
+        config.iso_link = str(QtGui.QFileDialog.getOpenFileName(self, 'Select an iso...', os.path.expanduser('~'), 'ISO Files (*.iso)'))
         if config.iso_link:
+            if platform.system() == "Windows":
+                if "/" in config.iso_link:
+                    config.iso_link = config.iso_link.strip().replace("/", "\\")
+            print """self.ui.lineEdit.insert(str(config.iso_link))""" + config.iso_link
             self.ui.lineEdit.insert(str(config.iso_link))
         else:
             print ("File not selected...")
@@ -404,6 +408,7 @@ class GuiInstallProgress(QtCore.QThread):
             self.update.emit(config.percentage)
             self.status.emit(status_text)
             if not self.thread.isFinished() and config.percentage == 100:
+                config.status_text = ""
                 self.status.emit("Please wait...")
 
         self.update.emit(100)
