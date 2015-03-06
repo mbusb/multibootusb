@@ -232,7 +232,7 @@ class ISO():
                 # FIXME: See the below comments.
                 '''
                 else:
-                    FIXME: The idea of detecting as generic is to work like a unetbootin if other methods fails.
+                    # FIXME: The idea of detecting as generic is to work like a unetbootin if other methods fails.
                     #  This simply extracts distro to root of the USB and install syslinux on isolinux.bin directory.
                     #  All works fine but unable to boot the distro successfully. Also, see the generic section from
                     #  syslinux, update_cfg and install_distro modules.
