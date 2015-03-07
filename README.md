@@ -1,4 +1,4 @@
-##User guide is located here https://github.com/mbusb/multibootusb/wiki/User-Guide
+####User guide is located here https://github.com/mbusb/multibootusb/wiki/User-Guide
 
 What is multibootusb?
 ---------------------
