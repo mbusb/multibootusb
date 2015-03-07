@@ -146,7 +146,7 @@ class pkg():
             '''
 
     def upload(self):
-        if not platform.system() == "Windows":
+        if platform.system() == "Windows":
                 print "You can upload to SF only from Linux as it needs rsync."
         else:
             print "Uploading files..."
@@ -214,17 +214,19 @@ class pkg():
 def usage():
     """ Prompt users how to use   """
     print ("Invalid option(s)\n"
-           "Possible options are ::\n"
-           "\033[94mexe\033[0m      <-- For making Windows/ Linux standalone executable using pyinstaller\n"
-           "\033[94mdeb\033[0m      <-- For making creating package for debian/ubuntu\n"
-           "\033[94mrpm\033[0m      <-- For creating package for fedora/redhat/centos\n"
-           "\033[94msuse\033[0m     <-- For creating package for OpenSuse\n"
-           "\033[94mmageia\033[0m   <-- For creating package for mageia/mandriva\n"
-           "\033[94msrc\033[0m      <-- For creating source package for other distributions\n"
-           "\033[94mclean\033[0m    <-- For Cleaning dist, build directory and other temp/python byte files\n"
-           "\033[94minstall\033[0m  <-- Directly install from source package\n"
-           "\033[94mrun\033[0m      <-- Directly run multibootusb from source package\n"
-           "\033[92mupload\033[0m   <-- Upload package directory to SourceForge")
+        "Possible options are ::\n"
+        "\033[94mexe\033[0m      <-- For making Windows/ Linux standalone executable using pyinstaller\n"
+        "\033[94mdeb\033[0m      <-- For making creating package for debian/ubuntu\n"
+        "\033[94mrpm\033[0m      <-- For creating package for fedora/redhat/centos\n"
+        "\033[94msuse\033[0m     <-- For creating package for OpenSuse\n"
+        "\033[94mmageia\033[0m   <-- For creating package for mageia/mandriva\n"
+        "\033[94msrc\033[0m      <-- For creating source package for other distributions\n"
+        "\033[94mall\033[0m      <-- For creating package for all distros\n"
+        "\033[94mclean\033[0m    <-- For Cleaning dist, build directory and other temp/python byte files\n"
+        "\033[94minstall\033[0m  <-- Directly install from source package\n"
+        "\033[94mrun\033[0m      <-- Directly run multibootusb from source package\n"
+        "\033[92mupload\033[0m   <-- Upload package directory to SourceForge")
+
     sys.exit(-1)
 
 if __name__ == '__main__':
