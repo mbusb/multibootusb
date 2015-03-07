@@ -30,7 +30,7 @@ https://sourceforge.net/projects/multibootusb/files/
 
 How to uninstall?
 -----------------
-You can uninstall multibootusb at any time using the "uninstall.sh" script provided with multibootusb.
+You can uninstall multibootusb at any time using the "uninstall.py" script provided with multibootusb.
 
 cd multibootusb
 chmod +x ./uninstall.py
