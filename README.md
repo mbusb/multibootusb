@@ -1,3 +1,5 @@
+##User guide is located here https://github.com/mbusb/multibootusb/wiki/User-Guide
+
 What is multibootusb?
 ---------------------
 MultiBootUSB is a cross platform* software/utility to create multi boot live Linux on a removable media i.e USB disk.
@@ -9,7 +11,7 @@ MultiBootUSB also provides an option to uninstall distro(s) at any time, if you 
 How to install?
 ---------------
 
-The install.sh script provided with multibootusb should take care of all dependency and install multibootusb.
+The install.py script provided with multibootusb should take care of all dependency and install multibootusb.
 Assume that you have downloaded the package named "multibootusb.tar.gz" in to your home directory.
 Issue the following commands to install multibootusb:-
 
