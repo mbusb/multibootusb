@@ -72,7 +72,7 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
         self.ui.browse_iso_qemu.clicked.connect(self.on_Qemu_Browse_iso_Click)
         self.ui.boot_iso_qemu.clicked.connect(self.on_Qemu_Boot_iso_Click)
         self.ui.boot_usb_qemu.clicked.connect(lambda: self.on_Qemu_Boot_usb_Click(config.user_password, str(self.ui.comboBox.currentText())))
-        self.ui.tabWidget.removeTab(3)
+        #self.ui.tabWidget.removeTab(3)
 
         #  Update progressbar and status
         self.progress_thread_install = GuiInstallProgress()
@@ -209,8 +209,7 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
                                 #iso_size = (os.path.getsize(iso_link) / 1024)
                                 config.install_size = (os.path.getsize(iso_link) / 1024)
                             print "Persistence choosen is " + str(persistence_size) + " MB"
-
-                            if config.install_size >= self.usb.disk_usage(self.usb.get_usb(usb_disk).mount):
+                            if config.install_size >= self.usb.disk_usage(self.usb.get_usb(usb_disk).mount).free:
                                 QtGui.QMessageBox.information(self, "No Space.", "No space available on  " + usb_disk)
                             else:
                                 reply = QtGui.QMessageBox.question(self, 'Review selection...',
