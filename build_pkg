@@ -64,7 +64,7 @@ class pkg():
             print "Ensure thta you have python-stdeb package installed!"
             stdcfg = ("[DEFAULT]\n"
                       "Package: multibootusb\n"
-                      "Depends: python-qt4\n"
+                      "Depends: python-qt4, parted\n"
                       "Build-Depends: python-all\n"
                       "Section: system\n"
                       "XS-Python-Version: = 2.7\n"
@@ -82,9 +82,9 @@ class pkg():
                 result = True
         elif self.pkg_name == 'rpm' or self.pkg_name == 'suse' or self.pkg_name == 'mageia':
             if self.pkg_name == 'suse' or self.pkg_name == 'mageia':
-                require = "python-qt4"
+                require = "python-qt4, parted"
             else:
-                require = "PyQt4"
+                require = "PyQt4, parted"
             setup_cfg = ("[bdist_rpm]\n"
                          "Group = Applications/System\n"
                          "Vendor = Sundar <feedback.multibootusb@gmail.com>\n"
