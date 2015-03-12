@@ -189,13 +189,6 @@ def prepare_mbusb_dir():
         shutil.copytree(resource_path(os.path.join("tools", "persistence_data")),
                         os.path.join(home, "persistence_data"))
 
-    if platform.system() == "Linux":
-        if os.geteuid() == 0:
-            for path, subdirs, files in os.walk(resource_path(os.path.join(home, "tools", "syslinux", "bin"))):
-                for name in files:
-                    if not name.endswith('.exe'):
-                        os.system('chmod ' + '+x ' + resource_path(os.path.join(home, "tools", "syslinux", "bin", name)))
-
     if os.listdir(os.path.join(home, "iso_cfg_ext_dir")):
         print os.listdir(os.path.join(home, "iso_cfg_ext_dir"))
         print "iso extract directory is not empty."
