@@ -156,12 +156,15 @@ class Syslinux():
                                 print "\nFailed to install syslinux on distro directory...\n"
                     else:
                         print "Executing ==> " + syslinux_path + option + distro_syslinux_install_dir + ' ' + config.usb_disk
-                        if subprocess.call(syslinux_path + option + distro_syslinux_install_dir + ' ' + self.usb_disk, shell=True) == 0:
+                        if subprocess.call(syslinux_path + option + distro_syslinux_install_dir + ' ' + config.usb_disk, shell=True) == 0:
                             print "Syslinux install on distro directory is success..."
-                            if subprocess.call('dd if=' + self.usb_disk + ' ' + 'of=' + self.usb.get_usb(config.usb_disk).mount + distro_sys_install_bs + ' count=1', shell=True) == 0:
+                            print 'Executing ==> dd if=' + config.usb_disk + ' ' + 'of=' + distro_sys_install_bs + ' count=1'
+                            if subprocess.call('dd if=' + config.usb_disk + ' ' + 'of=' + distro_sys_install_bs + ' count=1', shell=True) == 0:
                                 print "\nBootsector copy is success...\n"
                             else:
-                                print "\nFailed to install syslinux on distro directory...\n"
+                                print "\nFailed to copy boot sector...\n"
+                        else:
+                            print "\nFailed to install syslinux on distro directory...\n"
                 elif platform.system() == "Windows":
                     syslinux_path = gen_fun.resource_path(os.path.join(gen_fun.mbusb_dir(), "syslinux", "bin")) + \
                                "\syslinux" + syslinux_version + ".exe"
