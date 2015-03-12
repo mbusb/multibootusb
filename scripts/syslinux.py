@@ -26,7 +26,8 @@ class Syslinux():
         """
         Install default syslinux/extlinux (version 4) on selected USB disk.
         """
-        self.iso = ISO(config.iso_link)
+        if config.iso_link:
+            self.iso = ISO(config.iso_link)
         filesystem = self.usb.get_usb(config.usb_disk).filesystem
         mbr_bin = gen_fun.resource_path(os.path.join("tools", "mbr.bin"))
         config.status_text = "Installing default syslinux..."
