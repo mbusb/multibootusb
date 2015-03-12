@@ -294,6 +294,11 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
         if platform.system() == "Linux" or platform.system() == "Windows":
 
             if self.ui.install_sys_all.isChecked() or self.ui.install_sys_only.isChecked():
+                if not os.path.exists(os.path.join(config.usb_mount, "multibootusb")):
+                    print "Copying multibootusb directory to " + config.usb_mount
+                    shutil.copytree(gen_fun.resource_path(os.path.join("tools", "multibootusb")),
+                                    os.path.join(config.usb_mount, "multibootusb"))
+
                 print "Installing default syslinux on ", config.usb_disk
                 ret = self.syslinux.install_default()
                 if ret is True:
