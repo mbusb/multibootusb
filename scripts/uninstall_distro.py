@@ -60,6 +60,8 @@ class UnInstall():
                 os.remove(os.path.join(config.usb_mount, "distro.img"))
         elif distro == "trinity-rescue":
             shutil.rmtree(os.path.join(config.usb_mount, "trk3"))
+        elif distro == "alpine":
+            self.delete_frm_file_list(iso_file_list)
         elif distro == "generic":
             self.delete_frm_file_list(iso_file_list)
         if os.path.exists(os.path.join(config.usb_mount, "multibootusb", config.uninstall_distro)):
