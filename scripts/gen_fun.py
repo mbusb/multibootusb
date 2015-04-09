@@ -174,8 +174,14 @@ def prepare_mbusb_dir():
     else:
         print "Extracting syslinux to multibootusb directory..."
         if platform.system() == "Linux":
-            with zipfile.ZipFile(resource_path(os.path.join("tools", "syslinux", "syslinux_linux.zip")), "r") as z:
-                z.extractall(home)
+            if sys_64bits() is True:
+                print "Extracting syslinux 64 bit..."
+                with zipfile.ZipFile(resource_path(os.path.join("tools", "syslinux", "syslinux_linux_64.zip")), "r") as z:
+                    z.extractall(home)
+            else:
+                print "Extracting syslinux 32 bit..."
+                with zipfile.ZipFile(resource_path(os.path.join("tools", "syslinux", "syslinux_linux.zip")), "r") as z:
+                    z.extractall(home)
         else:
             with zipfile.ZipFile(resource_path(os.path.join("tools", "syslinux", "syslinux_windows.zip")), "r") as z:
                 z.extractall(home)
@@ -188,6 +194,11 @@ def prepare_mbusb_dir():
         print "Copying persistence data to multibootusb directory."
         shutil.copytree(resource_path(os.path.join("tools", "persistence_data")),
                         os.path.join(home, "persistence_data"))
+    if platform.system() == "Windows":
+        if not os.path.exists(os.path.join(home, "dd")):
+            print "Copying dd to multibootusb directory."
+            shutil.copytree(resource_path(os.path.join("tools", "dd")),
+                            os.path.join(home, "dd"))
 
     if os.listdir(os.path.join(home, "iso_cfg_ext_dir")):
         print os.listdir(os.path.join(home, "iso_cfg_ext_dir"))
@@ -230,3 +241,15 @@ def which(program):
                 return exe_file
 
     return None
+
+
+def quote(word):
+    return "'" + word + "'"
+
+
+def has_digit(word):
+    return any(char.isdigit() for char in word)
+
+
+def sys_64bits():
+    return sys.maxsize > 2**32
