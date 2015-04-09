@@ -47,6 +47,7 @@ setup(
                 (os.path.join(sys.prefix, "multibootusb", "tools", "persistence_data"), ["tools/persistence_data/768.tar.bz2"]),
                 (os.path.join(sys.prefix, "multibootusb", "tools", "syslinux"), ["tools/syslinux/syslinux_modules.zip"]),
                 (os.path.join(sys.prefix, "multibootusb", "tools", "syslinux"), ["tools/syslinux/syslinux_linux.zip"]),
+                (os.path.join(sys.prefix, "multibootusb", "tools", "syslinux"), ["tools/syslinux/syslinux_linux_64.zip"]),
                 (os.path.join(sys.prefix, "multibootusb", "tools", "syslinux"), ["tools/syslinux/syslinux_windows.zip"])]
 )
 
