@@ -11,7 +11,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public 
 
 Copyright © 2010-2015  Sundar
 Author(s): Sundar and Ian Bruce
-Contributor(s): LiQiong Lee, kbytesys, Narfinger and many others.
+Contributor(s):
+Code                    :   LiQiong Lee, kbytesys, Narfinger.
+Testing and Feedback    :   Javier Talens Segui and many others.
 """
 
 import sys
@@ -20,6 +22,8 @@ from os.path import expanduser
 import platform
 import shutil
 import subprocess
+import signal
+import time
 
 from PyQt4 import QtGui
 from PyQt4 import QtCore
@@ -36,11 +40,13 @@ from scripts.install_distro import InstallDistro
 from scripts.update_cfg import UpdateCfgFile
 from scripts.uninstall_distro import UnInstall
 import scripts.qemu as qemu
+import scripts.imager as imager
+from scripts.imager import Imager
 import scripts.config as config
 from scripts.usb import USB
 
 
-class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
+class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
     """
     Main multibootusb GUI manipulation class.
     """
@@ -74,6 +80,13 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
         self.ui.boot_usb_qemu.clicked.connect(lambda: self.on_Qemu_Boot_usb_Click(config.user_password, str(self.ui.comboBox.currentText())))
         #self.ui.tabWidget.removeTab(3)
 
+        # ISO Imager Tab
+        self.ui.pushButton.clicked.connect(self.on_Imager_Browse_iso_Click)
+        self.ui.comboBox_2.activated[str].connect(self.onImagerComboChange)
+        self.ui.pushbtn_imager_refreshusb.clicked.connect(self.onRefereshClick)
+        self.ui.imager_close.clicked.connect(self.on_close_Click)
+        self.ui.imager_write.clicked.connect(self.dd_write)
+
         #  Update progressbar and status
         self.progress_thread_install = GuiInstallProgress()
         self.progress_thread_install.finished.connect(self.install_syslinux)
@@ -85,6 +98,8 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
         self.progress_thread_uninstall.update.connect(self.ui.progressBar.setValue)
         self.progress_thread_uninstall.status.connect(self.ui.status.setText)
 
+        #self.progress_threas_imager.status.connect(self.ui.im.setText)
+
         if not admin.isUserAdmin():
             if platform.system() == "Linux":
                 config.user_password = admin.get_password()
@@ -93,6 +108,7 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
                 sys.exit(0)
 
         self.add_device()
+        gen_fun.prepare_mbusb_dir()
 
     def add_device(self):
         """
@@ -105,32 +121,73 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
                 self.ui.comboBox.addItem(str(device))
                 if self.ui.comboBox.currentText():
                     self.onComboChange()
-        #filename = raw_input()
 
-        gen_fun.prepare_mbusb_dir()
+        imager_detected_device = self.imager_list_usb(partition=0)
+        #imager_detected_device = self.usb.imager_list_usb()
+        if bool(imager_detected_device):
+            for disk in imager_detected_device:
+                self.ui.comboBox_2.addItem(str(disk))
+                self.onImagerComboChange()
+
+    def onImagerComboChange(self):
+        config.imager_usb_disk = str(self.ui.comboBox_2.currentText())
+        if bool(config.imager_usb_disk):
+            self.ui.imager_disk_label.setText("Disk Type :: " + self.imager_usb_detail(config.imager_usb_disk,
+                                                                                       partition=0).usb_type)
+            self.ui.imager_total_size.setText("Disk Size :: " + self.usb.bytes2human(int(self.imager_usb_detail
+                                                                    (config.imager_usb_disk, partition=0).total_size)))
+            if platform.system() == "Linux":
+                self.ui.imager_uuid.setText("Disk Model :: " + self.imager_usb_detail(config.imager_usb_disk,
+                                                                                  partition=0).model)
+            else:
+                self.ui.imager_uuid.setText("Disk Label :: " + self.imager_usb_detail(config.imager_usb_disk,
+                                                                                  partition=0).model)
 
     def onComboChange(self):
         """
         Detects and updates GUI with populated USB device details.
         :return:
         """
+        self.ui.listWidget.clear()
         config.usb_disk = str(self.ui.comboBox.currentText())
         if bool(config.usb_disk):
-            self.usb_disk_details = self.usb.get_usb(config.usb_disk)
-            config.usb_mount = self.usb_disk_details.mount
-            self.ui.usb_size_ttl.setText("Filesystem :: " + self.usb.get_usb(config.usb_disk).filesystem)
-            self.ui.usb_size_avl.setText("Free Size :: " + self.usb.get_usb(config.usb_disk).free_size)
-            self.ui.usb_label.setText("Label :: " + self.usb.get_usb(config.usb_disk).label)
-            self.ui.usb_dev.setText("Total Size :: " + self.usb.get_usb(config.usb_disk).total_size)
-            self.ui.usb_mount.setText("Mount :: " + self.usb.get_usb(config.usb_disk).mount)
-            self.update_list_box(self.usb.get_usb(config.usb_disk).mount)
+            #self.ui.comboBox_2.addItem(str(config.usb_disk)[:-1])
+            if platform.system() == "Linux":
+                if gen_fun.has_digit(str(self.ui.comboBox.currentText())):
+                    df_out = subprocess.check_output("df", shell=True)
+                    if str(self.ui.comboBox.currentText()) not in df_out:
+                        print "USB disk is not mounted. Can not get the details of the disk."
+                        self.ui.usb_size_ttl.setText("Filesystem :: Unknown")
+                        self.ui.usb_size_avl.setText("Free Size :: Unknown")
+                        self.ui.usb_label.setText("Label :: Unknown")
+                        self.ui.usb_dev.setText("Total Size :: Unknown")
+                        self.ui.usb_mount.setText("Mount :: Unknown")
+                        #QtGui.QMessageBox.information(self, "USB not mounted...", "USB deivce " + config.usb_disk +
+                        #                              " is not mounted. \nCan not get USB details.")
+
+                    else:
+                        self.update_gui_oncombobox()
+            else:
+                self.update_gui_oncombobox()
+
         else:
             print "No USB disk found..."
 
-        print "Device status is " + self.usb.get_usb(config.usb_disk).mount
-        if self.usb.get_usb(config.usb_disk).mount == "Not mounted.":
-            QtGui.QMessageBox.information(self, "USB not mounted...", "USB deivce " + config.usb_disk + " is not "
-                                                                "mounted. \nPlease mount and rerun multibootusb.")
+        #print "Device status is " + self.usb.get_usb(config.usb_disk).mount
+        #if self.usb.get_usb(config.usb_disk).mount == "Not mounted.":
+        #    QtGui.QMessageBox.information(self, "USB not mounted...", "USB deivce " + config.usb_disk + " is not "
+        #                                                        "mounted. \nPlease mount and rerun multibootusb.")
+
+    def update_gui_oncombobox(self):
+        self.usb_disk_details = self.usb.get_usb(config.usb_disk)
+        config.usb_mount = self.usb_disk_details.mount
+        self.ui.usb_size_ttl.setText("Filesystem :: " + self.usb.get_usb(config.usb_disk).filesystem)
+        self.ui.usb_size_avl.setText("Free Size :: " + self.usb.get_usb(config.usb_disk).free_size)
+        self.ui.usb_label.setText("Label :: " + self.usb.get_usb(config.usb_disk).label)
+        self.ui.usb_dev.setText("Total Size :: " + self.usb.get_usb(config.usb_disk).total_size)
+        self.ui.usb_mount.setText("Mount :: " + self.usb.get_usb(config.usb_disk).mount)
+        self.update_list_box(self.usb.get_usb(config.usb_disk).mount)
+        self.update_list_box(config.usb_mount)
 
     def update_list_box(self, usb_mount):
         """
@@ -355,6 +412,130 @@ class AppGui(qemu.AppGui, QtGui.QDialog, Ui_Dialog):
                                   'Failed to open syslinux.cfg file.\n'
                                   'Edit syslinux.cfg file manually.\n')
 
+    def dd_finished(self):
+        self.ui.imager_progressbar.setValue(0)
+        self.ui.imager_label_status.clear()
+        self.ui.comboBox_2.setEnabled(True)
+        self.ui.pushButton.setEnabled(True)
+        self.ui.imager_bootable.setText("Bootable ISO :: ")
+        self.ui.imager_iso_size.setText("ISO Size :: ")
+        QtGui.QMessageBox.information(self, 'Finished...', 'ISO has been written to USB disk.\nPlease reboot your '
+                                                           'system and boot from USB.')
+    def dd_start(self):
+        self.ui.imager_progressbar.setValue(0)
+        self.ui.imager_label_status.clear()
+        self.ui.lineEdit_3.clear()
+        self.ui.pushButton.setEnabled(False)
+        self.ui.comboBox_2.setEnabled(False)
+        status_text = ("<b>Writing " + os.path.basename(config.imager_iso_link) + " to " +
+                                  config.imager_usb_disk_selected + "</b>")
+        self.ui.imager_label_status.setText(status_text)
+
+    def dd_write(self):
+        if not self.ui.comboBox_2.currentText():
+            QtGui.QMessageBox.information(self, 'No USB...', 'Please Insert USB disk and rerun multibootusb.')
+        elif not config.imager_iso_link:
+            QtGui.QMessageBox.information(self, 'No ISO...', 'Please select an ISO.')
+
+        else:
+            self.usb_disk = str(self.ui.comboBox_2.currentText())
+            config.imager_usb_disk_selected = self.usb_disk
+            usb_disk_size = int(self.imager_usb_detail(config.imager_usb_disk, partition=0).total_size)
+            self.iso_size = os.path.getsize(config.imager_iso_link)
+            print self.iso_size
+            print usb_disk_size
+            if self.iso_size >= usb_disk_size:
+                QtGui.QMessageBox.information(self, "No Space.", os.path.basename(config.imager_iso_link) +
+                                              " size is larger than the size of " + self.usb_disk)
+            else:
+                reply = QtGui.QMessageBox.question\
+                    (self, 'Review selection...',
+                                       'Selected USB disk:: %s\n' % self.usb_disk +
+                                       'Selected distro:: %s\n\n' % os.path.basename(config.imager_iso_link) +
+                                       'Would you like to proceed for installation?',
+                                       QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+
+                if reply == QtGui.QMessageBox.Yes:
+                    self.dd_start()
+                    if platform.system() == "Linux":
+                        self.dd_linux(config.imager_iso_link, self.usb_disk)
+                    else:
+                        self.dd_win(config.imager_iso_link, self.usb_disk)
+
+    def dd_linux(self, iso_link, usb_disk):
+        input = "if=" + iso_link
+        in_file_size = float(os.path.getsize(iso_link))
+        output = "of=" + usb_disk
+        os.system("umount " + usb_disk + "1")
+        command = ['dd', input, output, "bs=1M"]
+        if config.user_password:
+            dd_process = subprocess.Popen(['sudo', '-p', '', '-S'] + command, stdin=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, shell=False)
+            dd_process.stdin.write(config.user_password[1:-1] + '\n')
+            dd_process.stdin.close()
+            print "Executing ==> ", command
+        else:
+            dd_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+        while dd_process.poll() is None:
+            time.sleep(.1)
+            if config.user_password:
+                os.system("echo " + config.user_password + " | sudo -S kill -USR1 %s" % (dd_process.pid, ))
+            else:
+                dd_process.send_signal(signal.SIGUSR1)
+            dd_process.stderr.flush()
+            while True:
+                time.sleep(.1)
+                out_error = dd_process.stderr.readline()
+                if out_error:
+                    if 'bytes' in out_error:
+                        copied = int(out_error.split(' ', 1)[0])
+                        imager_percentage = round((float(copied) / float(in_file_size) * 100))
+                        print "Completed ", imager_percentage, " %"
+                        self.ui.imager_progressbar.setValue(imager_percentage)
+                        QtGui.qApp.processEvents()
+                        break
+        if dd_process.poll() is not None:
+            print "Executing ==> sync"
+            os.system("sync")
+            print "ISO has been written to USB disk..."
+            self.dd_finished()
+            return
+
+    def dd_win(self, iso_link, usb_disk):
+        error = ""
+        windd = gen_fun.resource_path(os.path.join("tools", "dd", "dd.exe"))
+        if os.path.exists(gen_fun.resource_path(os.path.join("tools", "dd", "dd.exe"))):
+            print "dd exist"
+        input = "if=" + iso_link
+        in_file_size = float(os.path.getsize(self.imager_iso_link) / 1024 / 1024)
+        output = "of=\\\.\\" + usb_disk
+        command = [windd, input, output, "bs=1M", "--progress"]
+        print "Executing ==> ", command
+        dd_process = subprocess.Popen(command, universal_newlines=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=False)
+        error = False
+        for line in iter(dd_process.stderr.readline, ''):
+            line = line.strip()
+            if 'error' in line.lower() or 'invalid' in line.lower():
+                print "Error writing to disk..."
+                error = True
+                break
+            if line and line[-1] == 'M':
+                copied = float(line.strip('M').replace(',', ''))
+                imager_percentage = round((copied / float(in_file_size) * 100))
+                #print imager_percentage
+                self.ui.imager_progressbar.setValue(imager_percentage)
+                QtGui.qApp.processEvents()
+
+        if error:
+            QtGui.QMessageBox.warning(self, "Error...", "Could not write to disk.")
+            self.ui.imager_label_status.clear()
+            self.ui.comboBox_2.setEnabled(True)
+            self.ui.pushButton.setEnabled(True)
+        else:
+            print "ISO has been written to USB disk..."
+            self.dd_finished()
+            return
+
     def on_close_Click(self):
         """
         Closes main GUI.
@@ -448,7 +629,6 @@ class GuiUninstallProgress(QtCore.QThread):
     def run(self):
         self.thread.start()
         while self.thread.isRunning():
-            #print config.percentage
             self.update.emit(config.percentage)
             self.status.emit(config.status_text)
             if not self.thread.isFinished() and config.percentage == 100:
