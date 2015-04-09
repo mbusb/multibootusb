@@ -50,7 +50,6 @@ class Install():
 
         return result
 
-
     def supported_pac_manager(self):
         pac_managers = ["pacman", "yum", "apt-get", "zypper", "urpmi"]
         for pac_man in pac_managers:
@@ -63,27 +62,27 @@ class Install():
         if subprocess.call("which pacman", shell=True) == 0:
             package = "python2-pyqt4"
             subprocess.call("pacman -Sy --noconfirm")
-            if subprocess.call("pacman -S --needed --noconfirm python2-pyqt4") == 0:  #  # Thank you Neitsab for "--needed"  argument.
+            if subprocess.call("pacman -S --needed --noconfirm python2-pyqt4 parted util-linux") == 0:  # Thank you Neitsab for "--needed"  argument.
                 result = True
         elif subprocess.call("which yum", shell=True) == 0:
             package = "PyQt4"
             subprocess.call("yum check-update")
-            if subprocess.call("yum install PyQt4 -y") == 0:
+            if subprocess.call("yum install PyQt4 util-linux parted -y") == 0:
                 result = True
         elif subprocess.call("which apt-get", shell=True) == 0:
             package = "python-qt4"
             subprocess.call("apt-get -q update")
-            if subprocess.call("apt-get -q -y install python-qt4") == 0:
+            if subprocess.call("apt-get -q -y install util-linux parted python-qt4") == 0:
                 result = True
         elif subprocess.call("which zypper", shell=True) == 0:
             package = "python-qt4"
             subprocess.call("zypper refresh")
-            if subprocess.call("zypper install -y python-qt4") == 0:
+            if subprocess.call("zypper install -y python-qt4 util-linux parted") == 0:
                 result = True
         elif subprocess.call("which urpmi", shell=True) == 0:
             package = "python-qt4"
             subprocess.call("urpmi.update -a")
-            if subprocess.call("urpmi install -auto python-qt4") == 0:
+            if subprocess.call("urpmi install -auto util-linux parted python-qt4") == 0:
                 result = True
 
         if result is not True:
