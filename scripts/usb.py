@@ -9,6 +9,7 @@
 import collections
 import sys
 import os
+import subprocess
 import platform
 import ctypes
 import config
@@ -48,7 +49,6 @@ class USB():
         """
         # Author: Giampaolo Rodola' <g.rodola [AT] gmail [DOT] com>
         # License: MIT
-        
         _ntuple_diskusage = collections.namedtuple('usage', 'total used free')
 
         if platform.system() == "Linux":
@@ -105,6 +105,7 @@ class USB():
                 for device in context.list_devices(subsystem='block', DEVTYPE='partition', ID_FS_USAGE="filesystem",
                                                    ID_TYPE="disk", ID_BUS="usb"):
                     if device['ID_BUS'] == "usb" and device['DEVTYPE'] == "partition":
+                        print device['DEVNAME']
                         devices.append(str(device['DEVNAME']))
             except:
                 bus = dbus.SystemBus()
@@ -142,6 +143,7 @@ class USB():
             for drive in oDrives:
                 if drive.DriveType == 1 and drive.IsReady:
                     devices.append(drive)
+                    #config.imager_usb_disk.append(drive)
 
         if devices:
             #print devices
@@ -244,6 +246,7 @@ class USB():
                     else:
                         label = "No label."
                     mount_point = selected_usb_device + ":\\"
+                    print "mount_point", mount_point
                     serno = "%X" % (long(d.SerialNumber) & 0xFFFFFFFF)
                     uuid = serno[:4] + '-' + serno[4:]
                     file_system = (d.FileSystem).strip()
@@ -261,3 +264,42 @@ class USB():
                 free_size = "Not mounted."
                 used_size = "Not mounted."
             return _ntuple_diskusage(label, mount_point, uuid, file_system, device, total_size, free_size, used_size)
+
+    def imager_list_usb(self):
+        """
+        Listing of all USB disks (whole disk and not partitions)
+        :return: List of USB disks as list
+        """
+        disks = []
+        if platform.system() == "Linux":
+            basedir = '/dev/disk/by-path/'
+            for d in os.listdir(basedir):
+                if 'usb' in d and 'part' not in d:
+                    path = os.path.join(basedir, d)
+                    link = os.readlink(path)
+                    #print '/dev/' + os.path.basename(link)
+                    disk = os.path.normpath(os.path.join(os.path.dirname(path), link))
+                    if self.disk_exist_in_fsdisk(disk) is True:
+                        disks.append(disk)
+        else:
+            import win32com.client
+            oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
+            oDrives = oFS.Drives
+            for drive in oDrives:
+                if drive.DriveType == 1 and drive.IsReady:
+                    disks.append(drive)
+                    config.imager_usb_disk.append(drive)
+        return disks
+
+    def disk_exist_in_fsdisk(self, disk_path):
+        """
+        Function to check if disks_path exist in fdisk command output.
+        :param disk_path: path to whole disk (/dev/sdb)
+        :return: True if exist else False
+        """
+        fdisks_output = subprocess.check_output("echo sundar | sudo -S fdisk -l", shell=True)
+        if fdisks_output:
+            if disk_path in fdisks_output:
+                return True
+            else:
+                return False
