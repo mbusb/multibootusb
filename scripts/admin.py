@@ -35,7 +35,7 @@ import os
 import traceback
 import types
 import platform
-
+from gen_fun import quote
 
 def isUserAdmin():
     """
@@ -174,7 +174,7 @@ def get_password():
         password_window = PasswordGui()
         for x in xrange(3):
             password_window.exec_()
-            password = str(password_window.get_password()).strip()
+            password = quote(str(password_window.get_password()).strip())
             if password:
                 if os.popen('echo ' + str(password) + ' | sudo -S id -u').read().strip() == '0':
                     return password
