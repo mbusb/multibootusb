@@ -213,6 +213,8 @@ class UpdateCfgFile():
                                       "fromusb root=UUID=" + self.usb.get_usb(config.usb_disk).uuid + " bootfromiso=/multibootusb/" +
                                       self.iso.iso_basename() +"/" + self.iso.iso_name() + " initrd=/multibootusb/"
                                       + self.iso.iso_basename() + '/isolinux/initrd.gz' + "\n")
+                elif config.distro == "mentest":
+                    config_file.write("kernel " + '/multibootusb/' + self.iso.iso_basename() + '/BOOT/MEMTEST.IMG\n')
                 else:
                     if config.distro == "ubuntu" and config.sys_version == "6":
                         config_file.write("CONFIG " + "/multibootusb/" + self.iso.iso_basename() +
