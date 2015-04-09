@@ -61,6 +61,8 @@ class InstallDistro():
             self.iso.iso_extract_file(install_dir, "boot")
             self.iso.iso_extract_file(config.usb_mount, ".tlz")
             self.iso.iso_extract_file(config.usb_mount, "distro.img")
+        elif config.distro == "alpine":
+            self.iso.iso_extract_full(config.usb_mount)
         elif config.distro == "zenwalk":
             self.iso.iso_extract_file(install_dir, "kernel")
             self.iso.iso_extract_file(install_dir, "kernel")
@@ -93,7 +95,6 @@ class InstallDistro():
         Function to get the progress of install function as percentage.
         :return:
         """
-        print "\n\ninstall_progress " + config.usb_disk + "\n\n"
         thrd = threading.Thread(target=self.install, name="install_progress")
         #thrd.daemon()
         install_size = self.usb.disk_usage(config.usb_mount).used / 1024
