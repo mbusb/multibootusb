@@ -99,10 +99,10 @@ class Syslinux():
             elif platform.system() == "Windows":
                 syslinux = gen_fun.resource_path(os.path.join(gen_fun.mbusb_dir(), "syslinux", "bin", "syslinux4.exe"))
                 if subprocess.call(syslinux + ' -maf -d multibootusb ' + config.usb_disk, shell=True) == 0:
-                    print "Default syslinux install is success..."
+                    print "\nDefault syslinux install is success...\n"
                     return True
                 else:
-                    print "Failed to install default syslinux..."
+                    print "\nFailed to install default syslinux...\n"
                     return False
 
         self.set_boot_flag()
@@ -120,7 +120,7 @@ class Syslinux():
             self.iso.iso_extract_file(os.path.join(gen_fun.mbusb_dir(), "iso_cfg_ext_dir"), "isolinux.bin")
             self.iso.iso_extract_file(os.path.join(gen_fun.mbusb_dir(), "iso_cfg_ext_dir"), "ISOLINUX.BIN")
             syslinux_version = self.iso.isolinux_version(self.iso.isolinux_bin_path(os.path.join(gen_fun.mbusb_dir(), "iso_cfg_ext_dir")))
-            if config.distro == "generic":
+            if config.distro == "generic" or config.distro == "alpine":
                 install_dir = self.usb.get_usb(config.usb_disk).mount
                 distro_syslinux_install_dir = os.path.join(install_dir, self.iso.isolinux_bin_dir().strip("/")).replace(self.usb.get_usb(config.usb_disk).mount, "")
                 distro_sys_install_bs = os.path.join(install_dir, self.iso.isolinux_bin_dir().strip("/"), config.distro + '.bs')
