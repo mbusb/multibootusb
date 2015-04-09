@@ -5,6 +5,7 @@ Version - 7.5.0
 * Most of the reported bugs has been fixed.
 * Inclusion of 64 bit syslinux (except version 5 as I could not find any) under Linux.
 * Added alphine Linux and memtest
+* Included missing install.py, uninstall.py and dd directory to source package.
 
 Version - 7.4.0
 ---------------
