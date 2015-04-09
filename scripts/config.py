@@ -6,14 +6,20 @@
 
 user_password = ""
 iso_link = ""
+imager_iso_link = ""
 usb_disk = ""
+imager_usb_disk_selected = ""
+imager_lock = ""
 usb_mount = ""
 distro = ""
 install_size = ""
 persistence = ""
 percentage = ""
+imager_percentage = ""
 status_text = ""
 sys_version = ""
 uninstall_distro = ""
 editors_linux = ["gedit", "kate", "kwrite"]
 editors_win = ["notepad++.exe", "notepad.exe"]
+
+imager_usb_disk = []
