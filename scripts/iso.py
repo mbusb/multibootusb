@@ -209,7 +209,7 @@ class ISO():
                                 return "finnix"
                             elif re.search(r'wifiway', string, re.I):
                                 return "wifiway"
-                            elif re.search(r'puppy', string, re.I):
+                            elif re.search(r'puppy|quirky', string, re.I):
                                 return "puppy"
                             elif re.search(r'ipcop', string, re.I):
                                 return "ipcop"
@@ -225,6 +225,8 @@ class ISO():
                                 return "centos-net-minimal"
                             elif re.search(r'Trinity Rescue Kit', string, re.I):
                                 return "trinity-rescue"
+                            elif re.search(r'alpine', string, re.I):
+                                return "alpine"
 
             distro = self.detect_iso_from_file_list()
             if distro:
@@ -256,6 +258,8 @@ class ISO():
                 return "opensuse"
             elif any("dban" in s.lower() for s in iso_file_list):
                 return "slitaz"
+            elif any("memtest.img" in s.lower() for s in iso_file_list):
+                return "mentest"
             else:
                 print iso_file_list
 
@@ -291,7 +295,7 @@ class ISO():
         :return: Version number as string.
         """
         version = ["3", "4", "5", "6"]
-        if not isolinux_bin_path == None:
+        if isolinux_bin_path is not None:
             sl = list(self.strings(isolinux_bin_path))
             for strin in sl:
                 if re.search(r'isolinux ', strin, re.I):
