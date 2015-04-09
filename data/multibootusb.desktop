@@ -2,7 +2,7 @@
 Type=Application
 Name=multibootusb
 Comment=Install multiple Linux Operating System on USB
-Icon=multibootusb.png
+Icon=/usr/share/pixmaps/multibootusb.png
 Exec=multibootusb
 Categories=System;
 StartupNotify=true
