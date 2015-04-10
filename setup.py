@@ -9,7 +9,7 @@ setup(
     name='multibootusb',
     version=mbusb_version,
     packages=['scripts', 'scripts.pyudev', 'scripts.gui'],
-    scripts=['multibootusb', 'install.py', 'uninstall.py', 'README.md'],
+    scripts=['multibootusb'],
     platforms=['Linux'],
     url='http://multibootusb.org/',
     license='General Public License (GPL)',
