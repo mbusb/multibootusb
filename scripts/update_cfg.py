@@ -76,7 +76,7 @@ class UpdateCfgFile():
                             string = re.sub(r' ro ', ' rw ', string)
                     elif config.distro == "parted-magic":
                         if re.search(r'append', string, re.I):
-                            string = re.sub(r'append ', 'append directory=/multibootusb/' + self.iso.iso_basename(), string, flags=re.I)
+                            string = re.sub(r'append', 'append directory=/multibootusb/' + self.iso.iso_basename(), string, flags=re.I)
                         string = re.sub(r'initrd=', 'directory=/multibootusb/' + self.iso.iso_basename() + '/ initrd=',
                                         string)
                     elif config.distro == "ubcd":
