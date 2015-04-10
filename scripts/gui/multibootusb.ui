@@ -196,6 +196,157 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="imager">
+      <attribute name="title">
+       <string>ISO Imager</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_7">
+       <item>
+        <layout class="QGridLayout" name="gridLayout_9">
+         <item row="1" column="0">
+          <widget class="QGroupBox" name="groupBox_7">
+           <property name="title">
+            <string>Imager</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_6">
+            <item>
+             <layout class="QGridLayout" name="gridLayout_11">
+              <item row="0" column="0">
+               <widget class="QGroupBox" name="groupBox_9">
+                <property name="title">
+                 <string>--------------  USB details  -------------------</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_8">
+                 <item>
+                  <widget class="QComboBox" name="comboBox_2"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="pushbtn_imager_refreshusb">
+                   <property name="text">
+                    <string>Refresh USB</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="imager_disk_label">
+                   <property name="text">
+                    <string>Disk Label ::</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="imager_total_size">
+                   <property name="text">
+                    <string>Disk Size</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="imager_uuid">
+                   <property name="text">
+                    <string>Disk Label ::</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QGroupBox" name="groupBox_10">
+                <property name="title">
+                 <string>------------------------------  ISO details  ----------------------------------</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_9">
+                 <item>
+                  <widget class="QPushButton" name="pushButton">
+                   <property name="text">
+                    <string>Browse ISO</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="lineEdit_3"/>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="imager_bootable">
+                   <property name="text">
+                    <string>Bootable ISO</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="imager_iso_size">
+                   <property name="text">
+                    <string>ISO Size</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QGroupBox" name="groupBox_8">
+           <property name="title">
+            <string>Imager Progress</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_7">
+            <item>
+             <widget class="QLabel" name="imager_label_status">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QGridLayout" name="gridLayout_12">
+              <item row="2" column="2">
+               <widget class="QPushButton" name="imager_write">
+                <property name="text">
+                 <string>Write/Create</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QPushButton" name="imager_close">
+                <property name="text">
+                 <string>Close</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="3">
+               <widget class="QLabel" name="label_10">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;WARNING&lt;/span&gt; : Any bootable USB using&lt;span style=&quot; font-weight:600;&quot;&gt; ISO Imager will destroy all data &lt;/span&gt;on the selected USB disk. &lt;/p&gt;&lt;p&gt;Use it at your own risk. Developers are not responsile for loss of any data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0" colspan="3">
+               <widget class="QProgressBar" name="imager_progressbar">
+                <property name="value">
+                 <number>0</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="syslinux_ab">
       <attribute name="title">
        <string>Syslinux</string>
@@ -537,157 +688,6 @@
                  </size>
                 </property>
                </spacer>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="imager">
-      <attribute name="title">
-       <string>ISO Imager</string>
-      </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_7">
-       <item>
-        <layout class="QGridLayout" name="gridLayout_9">
-         <item row="1" column="0">
-          <widget class="QGroupBox" name="groupBox_7">
-           <property name="title">
-            <string>Imager</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_6">
-            <item>
-             <layout class="QGridLayout" name="gridLayout_11">
-              <item row="0" column="0">
-               <widget class="QGroupBox" name="groupBox_9">
-                <property name="title">
-                 <string>--------------  USB details  -------------------</string>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_8">
-                 <item>
-                  <widget class="QComboBox" name="comboBox_2"/>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="pushbtn_imager_refreshusb">
-                   <property name="text">
-                    <string>Refresh USB</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="imager_disk_label">
-                   <property name="text">
-                    <string>Disk Label ::</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="imager_total_size">
-                   <property name="text">
-                    <string>Disk Size</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="imager_uuid">
-                   <property name="text">
-                    <string>Disk Label ::</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QGroupBox" name="groupBox_10">
-                <property name="title">
-                 <string>------------------------------  ISO details  ----------------------------------</string>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_9">
-                 <item>
-                  <widget class="QPushButton" name="pushButton">
-                   <property name="text">
-                    <string>Browse ISO</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="lineEdit_3"/>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="imager_bootable">
-                   <property name="text">
-                    <string>Bootable ISO</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="imager_iso_size">
-                   <property name="text">
-                    <string>ISO Size</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QGroupBox" name="groupBox_8">
-           <property name="title">
-            <string>Imager Progress</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_7">
-            <item>
-             <widget class="QLabel" name="imager_label_status">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QGridLayout" name="gridLayout_12">
-              <item row="2" column="2">
-               <widget class="QPushButton" name="imager_write">
-                <property name="text">
-                 <string>Write/Create</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QPushButton" name="imager_close">
-                <property name="text">
-                 <string>Close</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0" colspan="3">
-               <widget class="QLabel" name="label_10">
-                <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;WARNING&lt;/span&gt; : Any bootable USB using&lt;span style=&quot; font-weight:600;&quot;&gt; ISO Imager will destroy all data &lt;/span&gt;on the selected USB disk. &lt;/p&gt;&lt;p&gt;Use it at your own risk. Developers are not responsile for loss of any data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="0" colspan="3">
-               <widget class="QProgressBar" name="imager_progressbar">
-                <property name="value">
-                 <number>0</number>
-                </property>
-               </widget>
               </item>
              </layout>
             </item>
