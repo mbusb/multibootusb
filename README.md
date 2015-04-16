@@ -25,7 +25,7 @@ sudo ./install.py
 That is it. You can find multibootusb under system menu or simply launch from terminal by typing "multibootusb".
 If "install.py" script fails to install multibootusb successfully then manually install following packages and rerun the install.py script:-
 
-* python-qt4
+* mtools util-linux parted python-qt4
 
 NOTE: install.py currently supports only distros based on apt-get, yum, zypper, pacman.
 You can add more if you use other package manager system and email to me for adding into upstream.
