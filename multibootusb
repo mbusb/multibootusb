@@ -406,7 +406,7 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
                                                                            'Edit syslinux.cfg file manually.\n')
             else:
                 try:
-                    subprocess.Popen(editor + " " + sys_cfg_file, shell=True).pid
+                    subprocess.Popen(editor + " '" + sys_cfg_file + "'", shell=True).pid
                 except OSError:
                     QtGui.QMessageBox.warning(self, 'Error...',
                                   'Failed to open syslinux.cfg file.\n'
