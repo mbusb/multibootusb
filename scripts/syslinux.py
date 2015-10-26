@@ -32,7 +32,7 @@ class Syslinux():
         mbr_bin = gen_fun.resource_path(os.path.join("tools", "mbr.bin"))
         config.status_text = "Installing default syslinux..."
 
-        if filesystem == "ext2" or filesystem == "ext3" or filesystem == "ext4" or filesystem == "Btrfs":
+        if filesystem == "ext2" or filesystem == "ext3" or filesystem == "ext4" or filesystem == "Btrfs" or filesystem == "ntfs":
             if platform.system() == "Linux":
                     syslinux_path = os.path.join(gen_fun.mbusb_dir(), "syslinux", "bin", "extlinux4")
                     if os.access(syslinux_path, os.X_OK) is False:
@@ -65,7 +65,7 @@ class Syslinux():
                                 print "\nFailed to install default extlinux...\n"
                                 return False
 
-        elif filesystem == "vfat" or filesystem == "ntfs" or filesystem == "FAT32":
+        elif filesystem == "vfat" or filesystem == "FAT32":
             if platform.system() == "Linux":
                 syslinux = gen_fun.resource_path(os.path.join(gen_fun.mbusb_dir(), "syslinux", "bin", "syslinux4"))
                 if os.access(syslinux, os.X_OK) is False:
@@ -129,7 +129,7 @@ class Syslinux():
                 distro_syslinux_install_dir = os.path.join(install_dir, self.iso.isolinux_bin_dir().strip("/")).replace(self.usb.get_usb(config.usb_disk).mount, "")
                 distro_sys_install_bs = os.path.join(install_dir, self.iso.isolinux_bin_dir().strip("/"), config.distro + '.bs')
 
-            if filesystem == "vfat" or filesystem == "ntfs" or filesystem == "FAT32":
+            if filesystem == "vfat" or filesystem == "FAT32":
                 if syslinux_version == str(3):
                     if config.distro == "generic" and self.iso.isolinux_bin_dir() == "/":
                         option = ""
@@ -179,7 +179,7 @@ class Syslinux():
                     else:
                         print "\nFailed to install syslinux on distro directory...\n"
 
-            elif filesystem == "ext2" or filesystem == "ext3" or filesystem == "ext4" or filesystem == "Btrfs":
+            elif filesystem == "ext2" or filesystem == "ext3" or filesystem == "ext4" or filesystem == "Btrfs" or filesystem == "ntfs":
                 distro_syslinux_install_dir = os.path.join(install_dir, self.iso.isolinux_bin_dir().strip("/"))
                 if platform.system() == "Linux":
                     syslinux_path = os.path.join(gen_fun.mbusb_dir(), "syslinux", "bin", "extlinux") + syslinux_version
