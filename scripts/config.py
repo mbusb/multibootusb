@@ -4,7 +4,6 @@
 # Licence:  This file is a part of multibootusb package. You can redistribute it or modify
 # under the terms of GNU General Public License, v.2 or above
 
-user_password = ""
 iso_link = ""
 imager_iso_link = ""
 usb_disk = ""

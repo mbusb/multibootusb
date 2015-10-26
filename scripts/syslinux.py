@@ -10,6 +10,7 @@ import subprocess
 import platform
 import gen_fun
 import config
+import admin
 from iso import ISO
 from usb import USB
 
@@ -37,64 +38,28 @@ class Syslinux():
                     syslinux_path = os.path.join(gen_fun.mbusb_dir(), "syslinux", "bin", "extlinux4")
                     if os.access(syslinux_path, os.X_OK) is False:
                         subprocess.call('chmod +x ' + syslinux_path, shell=True)
-                    if config.user_password:
-                        print "\nExecuting ==> " + syslinux_path + " --install " + os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb\n")
-                        if subprocess.call('echo ' + config.user_password + ' | sudo -S ' + syslinux_path +
-                                                   " --install " + os.path.join(self.usb.get_usb(config.usb_disk).mount,
-                                                                                "multibootusb"), shell=True) == 0:
-                            print "Default Extlinux install is success..."
-                            if subprocess.call('echo ' + config.user_password + ' | sudo -S dd bs=440 count=1 conv=notrunc if=' + mbr_bin +
-                                                                                    ' of=' + config.usb_disk[:-1], shell=True) == 0:
-                                print "mbr install is success..."
-                                self.set_boot_flag()
-                                return True
-                            else:
-                                print "Failed to install default extlinux..."
-                                return False
-                    else:
-                        print "\nExecuting ==> " + syslinux_path + " --install " +  os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb\n")
-                        if subprocess.call(syslinux_path + " --install " + os.path.join(self.usb.get_usb(config.usb_disk).mount,
-                                                                                    "multibootusb"), shell=True) == 0:
-                            print "\nExtlinux install on distro directory is success...\n"
-                            if subprocess.call('dd bs=440 count=1 conv=notrunc if=' + mbr_bin +
-                                                                                    ' of=' + config.usb_disk[:-1], shell=True) == 0:
-                                print "\nmbr install is success...\n"
-                                self.set_boot_flag()
-                                return True
-                            else:
-                                print "\nFailed to install default extlinux...\n"
-                                return False
+                    path = os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb")
+                    quoted_exe = "\"" + syslinux_path.replace('"', '\\"') + "\""
+                    quoted_path = "\"" + path.replace('"', '\\"') + "\""
+                    long_cmd = [quoted_exe, "--install", quoted_path,
+                            "&&", "echo", "Default Extlinux install is success...",
+                            "&&", "dd", "bs=440", "count=1", "conv=notrunc", "\"if=" + mbr_bin + "\"", "of=" + config.usb_disk[:-1],
+                            "&&", "echo", "mbr install is success...",
+                            "&&"] + self.set_boot_flag_cmd()
+                    return admin.adminCmd(long_cmd) == 0
 
         elif filesystem == "vfat" or filesystem == "FAT32":
             if platform.system() == "Linux":
                 syslinux = gen_fun.resource_path(os.path.join(gen_fun.mbusb_dir(), "syslinux", "bin", "syslinux4"))
                 if os.access(syslinux, os.X_OK) is False:
-                    subprocess.call('chmod +x ' + syslinux, shell=True)
-                if config.user_password:
-                    print "Executing ==> " + syslinux + ' -i -d multibootusb ' + config.usb_disk
-                    if subprocess.call('echo ' + config.user_password + ' | sudo -S ' + syslinux + ' -i -d multibootusb ' +
-                                        config.usb_disk, shell=True) == 0:
-                        print "Default syslinux install is success..."
-                        if subprocess.call('echo ' + config.user_password + ' | sudo -S dd bs=440 count=1 conv=notrunc if=' + mbr_bin +
-                                                                                        ' of=' + config.usb_disk[:-1], shell=True) == 0:
-                            print "mbr install is success..."
-                            self.set_boot_flag()
-                            return True
-                        else:
-                            print "Failed to install default syslinux..."
-                            return False
-                else:
-                    print "\nExecuting ==> " + syslinux + ' -i -d multibootusb ' + config.usb_disk + "\n"
-                    if subprocess.call(syslinux + ' -i -d multibootusb ' + config.usb_disk, shell=True) == 0:
-                        print "\nDefault syslinux install is success...\n"
-                        if subprocess.call('dd bs=440 count=1 conv=notrunc if=' + mbr_bin + ' of=' + config.usb_disk[:-1],
-                                           shell=True) == 0:
-                            print "\nmbr install is success...\n"
-                            self.set_boot_flag()
-                            return True
-                        else:
-                            print "\nFailed to install default syslinux...\n"
-                            return False
+                    subprocess.call(['chmod', '+x', syslinux])
+                quoted_exe = "\"" + syslinux.replace('"', '\\"') + "\""
+                long_cmd = [quoted_exe, "-i", "-d", "multibootusb", config.usb_disk,
+                        "&&", "echo", "Default syslinux install is success...",
+                        "&&", "dd", "bs=440", "count=1", "conv=notrunc", "\"if=" + mbr_bin + "\"", "of=" + config.usb_disk[:-1],
+                        "&&", "echo", "mbr install is success...",
+                        "&&"] + self.set_boot_flag_cmd()
+                return admin.adminCmd(long_cmd) == 0
 
             elif platform.system() == "Windows":
                 syslinux = gen_fun.resource_path(os.path.join(gen_fun.mbusb_dir(), "syslinux", "bin", "syslinux4.exe"))
@@ -104,8 +69,6 @@ class Syslinux():
                 else:
                     print "\nFailed to install default syslinux...\n"
                     return False
-
-        self.set_boot_flag()
 
     def install_distro(self):
         """
@@ -146,26 +109,12 @@ class Syslinux():
                     syslinux_path = os.path.join(gen_fun.mbusb_dir(), "syslinux", "bin", "syslinux") + syslinux_version
                     if os.access(syslinux_path, os.X_OK) is False:
                         subprocess.call('chmod +x ' + syslinux_path, shell=True) == 0
-                    if config.user_password:
-                        print "Executing ==> " + syslinux_path + option + distro_syslinux_install_dir + ' ' + config.usb_disk
-                        if subprocess.call('echo ' + config.user_password + ' | sudo -S ' + syslinux_path + option + distro_syslinux_install_dir + ' ' + config.usb_disk, shell=True) == 0:
-                            print "\nSyslinux install on distro directory is success..."
-                            print "\nExecuting ==> " + 'dd if=' + config.usb_disk + ' ' + 'of=' + distro_sys_install_bs + ' count=1\n'
-                            if subprocess.call('echo ' + config.user_password + ' | sudo -S dd if=' + config.usb_disk + ' ' + 'of=' + distro_sys_install_bs + ' count=1', shell=True) == 0:
-                                print "\nBootsector copy is success..."
-                            else:
-                                print "\nFailed to install syslinux on distro directory...\n"
-                    else:
-                        print "Executing ==> " + syslinux_path + option + distro_syslinux_install_dir + ' ' + config.usb_disk
-                        if subprocess.call(syslinux_path + option + distro_syslinux_install_dir + ' ' + config.usb_disk, shell=True) == 0:
-                            print "Syslinux install on distro directory is success..."
-                            print 'Executing ==> dd if=' + config.usb_disk + ' ' + 'of=' + distro_sys_install_bs + ' count=1'
-                            if subprocess.call('dd if=' + config.usb_disk + ' ' + 'of=' + distro_sys_install_bs + ' count=1', shell=True) == 0:
-                                print "\nBootsector copy is success...\n"
-                            else:
-                                print "\nFailed to copy boot sector...\n"
-                        else:
-                            print "\nFailed to install syslinux on distro directory...\n"
+                    quoted_exe = "\"" + syslinux_path.replace('"', '\\"') + "\""
+                    quoted_install_dir = distro_syslinux_install_dir.replace('"', '\\"')
+                    quoted_bs = "of=\"" + distro_sys_install_bs.replace('"', '\\"') + "\""
+                    long_cmd = [quoted_exe, option, quoted_install_dir, config.usb_disk,
+                            "&&", "dd", "count=1", "if=" + config.usb_disk, quoted_bs]
+                    return admin.adminCmd(long_cmd) == 0
                 elif platform.system() == "Windows":
                     syslinux_path = gen_fun.resource_path(os.path.join(gen_fun.mbusb_dir(), "syslinux", "bin")) + \
                                "\syslinux" + syslinux_version + ".exe"
@@ -185,44 +134,23 @@ class Syslinux():
                     syslinux_path = os.path.join(gen_fun.mbusb_dir(), "syslinux", "bin", "extlinux") + syslinux_version
                     if os.access(syslinux_path, os.X_OK) is False:
                         subprocess.call('chmod +x ' + syslinux_path, shell=True) == 0
-                    if config.user_password:
-                        print "Executing ==> " + syslinux_path + " --install " + distro_syslinux_install_dir
-                        if subprocess.call('echo ' + config.user_password + ' | sudo -S ' + syslinux_path + " --install " + distro_syslinux_install_dir, shell=True) == 0:
-                            print "\nSyslinux install on distro directory is success..."
-                            print "Executing ==> " + 'dd if=' + config.usb_disk + ' ' + 'of=' + distro_sys_install_bs + ' count=1'
-                            if subprocess.call('echo ' + config.user_password + ' | sudo -S dd if=' + config.usb_disk + ' ' + 'of=' + distro_sys_install_bs + ' count=1', shell=True) == 0:
-                                print "\nBootsector copy is success..."
-                            else:
-                                print "Failed to install syslinux on distro directory..."
-                    else:
-                        print "Executing ==> " + syslinux_path + " --install " + distro_syslinux_install_dir
-                        if subprocess.call(syslinux_path + " --install " + distro_syslinux_install_dir, shell=True) == 0:
-                            print "Syslinux install on distro directory is success..."
-                            if subprocess.call('dd if=' + self.usb_disk + ' ' + 'of=' + self.usb.get_usb(config.usb_disk).mount + distro_sys_install_bs + ' count=1', shell=True) == 0:
-                                print "\nBootsector copy is success..."
-                            else:
-                                print "Failed to install syslinux on distro directory..."
+                    quoted_exe = "\"" + syslinux_path.replace('"', '\\"') + "\""
+                    quoted_install_dir = distro_syslinux_install_dir.replace('"', '\\"')
+                    quoted_bs = "of=\"" + distro_sys_install_bs.replace('"', '\\"') + "\""
+                    long_cmd = [quoted_exe, "--install", quoted_install_dir,
+                            "&&", "dd", "count=1", "if=" + config.usb_disk, quoted_bs]
+                    return admin.adminCmd(long_cmd) == 0
 
-    def set_boot_flag(self):
-        if platform.system() == "Linux":
-            print "Checking boot flag on " + config.usb_disk[:-1]
-            if config.user_password:
-                cmd_out = subprocess.check_output("echo " + config.user_password + " | sudo -S parted -m -s " + config.usb_disk[:-1] + " print", shell=True)
-                if "boot" in cmd_out:
-                    print "Disk already has boot flag."
-                else:
-                    print "Executing ==>  parted " + config.usb_disk[:-1] + " set 1 boot on"
-                    if subprocess.call('echo ' + config.user_password + ' | sudo -S ' + " parted " + config.usb_disk[:-1]+ " set 1 boot on", shell=True) == 0:
-                        print "Boot flag set to bootable on " + config.usb_disk[:-1]
-                    else:
-                        print "Unable to set boot flag on  " + config.usb_disk[:-1]
-            else:
-                cmd_out = subprocess.check_output("parted -m -s " + config.usb_disk[:-1] + " print", shell=True)
-                if "boot" in cmd_out:
-                    print "Disk " + config.usb_disk[:-1] + " already has boot flag."
-                else:
-                    print "Executing ==>  parted " + config.usb_disk[:-1] + " set 1 boot on"
-                    if subprocess.call("parted " + config.usb_disk[:-1]+ " set 1 boot on", shell=True) == 0:
-                        print "Boot flag set to bootable " + config.usb_disk[:-1]
-                    else:
-                        print "Unable to set boot flag on  " + config.usb_disk[:-1]
+    def set_boot_flag_cmd(self):
+        disk = config.usb_disk[:-1]
+        return ["echo", "Checking boot flag on " + disk,
+                "&&", "if", "parted", "-m", "-s", disk, "print", "|", "grep", "-q", "boot", ";", "then",
+                    "echo", "Disk already has boot flag.",
+                ";", "else",
+                    "echo", "Disk has no boot flag.", ";",
+                    "if", "parted", disk, "set", "1", "boot", "on", ";", "then",
+                        "echo", "Boot flag set to bootable on " + disk,
+                    ";", "else",
+                        "echo", "Unable to set boot flag on  " + disk,
+                    ";", "fi",
+                ";", "fi"]

@@ -124,83 +124,33 @@ def runAsAdmin(cmdLine=None, wait=True):
 
         return rc
 
+import subprocess
 
-from PyQt4 import QtGui
-from gui.ui_password import Ui_Dialog
-import sys
-
-
-class PasswordGui(QtGui.QDialog, Ui_Dialog):
+def adminCmd(cmd, fork=False):
     """
-    GUI to get user password.
-    """
-    def __init__(self, parent=None):
-        QtGui.QDialog.__init__(self, parent)
-        self.ui = Ui_Dialog()
-        self.ui.setupUi(self)
-
-        self.ui.cancel.clicked.connect(self.reject)
-
-        self.ui.enter.clicked.connect(self.get_password)
-
-        self.close()
-
-    def password(self):
-        out = str(self.ui.lineEdit.text())
-
-        return out
-
-    def get_password(self):
-        self.password()
-        QtGui.qApp.closeAllWindows()
-        return self.password()
-
-if __name__ == "__main__":
-    app = QtGui.QApplication(sys.argv)
-    myapp = PasswordGui()
-    myapp.show()
-    sys.exit(app.exec_())
-
-
-def get_password():
-    """
-    This simple function checks for sudo and return the user password as string.
-    If sudo is not found, this function try to launch main script with root access using gksu/gksudo/kdesu/kdesudo, \n
+    This simple function checks for a sudo command and runs a command using it.
+    This function try to launch main script with root access using gksu/gksudo/kdesu/kdesudo, \n
     if any of the program is already installed.
     PyQt4 is used as GUI.
     Author : sundar
     """
-    if os.system('which sudo') == 0:
-        password_window = PasswordGui()
-        for x in xrange(3):
-            password_window.exec_()
-            password = quote(str(password_window.get_password()).strip())
-            if password:
-                if os.popen('echo ' + str(password) + ' | sudo -S id -u').read().strip() == '0':
-                    return password
-                if x == 2:
-                    print "You have entered wrong password 3 times. Exiting now. "
-                    QtGui.QMessageBox.warning(None, 'Wrong Password...',
-                                                    "You have entered wrong password for 3 times.\n\n Exiting now.")
-                    sys.exit(0)
-            else:
-                print "Password not entered. Exiting now."
-                sys.exit(0)
-
+    if os.system('which gksudo') == 0:
+        sudo_cmd = ["gksudo", "--", "/bin/sh", "-c"]
     elif os.system('which gksu') == 0:
-        os.system("gksu -d " + sys.executable + " " + sys.argv[0])
-        sys.exit(0)
-    elif os.system('which gksudo') == 0:
-        os.system("gksudo -d " + sys.executable + " " + sys.argv[0])
-        sys.exit(0)
-    elif os.system('which kdesu') == 0:
-        os.system("kdesu -t " + sys.executable + " " + sys.argv[0])
-        sys.exit(0)
+        sudo_cmd = ["gksu"]
     elif os.system('which kdesudo') == 0:
-        os.system("kdesudo -t " + sys.executable + " " + sys.argv[0])
-        sys.exit(0)
-
+        sudo_cmd = ["kdesudo", "-t"]
+    elif os.system('which kdesu') == 0:
+        sudo_cmd = ["kdesu", "-t"]
     else:
         QtGui.QMessageBox.information('No root...',
                                       'Please install sudo or gksu or kdesu or gksudo or kdesudo then restart multibootusb.')
         sys.exit(0)
+    final_cmd = ' '.join(sudo_cmd + ['"' + ' '.join(cmd).replace('"', '\\"') + '"'])
+    print "Executing ==>  " + final_cmd
+    if fork:
+        return subprocess.Popen(final_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1, shell=True)
+    else:
+        ret = subprocess.call(final_cmd, shell=True)
+        print "Process returned ==>   " + str(ret)
+        return ret

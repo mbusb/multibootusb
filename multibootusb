@@ -77,7 +77,7 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
         # QEMU Tab
         self.ui.browse_iso_qemu.clicked.connect(self.on_Qemu_Browse_iso_Click)
         self.ui.boot_iso_qemu.clicked.connect(self.on_Qemu_Boot_iso_Click)
-        self.ui.boot_usb_qemu.clicked.connect(lambda: self.on_Qemu_Boot_usb_Click(config.user_password, str(self.ui.comboBox.currentText())))
+        self.ui.boot_usb_qemu.clicked.connect(lambda: self.on_Qemu_Boot_usb_Click(str(self.ui.comboBox.currentText())))
         #self.ui.tabWidget.removeTab(3)
 
         # ISO Imager Tab
@@ -100,12 +100,12 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
 
         #self.progress_threas_imager.status.connect(self.ui.im.setText)
 
-        if not admin.isUserAdmin():
-            if platform.system() == "Linux":
-                config.user_password = admin.get_password()
-            elif platform.system() == "Windows":
-                admin.runAsAdmin()
-                sys.exit(0)
+        if platform.system() == "Linux" and admin.isUserAdmin():
+            print "Don't run multibootusb as root!"
+            sys.exit(0)
+        elif platform.system() == "Windows" and not admin.isUserAdmin():
+            admin.runAsAdmin()
+            sys.exit(0)
 
         self.add_device()
         gen_fun.prepare_mbusb_dir()
