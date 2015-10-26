@@ -41,8 +41,15 @@ class Syslinux():
                     path = os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb")
                     quoted_exe = "\"" + syslinux_path.replace('"', '\\"') + "\""
                     quoted_path = "\"" + path.replace('"', '\\"') + "\""
-                    long_cmd = [quoted_exe, "--install", quoted_path,
-                            "&&", "echo", "Default Extlinux install is success...",
+                    quoted_mbusb = "\"" + gen_fun.mbusb_dir().replace('"', '\\"') + "\""
+                    if filesystem == "ntfs":
+                        ext_fix = []
+                    else:
+                        ext_fix = ["&&", "chattr", "-i", quoted_path + "/ldlinux.sys"]
+                    long_cmd = ["mkdir", "-p", quoted_path,
+                            "&&", "chown", "--reference", quoted_mbusb, quoted_path,
+                            "&&", quoted_exe, "--install", quoted_path] + ext_fix + \
+                            ["&&", "echo", "Default Extlinux install is success...",
                             "&&", "dd", "bs=440", "count=1", "conv=notrunc", "\"if=" + mbr_bin + "\"", "of=" + config.usb_disk[:-1],
                             "&&", "echo", "mbr install is success...",
                             "&&"] + self.set_boot_flag_cmd()
