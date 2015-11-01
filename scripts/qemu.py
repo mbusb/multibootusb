@@ -8,6 +8,7 @@
 import os
 import subprocess
 import platform
+import admin
 from PyQt4 import QtGui
 from gui.ui_multibootusb import Ui_Dialog
 import gen_fun
@@ -74,10 +75,9 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                     QtGui.QMessageBox.information(self, 'No ram...', 'No ram selected.\n\nPlease choose any ram value and click Boot ISO.')
 
 
-    def on_Qemu_Boot_usb_Click(self, user_password, usb_disk):
+    def on_Qemu_Boot_usb_Click(self, usb_disk):
         """
         Main function to boot a selected USB disk.
-        :param user_password: User/sudo password.
         :param usb_disk: Path to usb disk.
         :return:
         """
@@ -104,13 +104,7 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                     os.chdir(parent_dir)
                 elif platform.system() == "Linux":
                     try:
-                        if os.geteuid() == 0:
-                            print "Executing ==>  " + qemu + ' -hda ' + usb_disk[:-1] + ' -m ' + ram + ' -vga std'
-                            subprocess.Popen(qemu + ' -hda ' + usb_disk[:-1] + ' -m ' + ram + ' -vga std', shell=True)
-                        else:
-                            print "Executing ==>  " + qemu + ' -hda ' + usb_disk[:-1] + ' -m ' + ram + ' -vga std'
-                            subprocess.Popen('echo ' + user_password + ' | sudo -S ' + qemu + ' -hda ' + usb_disk[:-1]
-                                                                        + ' -m ' + ram + ' -vga std', shell=True)
+                        admin.adminCmd([qemu, '-hda', usb_disk[:-1], '-m', ram, '-vga std'])
                     except:
                         QtGui.QMessageBox.information(self, 'Error...', 'Error booting USB\n\nUnable to start QEMU.')
 
