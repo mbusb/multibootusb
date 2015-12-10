@@ -288,7 +288,7 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
                                                       'Sorry.\n' + os.path.basename(iso_link) +
                                                       ' is not supported at the moment\n'
                                                       'Please email this issue to feedback.multibootusb@gmail.com')
-
+                                                      
         # Added to refresh usb disk remaining size after distro installation                                              
         self.update_gui_usb_info()
 
