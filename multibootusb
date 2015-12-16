@@ -168,9 +168,9 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
                         #                              " is not mounted. \nCan not get USB details.")
 
                     else:
-                        self.update_gui_oncombobox()
+                        self.update_gui_usb_info()
             else:
-                self.update_gui_oncombobox()
+                self.update_gui_usb_info()
 
         else:
             print "No USB disk found..."
@@ -180,7 +180,7 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
         #    QtGui.QMessageBox.information(self, "USB not mounted...", "USB deivce " + config.usb_disk + " is not "
         #                                                        "mounted. \nPlease mount and rerun multibootusb.")
 
-    def update_gui_oncombobox(self):
+    def update_gui_usb_info(self):
         self.usb_disk_details = self.usb.get_usb(config.usb_disk)
         config.usb_mount = self.usb_disk_details.mount
         self.ui.usb_size_ttl.setText("Filesystem :: " + self.usb.get_usb(config.usb_disk).filesystem)
@@ -288,6 +288,9 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
                                                       'Sorry.\n' + os.path.basename(iso_link) +
                                                       ' is not supported at the moment\n'
                                                       'Please email this issue to feedback.multibootusb@gmail.com')
+                                                      
+        # Added to refresh usb disk remaining size after distro installation                                              
+        self.update_gui_usb_info()
 
     def install_syslinux(self):
         """
@@ -330,6 +333,9 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
                     self.uninstall.update_sys_cfg_file()
                 else:
                     self.progress_thread_uninstall.start()
+
+        # Added to refresh usb disk remaining size after distro UNinstallation                                              
+        self.update_gui_usb_info()
 
     def uninstall_sys_file_update(self):
         """
