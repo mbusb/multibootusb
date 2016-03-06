@@ -126,25 +126,24 @@ def runAsAdmin(cmdLine=None, wait=True):
 
 import subprocess
 
-def adminCmd(cmd, fork=False):
+def adminCmd(cmd, fork=False, gui=False):
     """
     This simple function checks for a sudo command and runs a command using it.
-    This function try to launch main script with root access using gksu/gksudo/kdesu/kdesudo, \n
-    if any of the program is already installed.
+    This function tries to launch given script with root access using pkexec/gksu/gksudo/kdesu/kdesudo,
+    if one of them is already installed.
     PyQt4 is used as GUI.
     Author : sundar
     """
-    if os.system('which gksudo') == 0:
-        sudo_cmd = ["gksudo", "--", "/bin/sh", "-c"]
-    elif os.system('which gksu') == 0:
-        sudo_cmd = ["gksu"]
-    elif os.system('which kdesudo') == 0:
-        sudo_cmd = ["kdesudo", "-t"]
-    elif os.system('which kdesu') == 0:
-        sudo_cmd = ["kdesu", "-t"]
+    if   os.system('which pkexec')  == 0:
+        if gui: cmd = ['export DISPLAY=$DISPLAY; export XAUTHORITY=$XAUTHORITY; '] + cmd    # By default, pkexec disallows X11 apps. Restore DISPLAY & XAUTHORITY to allow it. man 1 pkexec/"SECURITY NOTES" section
+        sudo_cmd = ['pkexec', '/bin/sh', '-c']
+    elif os.system('which gksudo')  == 0: sudo_cmd = ["gksudo", "--", "/bin/sh", "-c"]
+    elif os.system('which gksu')    == 0: sudo_cmd = ["gksu"]
+    elif os.system('which kdesudo') == 0: sudo_cmd = ["kdesudo", "-t", "-c"]    # http://www.unix.com/man-page/debian/1/kdesudo/
+    elif os.system('which kdesu')   == 0: sudo_cmd = ["kdesu", "-t", "-c"]      # http://linux.die.net/man/1/kdesu
     else:
         QtGui.QMessageBox.information('No root...',
-                                      'Please install sudo or gksu or kdesu or gksudo or kdesudo then restart multibootusb.')
+                                      'Could not fine any of: pkexec, sudo, gksu, kdesu, gksudo, or kdesudo. Please install any then restart multibootusb.')
         sys.exit(0)
     final_cmd = ' '.join(sudo_cmd + ['"' + ' '.join(cmd).replace('"', '\\"') + '"'])
     print "Executing ==>  " + final_cmd
