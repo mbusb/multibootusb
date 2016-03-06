@@ -143,7 +143,7 @@ def adminCmd(cmd, fork=False, gui=False):
     elif os.system('which kdesu')   == 0: sudo_cmd = ["kdesu", "-t", "-c"]      # http://linux.die.net/man/1/kdesu
     else:
         QtGui.QMessageBox.information('No root...',
-                                      'Could not fine any of: pkexec, sudo, gksu, kdesu, gksudo, or kdesudo. Please install any then restart multibootusb.')
+                                      'Could not find any of: pkexec, sudo, gksu, kdesu, gksudo, or kdesudo. Please install one then restart multibootusb.')
         sys.exit(0)
     final_cmd = ' '.join(sudo_cmd + ['"' + ' '.join(cmd).replace('"', '\\"') + '"'])
     print "Executing ==>  " + final_cmd
