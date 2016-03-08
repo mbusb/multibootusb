@@ -213,6 +213,7 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
         :return:
         """
         self.ui.comboBox.clear()
+        self.ui.comboBox_2.clear()
         self.add_device()
 
     def browse_iso(self):
@@ -234,6 +235,7 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
         :param iso_link: LineEdit text as selected ISO link.
         :return:
         """
+        if not config.iso_link: config.iso_link = self.ui.lineEdit.text()
         self.iso = ISO(config.iso_link)
         #config.usb_disk = str(self.ui.comboBox.currentText())
 

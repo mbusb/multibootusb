@@ -104,7 +104,7 @@ class AppGui(QtGui.QDialog,Ui_Dialog):
                     os.chdir(parent_dir)
                 elif platform.system() == "Linux":
                     try:
-                        admin.adminCmd([qemu, '-hda', usb_disk[:-1], '-m', ram, '-vga std'])
+                        admin.adminCmd([qemu, '-hda', usb_disk[:-1], '-m', ram, '-vga std'], gui=True)
                     except:
                         QtGui.QMessageBox.information(self, 'Error...', 'Error booting USB\n\nUnable to start QEMU.')
 

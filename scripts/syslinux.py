@@ -85,7 +85,7 @@ class Syslinux():
         filesystem = self.usb.get_usb(config.usb_disk).filesystem
         config.status_text = "Installing distro specific syslinux..."
         if self.iso.isolinux_bin_exist() is not True:
-            print "Distro doesnot use isolinux/syslinux for booting ISO."
+            print "Distro does not use isolinux/syslinux for booting ISO."
         else:
             self.iso.iso_extract_file(os.path.join(gen_fun.mbusb_dir(), "iso_cfg_ext_dir"), "isolinux.bin")
             self.iso.iso_extract_file(os.path.join(gen_fun.mbusb_dir(), "iso_cfg_ext_dir"), "ISOLINUX.BIN")
