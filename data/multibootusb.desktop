@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=multibootusb
+Comment=Install multiple Linux Operating System on USB
+Icon=multibootusb
+Exec=multibootusb
+Categories=System;
+StartupNotify=true

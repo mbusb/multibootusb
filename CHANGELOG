@@ -1,0 +1,106 @@
+Version - 7.5.0
+---------------
+* Introducing "ISO Imager". Now you can write ISO images directly to USB and it is cross platform too.
+* util-linux is required now under Linux.
+* Most of the reported bugs has been fixed.
+* Inclusion of 64 bit syslinux (except version 5 as I could not find any) under Linux.
+* Added alphine Linux and memtest
+* Included missing install.py, uninstall.py and dd directory to source package.
+
+Version - 7.4.0
+---------------
+* Portion of the code has been rewritten.
+* Added support for ext2/3/4 and Btrf filesystem.
+* Corrected wrong naming of persistence files.
+* Bug fix for PartedMagic update script.
+* Few typo has been corrected.
+* Included doc strings.
+* Now install and uninstall script is written in python.
+* Upgraded the debian build script (stdeb) to latest version.
+* Lot of other minor bug fixes.
+* GUI is slightly larger now.
+* Generic way to remove files outside multibootusb directory.
+* Various improvements to build script.
+
+Version - 7.3.0
+---------------
+* Rewrite of the source code. It is easier to read source code now.
+* UDisks2 has been added for detecting and getting USB details under Linux.
+* Patch for ubuntu 14.10 and above which uses isolinux version 6.
+* Added persistence for ubuntu and its derivatives. Maximum persistence can be up to 4GB.
+* No USB label error has been solved. It now works with USB drives even without names.
+* Corrected wait time to 30 sec.
+* Updating GUI is now handled by QThread
+* Added following distros:-
+	- Trinity Rescue Kit
+	- DBan
+* Check for QEMU installation before doing any QEMU related operations.
+* Feedback after installing syslinux (under syslinux tab).
+* psutil dependency has been dropped.
+
+Version - 7.2.0
+---------------
+* Updated syslinux version from 6.0.2 to 6.0.3
+* Added background image for syslinux.
+* Increased timeout time to 30 sec.
+* Added following distros:-
+	- CentOS minimal.
+	- Ubuntu Server.
+* Patch from kbytesys to fix systemrescueCD menu items and other string manupulations.
+* Fix for few other bugs.
+
+Version - 7.1.0
+---------------
+* ISO extraction is much faster than previous releases.
+* Included pyudev for better detection of USB drives under Linux.
+* Included install.sh for installing multibootusb under Linux.
+* Included setup.py for installing directly from source.
+* Improved USB detection under Linux.
+* Lot of important bug fix and minor improvements.
+
+Version - 7.0.0
+---------------
+* 7Zip is no more used for extracting ISO files. Thanks to contibution by LiQiong Lee for isodump.py script.
+* Improved ISO extraction speed on certain distros.
+* Added solydx, antix and fixed puppy bug.
+* ISO integrity check is much faster than previos releases.
+* QEMU feature is back on both Linux and Windows.
+* Fixed OpenSuse uninstall issue.
+* Check if any running process while exiting.
+* Added PCLinuxOS.
+* Various other major and minor improvements to all scripts.
+* Changed version numbering to three digit.
+
+Version -7.0 Beta2
+------------------
+* Now multibootusb installs correct version of syslinux shipped with distro.
+* Various optimization for installation of syslinux.
+* Extensive test has been done to make sure to fix bugs.
+* Able to uninstall distros properly under windows.
+* Greater attention is given to ensure that correct version of syslinux is installed in distro directory.
+* Various code optimization.
+* Copying iso files under windows is faster now.
+* Added follwing distros:-
+	- Wifislax
+	- PcLinuxOS
+	- Salix live/install
+	- Slackel live/install
+	- Zenwalk live/install
+* Few other distros which I dont remember
+* Size of windows executable has been reduced (using upx)
+* Added refresh usb button. So that restarting of application is not required to detect USB.
+* Added new lable space to indicate progress of the process.
+* Various other smaller improvements.
+
+Version -7.0 Beta
+-----------------
+* Code base is now in python 2.7
+* Code is hosted at github so that anybody can view the progress of the development.
+* Various bugs present in the older version (6.4.1) has been fixed
+* Stand alone for windows and Linux.
+* PyQt choosen as GUI toolkit.
+* Official website is up and running at and you are viewing it now :-)
+* New logo.
+* Single code base for Linux and windows
+* other improvements which i don’t remember exactly :-) 
+

@@ -1,0 +1,61 @@
+*.py[cod]
+
+# C extensions
+
+=======
+#*.so
+>>>>>>> f69e8b932e01aa3691f02e1ad3ebd67a3174cbe5
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+deb_dist
+eggs
+parts
+#bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+__pycache__
+<<<<<<< HEAD
+=======
+
+>>>>>>> f69e8b932e01aa3691f02e1ad3ebd67a3174cbe5
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+# Mr Developer
+.mr.developer.cfg
+.project
+.directory
+test
+.pydevproject
+<<<<<<< HEAD
+
+#multibootusb specific
+multibootusb.e4p
+.eric4project
+_eric4project
+.idea
+pyinstaller_spec_file_content.txt
+test.py
+old_files
+#multibootusb.spec
+git_commands.txt
+.install_files.txt
+resource
+TODO
+=======
+

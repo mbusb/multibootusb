@@ -249,7 +249,7 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
         elif not self.ui.lineEdit.text():
             QtGui.QMessageBox.information(self, "No ISO...", "No ISO found.\n\nPlease use step 2 to choose an ISO.")
         else:
-            if not config.iso_link: 
+            if not config.iso_link:
                 config.iso_link = self.ui.lineEdit.text()
             self.iso = ISO(config.iso_link)
 
