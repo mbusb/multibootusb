@@ -262,6 +262,8 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
                                                                                     # Otherwise it keeps all old distro files.
                     self.iso.iso_extract_file(os.path.join(self.mbusb_dir, "iso_cfg_ext_dir"), ".cfg")
                     self.iso.iso_extract_file(os.path.join(self.mbusb_dir, "iso_cfg_ext_dir"), ".CFG")
+                    self.iso.iso_extract_file(os.path.join(gen_fun.mbusb_dir(), "iso_cfg_ext_dir"), "isolinux.bin")
+                    self.iso.iso_extract_file(os.path.join(gen_fun.mbusb_dir(), "iso_cfg_ext_dir"), "ISOLINUX.BIN")
                     config.distro = self.iso.distro(os.path.join(self.mbusb_dir, "iso_cfg_ext_dir"))
                     if config.distro:
                         print "Distro detected is " + config.distro
