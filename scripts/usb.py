@@ -194,7 +194,7 @@ class USB():
                                 # Explanation of command used below: 
                                 # http://explainshell.com/explain?cmd=findmnt+-nr+-o+target+-S+%25s
                                 # http://unix.stackexchange.com/questions/34718/is-there-a-command-to-see-where-a-disk-is-mounted/217412#217412
-                                mount_point = str(os.popen('findmnt -nr -o target -S' % usb_disk).read().strip())
+                                mount_point = str(os.popen('findmnt -nr -o target -S %s' % usb_disk).read().strip())
 
                                 try:
                                     label = str(device['ID_FS_LABEL'])
