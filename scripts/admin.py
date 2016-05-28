@@ -35,6 +35,7 @@ import os
 import traceback
 import types
 import platform
+import sys
 from gen_fun import quote
 
 def isUserAdmin():

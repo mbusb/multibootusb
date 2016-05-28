@@ -30,7 +30,7 @@ if platform.system() == "Windows":
 else:
     from os.path import expanduser
     home = expanduser("~")
-    pyinstaller_path = "/home/sundar/Documents/PyInstaller-2.1/pyinstaller.py"
+    pyinstaller_path = "/home/sundar/Documents/PyInstaller-3.2/pyinstaller.py"
     release_dir = "/media/sundar/Data/multibootusb/release"
 sourceforge_release_path = "multibootusb@frs.sourceforge.net:/home/frs/project/multibootusb/"
 ####################################################################################################
