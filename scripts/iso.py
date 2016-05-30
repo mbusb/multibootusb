@@ -100,7 +100,7 @@ class ISO():
         """
         for dirpath, dirnames, filenames in os.walk(path_to_dir):
             for f in filenames:
-                if f.endswith("isolinux.bin") or f.endswith("ISOLINUX.CFG"):
+                if f.endswith("isolinux.bin") or f.endswith("ISOLINUX.BIN"):
                     isolinux_bin_path = os.path.join(dirpath, f)
                     return isolinux_bin_path
 
@@ -149,7 +149,7 @@ class ISO():
         if platform.system() == "Linux" or platform.system() == "Windows":
             for path, subdirs, files in os.walk(iso_cfg_ext_dir):
                 for name in files:
-                    if name.endswith('.cfg') or name.endswith('.CFG'):
+                    if name.endswith('.cfg') or name.endswith('.CFG') or name.endswith('.txt') or name.endswith('.TXT'):
                         try:
                             string = open(os.path.join(path, name)).read()
                         except IOError:
@@ -187,7 +187,7 @@ class ISO():
                                 return "opensuse"
                             elif re.search(
                                     r'slitaz|dban|ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|'
-                                    r'riplinux|lebel dummy',string, re.I):
+                                    r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/',string, re.I):
                                 return "slitaz"
                             elif re.search(r'boot=casper', string, re.I):
                                 return "ubuntu"

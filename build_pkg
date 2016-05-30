@@ -25,8 +25,8 @@ import platform
 ####################################################################################################
 #  Change the below variables to suit your needs.
 if platform.system() == "Windows":
-    pyinstallerPath = "C:\Users\Sundar\Documents\PyInstaller-2.1\pyinstaller.py"
-    release_dir = os.path.join("E:", "multibootusb", "release")
+    pyinstaller_path = "F:\Documents\PyInstaller-3.2\pyinstaller.py"
+    release_dir = os.path.join("D:", "multibootusb", "release")
 else:
     from os.path import expanduser
     home = expanduser("~")
@@ -112,7 +112,7 @@ class pkg():
             if not platform.system() == "Windows":
                 print "You can generate windows executable from windows host only."
             else:
-                if subprocess.call('python ' + pyinstallerPath + ' multibootusb.spec', shell=True) == 0 and \
+                if subprocess.call('python ' + pyinstaller_path + ' multibootusb.spec', shell=True) == 0 and \
                         os.path.exists(os.path.join("dist", 'multibootusb-' + self.version + ".exe")):
                     shutil.copy2(os.path.join("dist", 'multibootusb-' + self.version + ".exe"),
                                               os.path.join(self.release_upload_dir, "Windows"))

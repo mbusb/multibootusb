@@ -105,12 +105,14 @@ class USB():
                 for device in context.list_devices(subsystem='block', DEVTYPE='partition', ID_FS_USAGE="filesystem",
                                                    ID_TYPE="disk", ID_BUS="usb"):
                     if device['ID_BUS'] == "usb" and device['DEVTYPE'] == "partition":
-                        print device['DEVNAME']
                         devices.append(str(device['DEVNAME']))
+
             except:
                 bus = dbus.SystemBus()
                 try:
-                    print "Falling back to Udisks2.."
+                    print "Falling back to Udisks2 for detecting USB disk.."
+                    # Ensure that list is empty before filling it up.
+                    devices[:] = []
                     ud_manager_obj = bus.get_object('org.freedesktop.UDisks2', '/org/freedesktop/UDisks2')
                     ud_manager = dbus.Interface(ud_manager_obj, 'org.freedesktop.DBus.ObjectManager')
                     for k, v in ud_manager.GetManagedObjects().iteritems():
@@ -119,6 +121,7 @@ class USB():
                             device = drive_info.get('Device')
                             device = bytearray(device).replace(b'\x00', b'').decode('utf-8')
                             devices.append(device)
+
                 except:
                     try:
                         print "Falling back to Udisks1..."
@@ -179,7 +182,7 @@ class USB():
                     This is the easiest and reliable method to find USB details.
                     Also, it is a standalone package and no dependencies are required.
                     """
-                    #print "Using PyUdev for detecting USB details..."
+                    # print "Using PyUdev for detecting USB details..."
                     context = pyudev.Context()
                     for device in context.list_devices(subsystem='block', DEVTYPE='partition', ID_FS_USAGE="filesystem",
                                                        ID_TYPE="disk", ID_BUS="usb"):
@@ -187,7 +190,6 @@ class USB():
                             if (device['DEVNAME']) == usb_disk:
                                 uuid = str(device['ID_FS_UUID'])
                                 file_system = str(device['ID_FS_TYPE'])
-
                                 # mount_point = str(os.popen('mount | grep %s | cut -d" " -f3' % usb_disk).read().strip())
 
                                 # The above line fails to capture the correct mount point if it contains whitespace.
@@ -195,6 +197,9 @@ class USB():
                                 # http://explainshell.com/explain?cmd=findmnt+-nr+-o+target+-S+%25s
                                 # http://unix.stackexchange.com/questions/34718/is-there-a-command-to-see-where-a-disk-is-mounted/217412#217412
                                 mount_point = str(os.popen('findmnt -nr -o target -S %s' % usb_disk).read().strip())
+                                
+                                # Convert the hex string of space to empty space.
+                                mount_point = mount_point.replace('\\x20', ' ')
 
                                 try:
                                     label = str(device['ID_FS_LABEL'])
@@ -214,6 +219,8 @@ class USB():
                         file_system = bd.Get('org.freedesktop.UDisks2.Block', 'IdType', dbus_interface='org.freedesktop.DBus.Properties')
                         mount_point = bd.Get('org.freedesktop.UDisks2.Filesystem', 'MountPoints', dbus_interface='org.freedesktop.DBus.Properties')
                         mount_point = str(bytearray(mount_point[0]).decode('utf-8').replace(b'\x00', b''))
+                        mount_point = mount_point.replace('\\x20', ' ')
+
                         try:
                             label = str(bd.Get('org.freedesktop.UDisks2.Block', 'IdLabel', dbus_interface='org.freedesktop.DBus.Properties'))
                             if not label:
@@ -233,6 +240,7 @@ class USB():
                             device_props = dbus.Interface(device_obj, dbus.PROPERTIES_IFACE)
                             device = device_props.Get('org.freedesktop.UDisks.Device', "DeviceFile")
                             mount_point = device_props.Get('org.freedesktop.UDisks.Device', "DeviceMountPaths")[0]
+                            mount_point = mount_point.replace('\\x20', ' ')
                             uuid = device_props.Get('org.freedesktop.UDisks.Device', "IdUuid")
                             file_system =  device_props.Get('org.freedesktop.UDisks.Device', "IdType")
                             try:
@@ -304,7 +312,7 @@ class USB():
         :param disk_path: path to whole disk (/dev/sdb)
         :return: True if exist else False
         """
-        fdisks_output = subprocess.check_output("echo sundar | sudo -S fdisk -l", shell=True)
+        fdisks_output = subprocess.check_output("echo 'password' | sudo -S fdisk -l", shell=True)
         if fdisks_output:
             if disk_path in fdisks_output:
                 return True
