@@ -14,6 +14,7 @@ from iso import ISO
 import shutil
 import gen_fun
 import scripts.admin as admin
+from subprocess import call
 
 class UpdateCfgFile():
     """
@@ -202,6 +203,7 @@ class UpdateCfgFile():
 
             else:
                 admin.adminCmd(["mount", "-o", "remount,rw", config.usb_disk])
+                call(["mount", "-o", "remount,rw", config.usb_disk])
                 config_file = open(sys_cfg_file, "a")
                 config_file.write("#start " + self.iso.iso_basename() + "\n")
                 config_file.write("LABEL " + self.iso.iso_basename() + "\n")
