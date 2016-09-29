@@ -82,7 +82,7 @@ class Install():
         elif subprocess.call("which apt-get", shell=True) == 0:
             package = "python-qt4"
             subprocess.call("apt-get -q update", shell=True)
-            if subprocess.call("apt-get -q -y install mtools util-linux parted python-qt4", shell=True) == 0:
+            if subprocess.call("apt-get -q -y install mtools util-linux parted python-qt4 python-dbus", shell=True) == 0:
                 result = True
         elif subprocess.call("which zypper", shell=True) == 0:
             package = "python-qt4"
