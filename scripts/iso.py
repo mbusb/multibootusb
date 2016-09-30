@@ -170,7 +170,7 @@ class ISO():
                                 return "arch"
                             elif re.search(r'chakraisolabel', string, re.I):
                                 return "chakra"
-                            elif re.search(r'boot=live', string, re.I):
+                            elif re.search(r'debian-installer', string, re.I):
                                 return "debian"
                             elif re.search(r'solydx', string, re.I):
                                 return "solydx"
