@@ -224,12 +224,12 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
             QtGui.QMessageBox.information(self, "USB not mounted...", "USB deivce " + config.usb_disk +
                                           "is not mounted. \nYou must mount the device and click on Refresh USB.")
         else:
-            config.iso_link = str(QtGui.QFileDialog.getOpenFileName(self, 'Select an iso...', os.path.expanduser('~'), 'ISO Files (*.iso)'))
+            config.iso_link = coder(QtGui.QFileDialog.getOpenFileName(self, 'Select an iso...', os.path.expanduser('~'), 'ISO Files (*.iso)'))
             if config.iso_link:
                 if platform.system() == "Windows":
                     if "/" in config.iso_link:
                         config.iso_link = config.iso_link.strip().replace("/", "\\")
-                self.ui.lineEdit.insert(str(config.iso_link))
+                self.ui.lineEdit.insert(unicode(config.iso_link))
             else:
                 print ("File not selected...")
 
@@ -250,7 +250,7 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
             QtGui.QMessageBox.information(self, "No ISO...", "No ISO found.\n\nPlease use step 2 to choose an ISO.")
         else:
             if not config.iso_link:
-                config.iso_link = self.ui.lineEdit.text()
+                config.iso_link = self.ui.lineEdit.text().toUtf8()
             self.iso = ISO(config.iso_link)
             if not self.iso.integrity() is True:
                 QtGui.QMessageBox.information(self, "Integrity...", "ISO integrity failed.\n\nPlease check the downloaded ISO.")
