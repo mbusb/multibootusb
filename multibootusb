@@ -224,7 +224,7 @@ class AppGui(qemu.AppGui, imager.Imager, QtGui.QDialog, Ui_Dialog):
             QtGui.QMessageBox.information(self, "USB not mounted...", "USB deivce " + config.usb_disk +
                                           "is not mounted. \nYou must mount the device and click on Refresh USB.")
         else:
-            config.iso_link = coder(QtGui.QFileDialog.getOpenFileName(self, 'Select an iso...', os.path.expanduser('~'), 'ISO Files (*.iso)'))
+            config.iso_link = unicode(QtGui.QFileDialog.getOpenFileName(self, 'Select an iso...', os.path.expanduser('~'), 'ISO Files (*.iso)'))
             if config.iso_link:
                 if platform.system() == "Windows":
                     if "/" in config.iso_link:
