@@ -1,0 +1,98 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Name:     multibootusb
+# Purpose:  Main file which will determine if cli or gui is to be opened
+# Authors:  Sundar
+# Licence:  This file is a part of multibootusb package. You can redistribute it or modify
+# under the terms of GNU General Public License, v.2 or above
+
+import getopt
+import sys
+import os
+import platform
+
+# Had trouble in importing scripts directory. Had to add few lines below to ensure it works on source as well as
+# post install
+try:
+    from scripts.mbusb_cli import *
+    from scripts import admin
+except:
+    try:
+        from .scripts.mbusb_cli import *
+        from .scripts import admin
+    except:
+        import scripts
+
+gui = True
+iso_link = None
+usb_disk = None
+uninstall = False
+
+def usage():
+    print('\nAn advanced multi boot live usb creator using command line.')
+    print('\nUsage: python3 multibootusb -c -i /path/to/iso [option(s)] -t /path/to/device\n')
+    print('[option(s)] are      :\n')
+    print(' -h or --help        :   Print this help message and exit')
+    print(' -i or --iso         :   Path to ISO file')
+    print(' -t or --target      :   Path to target USB device partition (example /dev/sdb1)\n')
+    print(' -c or --command     :   This option is must for invoking multibootusb from command line\n')
+    print(' -u or --uninstall   :   List and uninstall distro from USB disk')
+    print(' Command line example for making a bootable USB from command line should look like this:-\n')
+    print(' python3 multibootusb -c -i ../../favourite.iso -t /dev/sdb1\n')
+    exit(2)
+
+
+def start_gui():
+    print('Starting multibootusb GUI...')
+    from scripts import mbusb_gui
+    mbusb_gui.main_gui()
+
+
+if __name__ == '__main__':
+
+    if platform.system() == 'Windows':
+        if not admin.isUserAdmin():
+            admin.runAsAdmin()
+            sys.exit(0)
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'i:t:vhcu',
+                                   ['iso=', 'target=', 'version', 'help', 'command', 'uninstall'])
+    except getopt.GetoptError:
+        usage()
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ('-h', '--help'):
+            usage()
+            sys.exit(2)
+        elif opt in ('-v', '--version'):
+            print_version()
+            sys.exit()
+        elif opt in ('-i', '--iso'):
+            config.iso_link = arg
+        elif opt in ('-t', '--target'):
+            config.usb_disk = arg
+        elif opt in ('-c', '--command'):
+            gui = False
+        elif opt in ('-u', '--uninstall'):
+            uninstall = True
+        else:
+            gui = True
+            #start_gui()
+            '''
+            usage()
+            sys.exit()
+            '''
+
+if gui is False:
+    if uninstall is True and config.usb_disk is not None:
+        cli_uninstall_distro()
+    elif config.iso_link is None and config.usb_disk is None:
+        usage()
+    elif config.iso_link is None or config.usb_disk is None:
+        print('\nOptions \'-i\' and \'t\' must be supplied together. See the usage below.')
+        usage()
+    else:
+        cli_install_distro()
+
+elif gui is True:
+    start_gui()

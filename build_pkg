@@ -1,0 +1,270 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Name:     build_pkg
+# Purpose:  Module to create package, executable, source archieve and upload to sourceforge site.
+# Authors:  Sundar
+# Licence:  This file is a part of multibootusb package. You can redistribute it or modify
+# under the terms of GNU General Public License, v.2 or above
+"""
+This is an internal script to make automation of building binary/ source packages and uploading to Sourceforge.
+This may not work for you without modification in to variables and paths. Please amend wherever required.
+Originally written for cryptully and modified by me for multibootusb.
+
+Released under General Public Licence (GPL).
+
+Author: Sundar
+"""
+
+import os
+import shutil
+import subprocess
+import sys
+import platform
+
+
+####################################################################################################
+#  Change the below variables to suit your needs.
+if platform.system() == "Windows":
+    # pyinstaller_path = "F:\Documents\PyInstaller-3.2\pyinstaller.py"
+    # pyinstaller_path = "I:\home\sundar\Documents\pyInstaller\pyinstaller.py"
+    pyinstaller_path = 'D:\multibootusb\pyinstaller\pyinstaller.py'
+    # release_dir = os.path.join("D:", "multibootusb", "release")
+    release_dir = 'D:\\multibootusb\\release'
+else:
+    from os.path import expanduser
+    home = expanduser("~")
+    pyinstaller_path = "/home/sundar/Documents/pyInstaller/pyinstaller.py"
+    release_dir = "/media/sundar/Data/multibootusb/release"
+sourceforge_release_path = "multibootusb@frs.sourceforge.net:/home/frs/project/multibootusb/"
+####################################################################################################
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+
+
+class pkg():
+    def __init__(self, name):
+        self.pkg_name = name
+        self.version = open(os.path.join("data", "version.txt"), 'r').read().strip()
+        self.release_upload_dir = os.path.join(release_dir, self.version)
+
+    def build_package(self):
+        self.clean_dir()
+        if not os.path.exists(self.release_upload_dir):
+            os.mkdir(self.release_upload_dir)
+        if not os.path.exists(os.path.join(self.release_upload_dir, "Linux")):
+            os.mkdir(os.path.join(self.release_upload_dir, "Linux"))
+        elif not os.path.exists(os.path.join(self.release_upload_dir, "Windows")):
+            os.mkdir(os.path.join(self.release_upload_dir, "Windows"))
+        elif not os.path.exists(os.path.join(self.release_upload_dir, "Source")):
+            os.mkdir(os.path.join(self.release_upload_dir, "Source"))
+        if self.pkg_name == "deb":
+            print("Ensure thta you have python-stdeb package installed!")
+            stdcfg = ("[DEFAULT]\n"
+                      "Package: multibootusb\n"
+                      "Depends: python3-pyqt5, parted, util-linux, mtools, python-dbus, pkexec\n"
+                      "Build-Depends: python3-all\n"
+                      "Section: system\n"
+                      "XS-Python-Version: = 3.5\n"
+                      "Debian-Version: 1")
+            with open("stdeb.cfg", "w") as f:
+                f.write(stdcfg)
+            if subprocess.call('python3 setup.py --command-packages=stdeb.command bdist_deb', shell=True) == 0 and \
+                    os.path.exists(os.path.join("deb_dist", "python3-multibootusb_" + self.version + "-1_all.deb")):
+                try:
+                    shutil.copy2(os.path.join("deb_dist", "python3-multibootusb_" + self.version + "-1_all.deb"),
+                                          os.path.join(self.release_upload_dir, "Linux"), follow_symlinks=True) #,follow_symlinks=False
+                except:
+                    os.system('cp -rf ' + os.path.join("deb_dist", "python3-multibootusb_" + self.version + "-1_all.deb") + ' ' +
+                                          os.path.join(self.release_upload_dir, "Linux"))
+                if os.path.exists("stdeb.cfg"):
+                    os.remove("stdeb.cfg")
+                print("\n\n\nDebian package has been created and can be found here::")
+                print((os.path.join("deb_dist", "python3-multibootusb_" + self.version + "-1_all.deb\n\n\n")))
+                result = True
+        elif self.pkg_name == 'rpm' or self.pkg_name == 'suse' or self.pkg_name == 'mageia':
+            if self.pkg_name == 'suse' or self.pkg_name == 'mageia':
+                require = "python3-qt5, parted, util-linux, pkexec, mtools"
+            else:
+                require = "PyQt5, parted, util-linux, mtools"
+            setup_cfg = ("[bdist_rpm]\n"
+                         "Group = Applications/System\n"
+                         "Vendor = Sundar <feedback.multibootusb@gmail.com>\n"
+                         "Requires = " + require)
+            with open("setup.cfg", "w") as f:
+                f.write(setup_cfg)
+            if subprocess.call('python3 setup.py bdist_rpm', shell=True) == 0 and \
+                    os.path.exists(os.path.join("dist", "multibootusb-" + self.version + "-1.noarch.rpm")):
+                if self.pkg_name == 'suse':
+                    package = "multibootusb-" + self.version + "-1suse.noarch.rpm"
+                elif self.pkg_name == 'mageia':
+                    package = "multibootusb-" + self.version + "-1mageia.noarch.rpm"
+                else:
+                    package = "multibootusb-" + self.version + "-1.noarch.rpm"
+                try:
+                    shutil.copy2(os.path.join("dist", "multibootusb-" + self.version + "-1.noarch.rpm"),
+                                          os.path.join(self.release_upload_dir, "Linux", package))
+                except:
+                    os.system('cp -rf ' + os.path.join("dist", "multibootusb-" + self.version + "-1.noarch.rpm") + ' ' +
+                                          os.path.join(self.release_upload_dir, "Linux", package))
+                if os.path.exists("setup.cfg"):
+                    os.remove("setup.cfg")
+                print("\n\n\nRPM package has been created and can be found here::")
+                print((os.path.join("dist", "multibootusb-" + self.version + "-1.noarch.rpm\n\n\n")))
+
+                result = True
+
+        elif self.pkg_name == "exe":
+            if not platform.system() == "Windows":
+                print("You can generate windows executable from windows host only.")
+            else:
+                # subprocess.call('python ' + pyinstaller_path + ' --upx-dir C:\\upx multibootusb.spec', shell=True) == 0 and \
+                #        os.path.exists(os.path.join("dist", 'multibootusb-' + self.version + ".exe")):
+                if subprocess.call('python ' + pyinstaller_path + ' --windowed multibootusb.spec', shell=True) == 0 and \
+                        os.path.exists(os.path.join("dist", 'multibootusb-' + self.version + ".exe")):
+                    shutil.copy2(os.path.join("dist", 'multibootusb-' + self.version + ".exe"),
+                                              os.path.join(self.release_upload_dir, "Windows"))
+                    print("\n\n\nWindows binary has been created and can be found here::")
+                    print((os.path.join("dist", "multibootusb-" + self.version + ".exe\n\n\n")))
+                    result = True
+        elif self.pkg_name == 'install':
+            if subprocess.call("python3", "install.py", shell=True) == 0:
+                print("Installation is successful.")
+                result = True
+        elif self.pkg_name == 'src':
+            package = "multibootusb-" + self.version + ".tar.gz"
+            if subprocess.call('python3 setup.py sdist', shell=True) == 0 and \
+                    os.path.exists(os.path.join("dist", "multibootusb-" + self.version + ".tar.gz")):
+                try:
+                    shutil.copy2(os.path.join("dist", "multibootusb-" + self.version + ".tar.gz"),
+                                          os.path.join(self.release_upload_dir, "Source"), follow_symlinks=False)
+                except:
+                    os.system('cp -rf ' + os.path.join("dist", package) + ' ' + os.path.join(self.release_upload_dir, "Source", package))
+                print("\n\n\nSource package has been created and can be found here::")
+                print((os.path.join("dist", "multibootusb-" + self.version + ".tar.gz\n\n\n")))
+                result = True
+        elif self.pkg_name == 'run':
+            subprocess.call(['python3', 'multibootusb'])
+        elif self.pkg_name == 'clean':
+            self.clean_dir()
+        elif self.pkg_name == "upload":
+            self.upload()
+        else:
+            print("Option not found.")
+            usage()
+            '''
+            if result:
+                return result
+            '''
+
+    def upload(self):
+        if platform.system() == "Windows":
+                print("You can upload to SF only from Linux as it needs rsync.")
+        else:
+            print("Uploading files...")
+            cmd = "rsync --rsh=ssh -l -p -r -t -z --stats /media/sundar/Data/multibootusb/release/" + self.version + " " + sourceforge_release_path
+            if os.system(cmd) == 0:
+                print((bcolors.OKGREEN + "\n\nVersion " + self.version + " has been successfully uploaded to SF.\n\n" + bcolors.ENDC))
+            else:
+                print((bcolors.FAIL + "\n\n\nError while uploading to SF.\n\n\n" + bcolors.ENDC))
+
+    def clean_dir(self):
+
+        if not os.path.exists('build') and not os.path.exists('dist') and not os.path.exists('deb_dist'):
+            print("Already clean. Nothing to do.")
+        else:
+            dir_list = ["build", "dist", "deb_dist"]
+            if os.path.exists('MANIFEST'):
+                self.deleteFile('MANIFEST')
+            for directory in dir_list:
+                if os.path.exists(directory):
+                    shutil.rmtree(directory)
+
+        print("Cleaning pthon byte files...")
+
+        for path, subdirs, files in os.walk(os.curdir):
+            # print subdirs
+            for name in files:
+                if name.endswith('.pyc'):
+                    print(("Cleaning " + os.path.join(path, name)))
+                    os.chmod(os.path.join(path, name), 0o777)
+                    os.unlink(os.path.join(path, name))
+                    # os.remove(os.path.join(path,name))
+
+    def deleteDirectory(self, path):
+        try:
+            for files in os.listdir(path):
+                if os.path.isdir(os.path.join(path, files)):
+                    # print (os.path.join(path, files))
+                    os.chmod(os.path.join(path, files), 0o777)
+                    shutil.rmtree(os.path.join(path, files))
+                else:
+                    # print (os.path.join(path, files))
+                    os.chmod(os.path.join(path, files), 0o777)
+                    os.unlink(os.path.join(path, files))
+                    os.remove(os.path.join(path, files))
+            if os.path.exists(path):
+                print("Path exist.")
+                os.rmdir(path)
+                shutil.rmtree(path)
+            else:
+                print("Path exist.")
+
+        except OSError as ose:
+            # Ignore 'no such file or directory' errors
+            if ose.errno != 2:
+                print("OS Error.")
+
+    # Useful to delete files.
+    def deleteFile(self, path):
+        try:
+            os.unlink(path)
+        except OSError as ose:
+            if ose.errno != 2:
+                print(ose)
+
+def usage():
+    """ Prompt users how to use   """
+    print ("Invalid option(s)\n"
+        "Possible options are ::\n"
+        "\033[94mexe\033[0m      <-- For making Windows/ Linux standalone executable using pyinstaller\n"
+        "\033[94mdeb\033[0m      <-- For making creating package for debian/ubuntu\n"
+        "\033[94mrpm\033[0m      <-- For creating package for fedora/redhat/centos\n"
+        "\033[94msuse\033[0m     <-- For creating package for OpenSuse\n"
+        "\033[94mmageia\033[0m   <-- For creating package for mageia/mandriva\n"
+        "\033[94msrc\033[0m      <-- For creating source package for other distributions\n"
+        "\033[94mall\033[0m      <-- For creating package for all distros\n"
+        "\033[94mclean\033[0m    <-- For Cleaning dist, build directory and other temp/python byte files\n"
+        "\033[94minstall\033[0m  <-- Directly install from source package\n"
+        "\033[94mrun\033[0m      <-- Directly run multibootusb from source package\n"
+        "\033[92mupload\033[0m   <-- Upload package directory to SourceForge")
+
+    sys.exit(-1)
+
+if __name__ == '__main__':
+    argv = sys.argv
+    if not os.path.exists(release_dir):
+        print("Release directory does not exist.\nPlease mount and rerun the script.")
+        sys.exit(1)
+    elif not os.path.exists(pyinstaller_path):
+        print("Pyinstaller path does not exist.\nPlease correct the path and rerun the script.")
+        sys.exit(1)
+
+    if len(argv) == 1:
+        usage()
+    else:
+        argv = argv[1]
+        if argv == "all":
+            all_arug = ["clean", "exe", "deb", "rpm", "suse", "mageia", "src"]
+            for package_name in all_arug:
+                print(("Creating package for argument " + package_name))
+                build = pkg(package_name)
+                build.build_package()
+        else:
+            build = pkg(argv)
+            build.build_package()

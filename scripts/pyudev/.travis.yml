@@ -1,0 +1,16 @@
+branches:
+  only:
+    - master
+    - develop-0.22
+language: python
+python:
+  - "2.7"
+  - "3.4"
+  - "pypy"
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y libudev-dev
+install:
+  - pip install .
+  - pip install -r requirements.txt
+script: py.test --junitxml=tests.xml --enable-privileged -rfEsxX -v
