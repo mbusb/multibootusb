@@ -141,6 +141,7 @@ def detect_iso_from_file_list(iso_link):
     if os.path.exists(iso_link):
         iso9660fs = ISO9660(iso_link)
         iso_file_list = iso9660fs.readDir("/")
+        print(iso_file_list)
         if any("sources" in s.lower() for s in iso_file_list):
             return "Windows"
         elif any("config.isoclient" in s.lower() for s in iso_file_list):
