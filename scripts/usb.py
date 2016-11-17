@@ -124,7 +124,7 @@ def list(partition=1, fixed=None):
                             'HintSystem') and not drive_info.get('ReadOnly'):
                         device = drive_info.get('Device')
                         device = bytearray(device).replace(
-                            b'\x00', b'').decode('utf-8')
+                            b'\x00', b'').decode('utf-8', 'replace')
                         devices.append(device)
             except:
                 try:
@@ -251,7 +251,7 @@ def details_udisks2(usb_disk_part):
     bus = dbus.SystemBus()
     bd = bus.get_object('org.freedesktop.UDisks2', '/org/freedesktop/UDisks2/block_devices%s'%usb_disk_part[4:])
     device = bd.Get('org.freedesktop.UDisks2.Block', 'Device', dbus_interface='org.freedesktop.DBus.Properties')
-    device = bytearray(device).replace(b'\x00', b'').decode('utf-8')
+    device = bytearray(device).replace(b'\x00', b'').decode('utf-8', 'replace')
     uuid = bd.Get('org.freedesktop.UDisks2.Block', 'IdUUID', dbus_interface='org.freedesktop.DBus.Properties')
     file_system =  bd.Get('org.freedesktop.UDisks2.Block', 'IdType', dbus_interface='org.freedesktop.DBus.Properties')
     mount_point = bd.Get('org.freedesktop.UDisks2.Filesystem', 'MountPoints', dbus_interface='org.freedesktop.DBus.Properties')
