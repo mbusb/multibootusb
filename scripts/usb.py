@@ -220,7 +220,8 @@ def details_udisks2(usb_disk_part):
     file_system =  bd.Get('org.freedesktop.UDisks2.Block', 'IdType', dbus_interface='org.freedesktop.DBus.Properties')
     mount_point = bd.Get('org.freedesktop.UDisks2.Filesystem', 'MountPoints', dbus_interface='org.freedesktop.DBus.Properties')
     if mount_point:
-        mount_point = str(bytearray(mount_point[0]).decode('utf-8').replace(b'\x00', b''))
+        # mount_point = str(bytearray(mount_point[0]).decode('utf-8').replace(b'\x00', b''))
+        mount_point = bytearray(mount_point[0]).replace(b'\x00', b'').decode('utf-8')
     else:
         mount_point = "No_Mount"
     try:

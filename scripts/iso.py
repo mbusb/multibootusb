@@ -14,8 +14,11 @@ import platform
 import re
 from .gen import *
 from .isodump3 import ISO9660
+from . import _7zip
+
 
 _iso_cfg_ext_dir = iso_cfg_ext_dir()
+
 
 def iso_name(iso_link):
     """
@@ -52,12 +55,12 @@ def isolinux_bin_exist(iso_link):
     :return: True if "isolinux.bin" file exist of False if not.
     """
     if os.path.exists(iso_link):
-        iso9660fs = ISO9660(iso_link)
-        iso_file_list = iso9660fs.readDir("/")
+        iso_file_list = _7zip.list_iso(iso_link)
         if any("isolinux.bin" in s.lower() for s in iso_file_list):
             return True
         else:
             return False
+
 
 
 def iso_size(iso_link):
@@ -82,10 +85,9 @@ def isolinux_bin_dir(iso_link):
     Detects "isolinux.bin" directory.
     :return: path of "isolinux.bin" directory as string.
     """
-    iso9660fs = ISO9660(iso_link)
     if os.path.exists(iso_link):
         bin_dir = False
-        iso_file_list = iso9660fs.readDir("/")
+        iso_file_list = _7zip.list_iso(iso_link)
         if any("isolinux.bin" in s.lower() for s in iso_file_list):
             for f in iso_file_list:
                 if 'isolinux.bin' in f.lower():
@@ -102,9 +104,7 @@ def isolinux_bin_path(iso_link):
     """
     iso_bin_path = False
     if isolinux_bin_exist(iso_link) is not False:
-
-        iso9660fs = ISO9660(iso_link)
-        iso_file_list = iso9660fs.readDir("/")
+        iso_file_list = _7zip.list_iso(iso_link)
         for f in iso_file_list:
             if 'isolinux.bin' in f.lower():
                 iso_bin_path = f
@@ -118,12 +118,7 @@ def integrity(iso_link):
     Check the integrity of an ISO.
     :return: True if integrity passes or False if it fails.
     """
-    if os.path.exists(iso_link):
-        iso9660fs = ISO9660(iso_link)
-        if iso9660fs.checkIntegrity():
-            return True
-        else:
-            return False
+    return _7zip.test_iso(iso_link)
 
 
 def iso_file_list(iso_link):
@@ -131,9 +126,7 @@ def iso_file_list(iso_link):
     Function to return the content of an ISO.
     :return: List of files of an ISO as list.
     """
-    iso9660fs = ISO9660(iso_link)
-    iso_file_list = iso9660fs.readDir("/")
-    return iso_file_list
+    return _7zip.list_iso(iso_link)
 
 
 def isolinux_version(isolinux_bin_path):
@@ -160,18 +153,19 @@ def iso_extract_file(iso_link, dest_dir, filter):
     :param filter: Filter to extract particular file(s)
     :return: Extract file(s) to destination.
     """
-    if os.path.exists(iso_link) and os.path.exists(dest_dir):
-        iso9660fs = ISO9660(iso_link)
-        iso9660fs.writeDir("/", dest_dir, filter)
+    _7zip.extract_iso(iso_link, dest_dir, filter)
 
 
 def extract_cfg_file(iso_link):
-    iso_extract_file(iso_link, _iso_cfg_ext_dir, '.cfg')
-    iso_extract_file(iso_link, _iso_cfg_ext_dir, '.CFG')
-    iso_extract_file(iso_link, _iso_cfg_ext_dir, '.TXT')
-    iso_extract_file(iso_link, _iso_cfg_ext_dir, '.txt')
-    iso_extract_file(iso_link, _iso_cfg_ext_dir, 'isolinux.bin')
-    iso_extract_file(iso_link, _iso_cfg_ext_dir, 'ISOLINUX.BIN')
+    """
+    Function to extract certain files for auto detecting supported distros
+    :param iso_link: Path to ISO file
+    :return:
+    """
+    _pattern = ['.cfg', '.CFG', '.txt', '.TXT', 'isolinux.bin', 'ISOLINUX.BIN']
+    # file_list = iso_file_list(iso_link)
+    for ext in _pattern:
+        _7zip.extract_iso(iso_link, _iso_cfg_ext_dir, pattern='*' + ext)
 
 
 def iso_extract_full(iso_link, dest_dir):
@@ -180,12 +174,7 @@ def iso_extract_full(iso_link, dest_dir):
     :param dest_dir: Destination path as string.
     :return: False if it fails or extract ISO files to destination directory.
     """
-    iso9660fs = ISO9660(iso_link)
-    try:
-        iso9660fs.writeDir("/", dest_dir)
-    except:
-        print("ISO extraction failed.")
-        return False
+    _7zip.extract_iso(iso_link, dest_dir)
 
 
 if __name__ == '__main__':

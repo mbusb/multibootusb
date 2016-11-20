@@ -172,19 +172,18 @@ def read_input_yes():
         return False
 
 
-def strings(file_path):
-    """
-    Similar to strings command in Linux.
-    :param file_path: Path to file as string.
-    :return: All printable character of a file.
-    """
-    import re
-    nonprintable = re.compile(b'[^%s]+' % re.escape(string.printable.encode('ascii')))
-
-    with open(file_path, "rb") as f:
-        for result in nonprintable.split(f.read()):
-            if result:
-                yield result.decode('ASCII')
+def strings(filename, min=4):
+    with open(filename, errors="ignore") as f:
+        result = ""
+        for c in f.read():
+            if c in string.printable:
+                result += c
+                continue
+            if len(result) >= min:
+                yield result
+            result = ""
+        if len(result) >= min:  # catch result at EOF
+            yield result
 
 
 def size_not_enough(iso_link, usb_disk):
@@ -245,18 +244,6 @@ def prepare_mbusb_host_dir():
         with zipfile.ZipFile(resource_path(os.path.join("data", "tools", "syslinux", "syslinux_modules.zip")), "r") as z:
                 z.extractall(os.path.join(home, "syslinux"))
 
-    '''
-    if not os.path.exists(os.path.join(home, "persistence_data")):
-        print("Copying persistence data to multibootusb directory...")
-        shutil.copytree(resource_path(os.path.join("data", "tools", "persistence_data")),
-                        os.path.join(home, "persistence_data"))
-    '''
-    if platform.system() == "Windows":
-        if not os.path.exists(os.path.join(home, "dd")):
-            print("Copying dd to multibootusb directory.")
-            shutil.copytree(resource_path(os.path.join("data", "tools", "dd")),
-                            os.path.join(home, "dd"))
-
     if os.listdir(os.path.join(home, "iso_cfg_ext_dir")):
         print(os.listdir(os.path.join(home, "iso_cfg_ext_dir")))
         print("iso extract directory is not empty.")
@@ -273,7 +260,7 @@ def prepare_mbusb_host_dir():
                     os.unlink(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
                     os.remove(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
                 except OSError:
-                    print("Can't remove the file. Skip it.")
+                    print("Can't remove the file. Skipping it.")
 
 if __name__ == '__main__':
     print(quote("""Test-string"""))

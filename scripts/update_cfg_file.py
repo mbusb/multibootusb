@@ -25,7 +25,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
     usb_uuid = usb_details['uuid']
     usb_label = usb_details['label']
     patch = None
-    iso_cfg_ext_dir = iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
+    iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
     if isolinux_bin_exist(config.iso_link):
         isolinux_path = os.path.join(iso_cfg_ext_dir, isolinux_bin_path(iso_link)[1:])
     config.status_text = "Updating config files..."
@@ -140,11 +140,14 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                     string = ''.join(rows)
                 elif distro == "arch" or distro == "chakra":
                     string = re.sub(r'isolabel=\S*',
-                                    'isodevice=/dev/disk/by-uuid/' + usb_uuid, string,
-                                    flags=re.I)
+                                    'isodevice=/dev/disk/by-uuid/' + usb_uuid, string, flags=re.I)
                     string = re.sub(r'isobasedir=',
-                                    'isobasedir=/multibootusb/' + iso_basename(iso_link) + '/', string,
-                                    flags=re.I)
+                                    'isobasedir=/multibootusb/' + iso_basename(iso_link) + '/', string, flags=re.I)
+                    string = re.sub(r'ui gfxboot', '# ui gfxboot', string)  # Bug in the isolinux package
+                    if 'manjaro' in string:
+                        if not os.path.exists(os.path.join(usb_mount, '.miso')):
+                            with open(os.path.join(usb_mount, '.miso'), "w") as f:
+                                f.write('')
                 elif distro == "suse" or distro == "opensuse":
                     if re.search(r'opensuse_12', string, re.I):
                         string = re.sub(r'append',
@@ -208,7 +211,7 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 config_file.write(string)
                 config_file.close()
 
-        if distro == "Windows":
+        elif distro == "Windows":
             if os.path.exists(sys_cfg_file):
                 config_file = open(sys_cfg_file, "a")
                 config_file.write("#start " + iso_basename(iso_link) + "\n")
@@ -217,7 +220,7 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 config_file.write("KERNEL chain.c32 hd0 1 ntldr=/bootmgr" + "\n")
                 config_file.write("#end " + iso_basename(iso_link) + "\n")
                 config_file.close()
-        if distro == 'f4ubcd':
+        elif distro == 'f4ubcd':
             if os.path.exists(sys_cfg_file):
                 config_file = open(sys_cfg_file, "a")
                 config_file.write("#start " + iso_basename(iso_link) + "\n")
@@ -227,7 +230,7 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 config_file.write('APPEND --config-file=/multibootusb/' + iso_basename(config.iso_link) + '/menu.lst' + "\n")
                 config_file.write("#end " + iso_basename(iso_link) + "\n")
                 config_file.close()
-        if distro == 'kaspersky':
+        elif distro == 'kaspersky':
             if os.path.exists(sys_cfg_file):
                 config_file = open(sys_cfg_file, "a")
                 config_file.write("#start " + iso_basename(iso_link) + "\n")
@@ -253,6 +256,11 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                                   + iso_basename(iso_link) + '/isolinux/initrd.gz' + "\n")
             elif distro == "mentest":
                 config_file.write("kernel " + '/multibootusb/' + iso_basename(iso_link) + '/BOOT/MEMTEST.IMG\n')
+
+            elif distro == "sgrubd2":
+                config_file.write("LINUX memdisk\n")
+                config_file.write("INITRD " + "/multibootusb/" + iso_basename(iso_link) + '/' + iso_name(iso_link) + '\n')
+                config_file.write("APPEND iso\n")
             else:
                 if distro == "generic":
                     distro_syslinux_install_dir = isolinux_bin_dir(iso_link)
@@ -263,10 +271,16 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 else:
                     distro_syslinux_install_dir = install_dir
                     distro_syslinux_install_dir = distro_syslinux_install_dir.replace(usb_mount, '')
-                    distro_sys_install_bs = distro_syslinux_install_dir + isolinux_bin_dir(iso_link) + '/' + distro + '.bs'
+                    distro_sys_install_bs = distro_syslinux_install_dir + '/' + isolinux_bin_dir(iso_link) + '/' + distro + '.bs'
 
                 distro_sys_install_bs = "/" + distro_sys_install_bs.replace("\\", "/")  # Windows path issue.
-                config_file.write("BOOT " + distro_sys_install_bs.replace("//", "/") + "\n")
+
+                if config.syslinux_version == '3':
+                    config_file.write("CONFIG /multibootusb/" + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '/isolinux.cfg\n')
+                    config_file.write("APPEND /multibootusb/" + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '\n')
+                else:
+                    config_file.write("BOOT " + distro_sys_install_bs.replace("//", "/") + "\n")
+
             config_file.write("#end " + iso_basename(iso_link) + "\n")
             config_file.close()
 
@@ -293,8 +307,8 @@ menu label Kaspersky Rescue Disk
 label text
   menu label Kaspersky Rescue Disk - Text Mode
   kernel $INSTALL_DIR/boot/rescue
-  append root=UUID= live_dir=$INSTALL_DIR/rescue/LiveOS/ subdir=$INSTALL_DIR/rescue/LiveOS/ rootfstype=auto vga=791 init=/linuxrc loop=/multiboot/rescue/LiveOS/squashfs.img initrd=$INSTALL_DIR/boot/rescue.igz SLUG_lang=en udev liveimg quiet nox shell noresume doscsi nomodeset
+  append root=live:UUID= live_dir=$INSTALL_DIR/rescue/LiveOS/ subdir=$INSTALL_DIR/rescue/LiveOS/ rootfstype=auto vga=791 init=/linuxrc loop=/multiboot/rescue/LiveOS/squashfs.img initrd=$INSTALL_DIR/boot/rescue.igz SLUG_lang=en udev liveimg quiet nox shell noresume doscsi nomodeset
 label hwinfo
   menu label Kaspersky Hardware Info
   kernel $INSTALL_DIR/boot/rescue
-  append root=UUID= live_dir=$INSTALL_DIR/rescue/LiveOS/ subdir=$INSTALL_DIR/rescue/LiveOS/ rootfstype=auto vga=791 init=/linuxrc loop=$INSTALL_DIR/rescue/LiveOS/squashfs.img initrd=$INSTALL_DIR/boot/rescue.igz SLUG_lang=en udev liveimg quiet softlevel=boot nox hwinfo noresume doscsi nomodeset """
+  append root=live:UUID= live_dir=$INSTALL_DIR/rescue/LiveOS/ subdir=$INSTALL_DIR/rescue/LiveOS/ rootfstype=auto vga=791 init=/linuxrc loop=$INSTALL_DIR/rescue/LiveOS/squashfs.img initrd=$INSTALL_DIR/boot/rescue.igz SLUG_lang=en udev liveimg quiet softlevel=boot nox hwinfo noresume doscsi nomodeset """

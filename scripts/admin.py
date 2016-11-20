@@ -103,7 +103,7 @@ def runAsAdmin(cmdLine=None, wait=True):
         #showCmd = win32con.SW_HIDE
         lpVerb = 'runas'  # causes UAC elevation prompt.
 
-        # print "Running", cmd, params
+        #print("Running", cmd, params)
 
         # ShellExecute() doesn't seem to allow us to fetch the PID or handle
         # of the process, so we can't get anything useful from it. Therefore

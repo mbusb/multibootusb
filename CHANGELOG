@@ -1,3 +1,14 @@
+Version - 8.1.0
+---------------
+* Fix for debain package bug which does not pull in dependency packages
+* In cluded 7zip for extracting ISO files (including UDF)
+* Fix for windows installer
+* Added Comodo Rescue Disk ISO
+* Fix for kaspersky rescue disk
+* Generic fix for distros using isolinux version 3
+* A new installer/setup executable for windows
+* Fix for random crash when trying to detect syslinux version
+
 Version - 8.0.0
 ---------------
 * This version is written in python 3

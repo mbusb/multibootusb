@@ -38,14 +38,17 @@ def persistence_distro(distro, usb_disk, iso_link):
     if distro == "ubuntu":
         print("Persistence option is available.")
         return "ubuntu", _max_size
+    elif distro == "debian" or distro == "debian-install":
+        print("Persistence option is available.")
+        return "debian", _max_size
     else:
         return None, None
     # FIXME to get debian and fedora persistence workable...
     # Able to add successfully but unable to keep persistence data.
+
+
+
     '''
-    elif distro == "debian":
-        print "Persistence option is available."
-        return "debian"
     elif distro == "fedora":
         print "Persistence option is available."
         return "fedora"
@@ -55,7 +58,7 @@ def persistence_distro(distro, usb_disk, iso_link):
 def create_persistence():
     if config.distro == "ubuntu":
         fs_name = 'casper-rw'
-    elif config.distro == 'debian':
+    elif config.distro == 'debian' or config.distro == "debian-install":
         fs_name = 'live-rw'
 
     persistence = config.persistence / 1024 / 1024
@@ -67,8 +70,8 @@ def create_persistence():
                                                             iso.iso_basename(config.iso_link),
                                                             fs_name)
     elif platform.system() == 'Windows':
-        mkfs = gen.resource_path(os.path.join("data", "tools", "mkfs", "mke2fs.exe"))
-        dd = gen.resource_path(os.path.join("data", "tools", "dd", "dd.exe"))
+        mkfs = gen.quote(gen.resource_path(os.path.join("data", "tools", "mkfs", "mke2fs.exe")))
+        dd = gen.quote(gen.resource_path(os.path.join("data", "tools", "dd", "dd.exe")))
         persistence_mkfs_cmd = 'echo y|' + mkfs + ' -b 1024 -L ' + fs_name + ' ' + os.path.join(config.usb_mount, 'multibootusb',
                                                             iso.iso_basename(config.iso_link), fs_name)
 

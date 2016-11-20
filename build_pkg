@@ -25,15 +25,13 @@ import platform
 ####################################################################################################
 #  Change the below variables to suit your needs.
 if platform.system() == "Windows":
-    # pyinstaller_path = "F:\Documents\PyInstaller-3.2\pyinstaller.py"
-    # pyinstaller_path = "I:\home\sundar\Documents\pyInstaller\pyinstaller.py"
     pyinstaller_path = 'D:\multibootusb\pyinstaller\pyinstaller.py'
-    # release_dir = os.path.join("D:", "multibootusb", "release")
     release_dir = 'D:\\multibootusb\\release'
 else:
     from os.path import expanduser
     home = expanduser("~")
-    pyinstaller_path = "/home/sundar/Documents/pyInstaller/pyinstaller.py"
+    # pyinstaller_path = "/home/sundar/Documents/pyInstaller/pyinstaller.py"
+    pyinstaller_path = "/media/sundar/Data/multibootusb/pyinstaller/pyinstaller.py"
     release_dir = "/media/sundar/Data/multibootusb/release"
 sourceforge_release_path = "multibootusb@frs.sourceforge.net:/home/frs/project/multibootusb/"
 ####################################################################################################
@@ -65,13 +63,14 @@ class pkg():
             os.mkdir(os.path.join(self.release_upload_dir, "Source"))
         if self.pkg_name == "deb":
             print("Ensure thta you have python-stdeb package installed!")
-            stdcfg = ("[DEFAULT]\n"
-                      "Package: multibootusb\n"
-                      "Depends: python3-pyqt5, parted, util-linux, mtools, python-dbus, pkexec\n"
-                      "Build-Depends: python3-all\n"
-                      "Section: system\n"
-                      "XS-Python-Version: = 3.5\n"
-                      "Debian-Version: 1")
+            stdcfg = """[DEFAULT]
+                      Package: multibootusb
+                      Depends3: python3-pyqt5, parted, util-linux, mtools, python3-dbus, p7zip-full
+                      Build-Depends: python3-all
+                      Section: system
+                      XS-Python-Version: = 3.5
+                      Debian-Version: 1"""
+
             with open("stdeb.cfg", "w") as f:
                 f.write(stdcfg)
             if subprocess.call('python3 setup.py --command-packages=stdeb.command bdist_deb', shell=True) == 0 and \
@@ -89,9 +88,9 @@ class pkg():
                 result = True
         elif self.pkg_name == 'rpm' or self.pkg_name == 'suse' or self.pkg_name == 'mageia':
             if self.pkg_name == 'suse' or self.pkg_name == 'mageia':
-                require = "python3-qt5, parted, util-linux, pkexec, mtools"
+                require = "python3-qt5, parted, util-linux, mtools, python3-dbus, p7zip, p7zip-plugins"
             else:
-                require = "PyQt5, parted, util-linux, mtools"
+                require = "PyQt5, parted, util-linux, mtools, python3-dbus, p7zip, p7zip-plugins"
             setup_cfg = ("[bdist_rpm]\n"
                          "Group = Applications/System\n"
                          "Vendor = Sundar <feedback.multibootusb@gmail.com>\n"
@@ -125,7 +124,7 @@ class pkg():
             else:
                 # subprocess.call('python ' + pyinstaller_path + ' --upx-dir C:\\upx multibootusb.spec', shell=True) == 0 and \
                 #        os.path.exists(os.path.join("dist", 'multibootusb-' + self.version + ".exe")):
-                if subprocess.call('python ' + pyinstaller_path + ' --windowed multibootusb.spec', shell=True) == 0 and \
+                if subprocess.call('python ' + pyinstaller_path + ' --onefile onefile-multibootusb.spec', shell=True) == 0 and \
                         os.path.exists(os.path.join("dist", 'multibootusb-' + self.version + ".exe")):
                     shutil.copy2(os.path.join("dist", 'multibootusb-' + self.version + ".exe"),
                                               os.path.join(self.release_upload_dir, "Windows"))

@@ -16,7 +16,6 @@ from .gen import *
 from . import config
 
 
-
 def distro(iso_cfg_ext_dir, iso_link):
     """
     Detect if distro is supported by multibootusb.
@@ -40,7 +39,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                         if re.search(r'ubcd', string, re.I):
                             return "ubcd"
                         elif re.search(r'Super Grub Disk', string, re.I):
-                            return None
+                            return "sgrubd2"
                         elif re.search(r'hbcd', string, re.I):
                             return "hbcd"
                         elif re.search(r'systemrescuecd', string, re.I):
@@ -136,13 +135,12 @@ def distro(iso_cfg_ext_dir, iso_link):
 def detect_iso_from_file_list(iso_link):
     """
     Fallback detection script from the content of an ISO.
-    :return:
+    :return: supported distro as string
     """
+    from . import _7zip
     if os.path.exists(iso_link):
-        iso9660fs = ISO9660(iso_link)
-        iso_file_list = iso9660fs.readDir("/")
-        print(iso_file_list)
-        if any("sources" in s.lower() for s in iso_file_list):
+        iso_file_list = _7zip.list_iso(iso_link)
+        if any("sources" in s.lower() for s in iso_file_list) and any("boot.wim" in s.lower() for s in iso_file_list):
             return "Windows"
         elif any("config.isoclient" in s.lower() for s in iso_file_list):
             return "opensuse"

@@ -167,14 +167,9 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QDialog, Ui_Dialog):
                     config.iso_link = config.iso_link.strip().replace("/", "\\")
             self.ui.lineEdit.insert(str(config.iso_link))
             if os.path.exists(config.iso_link):
-                clean_iso_cfg_ext_dir(
-                    os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))  # Need to be cleaned.
+                clean_iso_cfg_ext_dir(os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))  # Need to be cleaned.
                 extract_cfg_file(config.iso_link)
-                if integrity(config.iso_link) is True:
-                    config.distro = distro(iso_cfg_ext_dir(), config.iso_link)
-                else:
-                    QtWidgets.QMessageBox.warning(self, 'ISO Error.', "ISO integrity failed.\n\n"
-                                                                      "Please check the downloaded ISO.")
+                config.distro = distro(iso_cfg_ext_dir(), config.iso_link)  # Detect supported distro
                 if config.distro:
                     per_availability = persistence.persistence_distro(config.distro, config.usb_disk, config.iso_link)[0]
                     per_max_size = persistence.persistence_distro(config.distro, config.usb_disk, config.iso_link)[1]
@@ -330,41 +325,40 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QDialog, Ui_Dialog):
             QtWidgets.QMessageBox.information(self, "No Mount...", "USB disk is not mounted.\n"
                                                                    "Please mount USB disk and press refresh USB button.")
         else:
-            if not integrity(config.iso_link) is True:
-                QtWidgets.QMessageBox.information(self, "Integrity...",
-                                              "ISO integrity failed.\n\nPlease check the downloaded ISO.")
-            else:
-                if os.path.exists(config.iso_link):
-                    self.ui.lineEdit.clear()
-                    if config.distro:
-                        print("Distro type detected is ", config.distro)
-                        copy_mbusb_dir_usb(config.usb_disk)
-                        if not os.path.exists(os.path.join(config.usb_mount, "multibootusb", iso_basename(config.iso_link))):
-                            install_size = iso_size(config.iso_link) + config.persistence
-                            # print("Persistence choosen is " + str(persistence_size) + " MB")
-                            if install_size >= disk_usage(config.usb_mount).free:
-                                QtWidgets.QMessageBox.information(self, "No Space.", "No space available on " +
-                                                                  config.usb_disk)
-                            else:
-                                reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
-                                                                   'Selected USB disk:: %s\n' % config.usb_disk +
-                                                                   'USB mount point:: %s\n' % config.usb_mount +
-                                                                   'Selected distro:: %s\n\n' % iso_name(config.iso_link) +
-                                                                   'Would you like to proceed for installation?',
-                                                                   QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-
-                                if reply == QtWidgets.QMessageBox.Yes:
-                                    self.ui.slider_persistence.setEnabled(False)
-                                    self.progress_thread_install.start()
-
+            # clean_iso_cfg_ext_dir(os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))  # Need to be cleaned.
+            # extract_cfg_file(config.iso_link)  # Extract files from ISO
+            # config.distro = distro(iso_cfg_ext_dir(), config.iso_link)  # Detect supported distro
+            if os.path.exists(config.iso_link):
+                self.ui.lineEdit.clear()
+                if config.distro:
+                    print("Distro type detected is ", config.distro)
+                    copy_mbusb_dir_usb(config.usb_disk)
+                    if not os.path.exists(os.path.join(config.usb_mount, "multibootusb", iso_basename(config.iso_link))):
+                        install_size = iso_size(config.iso_link) + config.persistence
+                        # print("Persistence choosen is " + str(persistence_size) + " MB")
+                        if install_size >= disk_usage(config.usb_mount).free:
+                            QtWidgets.QMessageBox.information(self, "No Space.", "No space available on " +
+                                                              config.usb_disk)
                         else:
-                            QtWidgets.QMessageBox.information(self, 'Already Exist...',
-                                                          os.path.basename(config.iso_link) + ' is already installed.')
+                            reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
+                                                               'Selected USB disk:: %s\n' % config.usb_disk +
+                                                               'USB mount point:: %s\n' % config.usb_mount +
+                                                               'Selected distro:: %s\n\n' % iso_name(config.iso_link) +
+                                                               'Would you like to proceed for installation?',
+                                                               QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+                            if reply == QtWidgets.QMessageBox.Yes:
+                                self.ui.slider_persistence.setEnabled(False)
+                                self.progress_thread_install.start()
+
                     else:
-                        QtWidgets.QMessageBox.information(self, 'No support...',
-                                                      'Sorry.\n' + os.path.basename(config.iso_link) +
-                                                      ' is not supported at the moment\n'
-                                                      'Please email this issue to feedback.multibootusb@gmail.com')
+                        QtWidgets.QMessageBox.information(self, 'Already Exist...',
+                                                      os.path.basename(config.iso_link) + ' is already installed.')
+                else:
+                    QtWidgets.QMessageBox.information(self, 'No support...',
+                                                  'Sorry.\n' + os.path.basename(config.iso_link) +
+                                                  ' is not supported at the moment\n'
+                                                  'Please email this issue to feedback.multibootusb@gmail.com')
 
         # Added to refresh usb disk remaining size after distro installation
         # self.update_gui_usb_info()

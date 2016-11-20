@@ -50,7 +50,7 @@ def syslinux_default(usb_disk, version=4):
     usb_fs = usb_details['file_system']
     usb_mount = usb_details['mount_point']
     mbr_install_cmd = 'dd bs=440 count=1 conv=notrunc if=' + mbr_bin + ' of=' + usb_disk[:-1]
-    print(usb_fs)
+    # print(usb_fs)
     if usb_fs in extlinux_fs:
         extlinu_cmd = extlinux_path + ' --install ' + os.path.join(usb_mount, 'multibootusb')
         if os.access(extlinux_path, os.X_OK) is False:
@@ -106,21 +106,22 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
     if isolinux_bin_exist(iso_link) is False:
         print('Distro does not use isolinux for booting ISO.')
     else:
-        iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
-        isolinux_path = os.path.join(iso_cfg_ext_dir, isolinux_bin_path(iso_link)[1:])
+        # iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
+        _iso_cfg_ext_dir = iso_cfg_ext_dir()
+        isolinux_path = os.path.join(_iso_cfg_ext_dir, isolinux_bin_path(iso_link))
         iso_linux_bin_dir = isolinux_bin_dir(iso_link)
         config.syslinux_version = isolinux_version(isolinux_path)
 
         if distro == "generic" or distro == "alpine":
             install_dir = usb_mount
-            distro_syslinux_install_dir = os.path.join(usb_mount, iso_linux_bin_dir[1:].strip("/")).replace(usb_mount, "")
-            distro_sys_install_bs = os.path.join(install_dir, iso_linux_bin_dir[1:].strip("/"), distro + '.bs')
+            distro_syslinux_install_dir = os.path.join(usb_mount, iso_linux_bin_dir.strip("/")).replace(usb_mount, "")
+            distro_sys_install_bs = os.path.join(install_dir, iso_linux_bin_dir.strip("/"), distro + '.bs')
         else:
             install_dir = os.path.join(usb_mount, "multibootusb", iso_basename(iso_link))
-            distro_syslinux_install_dir = os.path.join(install_dir, iso_linux_bin_dir[1:].strip("/")).replace(usb_mount, "")
-            distro_sys_install_bs = os.path.join(install_dir, iso_linux_bin_dir[1:].strip("/"), distro + '.bs')
+            distro_syslinux_install_dir = os.path.join(install_dir, iso_linux_bin_dir.strip("/")).replace(usb_mount, "")
+            distro_sys_install_bs = os.path.join(install_dir, iso_linux_bin_dir.strip("/"), distro + '.bs')
             print(distro_sys_install_bs)
-            print(distro_syslinux_install_dir)
+            #print(distro_syslinux_install_dir)
 
         if usb_fs in syslinux_fs:
             if config.syslinux_version == str(3):

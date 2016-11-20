@@ -91,3 +91,10 @@ ENV/
 
 # Created by PyCharm
 .idea
+
+# Source file
+multibootusb*.tar.gz
+
+# Setup file
+
+multibootusb*.exe
