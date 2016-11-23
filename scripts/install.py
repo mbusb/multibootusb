@@ -56,9 +56,9 @@ def install_distro():
         print("Extracting iso to " + usb_mount)
         iso_extract_full(config.iso_link, usb_mount)
     elif config.distro == "trinity-rescue":
-        iso.iso_extract_file(config.iso_link, usb_mount, 'trk3')
+        iso.iso_extract_file(config.iso_link, usb_mount, '*trk3')
     elif config.distro == "ipfire":
-        iso.iso_extract_file(config.iso_link, usb_mount, '.tlz')
+        iso.iso_extract_file(config.iso_link, usb_mount, '*.tlz')
         iso.iso_extract_file(config.iso_link, usb_mount, 'distro.img')
         iso.iso_extract_file(config.iso_link, install_dir, 'boot')
     elif config.distro == "zenwalk":
@@ -71,6 +71,9 @@ def install_distro():
         copy_iso(config.iso_link, install_dir)
     elif config.distro == 'sgrubd2':
         copy_iso(config.iso_link, install_dir)
+    elif config.distro == 'alt-linux':
+        iso.iso_extract_file(config.iso_link, install_dir, '-xr!*rescue')
+        iso.iso_extract_file(config.iso_link, config.usb_mount, 'rescue')
     elif config.distro == "generic":
         with open(os.path.join(install_dir, "generic.cfg"), "w") as f:
             f.write(os.path.join(isolinux_bin_dir(config.iso_link), "generic") + ".bs")

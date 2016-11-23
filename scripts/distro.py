@@ -114,6 +114,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "alpine"
                         elif re.search(r'http://support.kaspersky.com', string, re.I):
                             return "kaspersky"
+                        elif re.search(r'ALT Linux', string, re.I):
+                            return "alt-linux"
 
         distro = detect_iso_from_file_list(iso_link)
         if distro:

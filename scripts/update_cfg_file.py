@@ -185,6 +185,8 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                 elif distro == "salix-live":
                     string = re.sub(r'iso_path', '/multibootusb/' + iso_basename(iso_link) + '/' + iso_name(iso_link),
                                     string)
+                elif distro == 'alt-linux':
+                    string = re.sub(r':cdrom', ':disk', string)
 
                 config_file = open(cfg_file, "w")
                 config_file.write(string)
