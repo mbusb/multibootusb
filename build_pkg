@@ -57,9 +57,9 @@ class pkg():
             os.mkdir(self.release_upload_dir)
         if not os.path.exists(os.path.join(self.release_upload_dir, "Linux")):
             os.mkdir(os.path.join(self.release_upload_dir, "Linux"))
-        elif not os.path.exists(os.path.join(self.release_upload_dir, "Windows")):
+        if not os.path.exists(os.path.join(self.release_upload_dir, "Windows")):
             os.mkdir(os.path.join(self.release_upload_dir, "Windows"))
-        elif not os.path.exists(os.path.join(self.release_upload_dir, "Source")):
+        if not os.path.exists(os.path.join(self.release_upload_dir, "Source")):
             os.mkdir(os.path.join(self.release_upload_dir, "Source"))
         if self.pkg_name == "deb":
             print("Ensure thta you have python-stdeb package installed!")
