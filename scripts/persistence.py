@@ -40,18 +40,17 @@ def persistence_distro(distro, usb_disk, iso_link):
     if distro == "ubuntu":
         print("Persistence option is available.")
         return "ubuntu", _max_size
+    # FIXME to get debian persistence workable...
+    #  Able to add successfully but unable to keep persistence data.
     elif distro == "debian" or distro == "debian-install":
         print("Persistence option is available.")
         return "debian", _max_size
-    else:
-        return None, None
-    # FIXME to get debian and fedora persistence workable...
-    # Able to add successfully but unable to keep persistence data.
-    '''
-        elif distro == "fedora":
+    elif distro == "fedora":
         print("Persistence option is available.")
         return "fedora", _max_size
-    '''
+    else:
+        return None, None
+
 
 def create_persistence():
     if config.distro == "ubuntu":

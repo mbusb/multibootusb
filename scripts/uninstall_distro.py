@@ -185,7 +185,10 @@ def uninstall_progress():
             folder_size_to_remove = 0
         folder_size_to_remove += disk_usage(str(usb_mount) + "/multibootusb/" + config.uninstall_distro_dir_name).used
     elif config.distro == "windows" or config.distro == "Windows":
-        folder_size_to_remove = disk_usage(str(usb_mount) + "/SOURCES").used
+        if os.path.exists(os.path.join(usb_mount, "SOURCES")):
+            folder_size_to_remove = disk_usage(str(usb_mount) + "/SOURCES").used
+        else:
+            folder_size_to_remove = disk_usage(str(usb_mount) + "/SSTR").used
     elif config.distro == "ipfire":
         folder_size_to_remove = disk_usage(str(usb_mount) + "/multibootusb/" + config.uninstall_distro_dir_name).used
         files = os.listdir(os.path.join(str(usb_mount)))

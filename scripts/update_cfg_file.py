@@ -76,8 +76,8 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                         if re.search(r'liveimg', string, re.I):
                             string = re.sub(r'liveimg', 'liveimg overlay=UUID=' + usb_uuid, string)
                         elif re.search(r'rd.live.image', string, re.I):
-                            string = re.sub(r'rd.live.image', 'rd.live.image rd.live.overlay=UUID=' + usb_uuid, string)
-                        string = re.sub(r' ro ', ' rw ', string)
+                            string = re.sub(r'rd.live.image', 'rd.live.image rw rd.live.overlay=UUID=' + usb_uuid, string)
+                        string = re.sub(r' ro ', '', string)
                 elif distro == 'kaspersky':
                     if not os.path.exists(os.path.join(usb_mount, 'multibootusb', iso_basename(iso_link), 'kaspersky.cfg')):
                         shutil.copyfile(resource_path(os.path.join('data', 'multibootusb', 'syslinux.cfg')),
@@ -111,9 +111,10 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                     string = re.sub(r'initrd=',
                                     r'from=/multibootusb/' + iso_basename(iso_link) + '/slax fromusb initrd=', string)
                 elif distro == "knoppix":
-                    string = re.sub(r'(append)',
-                                    r'\1  knoppix_dir=/multibootusb/' + iso_basename(iso_link) + '/KNOPPIX',
-                                    string)
+                    string = re.sub(r'initrd=', 'knoppix_dir=/multibootusb/' + iso_basename(iso_link) + '/KNOPPIX  initrd=', string)
+                    #string = re.sub(r'(append)',
+                    #                r'\1  knoppix_dir=/multibootusb/' + iso_basename(iso_link) + '/KNOPPIX',
+                    #                string)
                 elif distro == "gentoo":
                     string = re.sub(r'append ',
                                     'append real_root=' + usb_disk + ' slowusb subdir=/multibootusb/' +
