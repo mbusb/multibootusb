@@ -13,6 +13,7 @@ import re
 from .iso import *
 from .isodump3 import ISO9660
 from .gen import *
+from . import _7zip
 from . import config
 
 
@@ -23,11 +24,13 @@ def distro(iso_cfg_ext_dir, iso_link):
     :return: Detected distro name as string.
     """
     iso9660fs = ISO9660(iso_link)
-    iso_file_list = iso9660fs.readDir("/")
+    # iso_file_list = iso9660fs.readDir("/")
+    iso_file_list = _7zip.list_iso(iso_link)
     if platform.system() == "Linux" or platform.system() == "Windows":
         for path, subdirs, files in os.walk(iso_cfg_ext_dir):
             for name in files:
-                if name.endswith('.cfg') or name.endswith('.CFG') or name.endswith('.txt') or name.endswith('.TXT'):
+                if name.endswith('.cfg') or name.endswith('.CFG') or name.endswith('.txt') or name.endswith('.TXT') \
+                        or name.endswith('.lst'):
                     try:
                         # errors='ignore' is required as some files also contain non utf character
                         string = open(os.path.join(path, name),  errors='ignore').read()
@@ -80,7 +83,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "wifislax"
                         elif re.search(r'slax', string, re.I):
                             return "slax"
-                        elif re.search(r'sms|vector|autoexec', string, re.I):
+                        elif re.search(r'sms|vector|autoexec', string, re.I) and isolinux_bin_exist(iso_link):
                             return "sms"
                         elif re.search(r'antix', string, re.I):
                             return "antix"
@@ -116,6 +119,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "kaspersky"
                         elif re.search(r'ALT Linux', string, re.I):
                             return "alt-linux"
+                        elif re.search(r'Sergei Strelec', string, re.I):
+                            return "Windows"
 
         distro = detect_iso_from_file_list(iso_link)
         if distro:
@@ -139,7 +144,6 @@ def detect_iso_from_file_list(iso_link):
     Fallback detection script from the content of an ISO.
     :return: supported distro as string
     """
-    from . import _7zip
     if os.path.exists(iso_link):
         iso_file_list = _7zip.list_iso(iso_link)
         if any("sources" in s.lower() for s in iso_file_list) and any("boot.wim" in s.lower() for s in iso_file_list):
@@ -150,6 +154,8 @@ def detect_iso_from_file_list(iso_link):
             return "slitaz"
         elif any("memtest.img" in s.lower() for s in iso_file_list):
             return "mentest"
+        elif any("menu.lst" in s.lower() for s in iso_file_list):
+            return "grub4dos"
         else:
             print(iso_file_list)
 

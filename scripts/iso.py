@@ -100,7 +100,7 @@ def isolinux_bin_dir(iso_link):
 def isolinux_bin_path(iso_link):
     """
     Detects pat to "isolinux.bin".
-    :return: path of "isolinux.bin" directory as string.
+    :return: path of "isolinux.bin" as a string.
     """
     iso_bin_path = False
     if isolinux_bin_exist(iso_link) is not False:
@@ -111,6 +111,21 @@ def isolinux_bin_path(iso_link):
                 break
 
     return iso_bin_path
+
+
+def iso_menu_lst_path(iso_link):
+    """
+    Detects pat to "menu.lst" of grub4dos.
+    :return: path of "menu.lst" as a string.
+    """
+    menu_lst_path = False
+    iso_file_list = _7zip.list_iso(iso_link)
+    for f in iso_file_list:
+        if 'menu.lst' in f.lower():
+            menu_lst_path = f
+            break
+
+    return menu_lst_path
 
 
 def integrity(iso_link):
@@ -162,7 +177,7 @@ def extract_cfg_file(iso_link):
     :param iso_link: Path to ISO file
     :return:
     """
-    _pattern = ['.cfg', '.CFG', '.txt', '.TXT', 'isolinux.bin', 'ISOLINUX.BIN']
+    _pattern = ['.cfg', '.CFG', '.txt', '.TXT', 'isolinux.bin', 'ISOLINUX.BIN', '.lst']
     # file_list = iso_file_list(iso_link)
     for ext in _pattern:
         _7zip.extract_iso(iso_link, _iso_cfg_ext_dir, pattern='*' + ext)

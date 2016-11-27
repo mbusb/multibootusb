@@ -9,6 +9,8 @@
 iso_link = ""
 usb_disk = ""
 usb_mount = ""
+usb_uuid = ""
+usb_label = ""
 persistence = 0
 distro = ""
 status_text = ""

@@ -66,18 +66,29 @@ def install_distro():
         iso.iso_extract_file(config.iso_link, install_dir, "kernel")
         copy_iso(config.iso_link, install_dir)
     elif config.distro == "salix-live":
-        iso.iso_extract_file(config.iso_link, install_dir, "boot")
-        config.status_text = "Copying ISO..."
-        copy_iso(config.iso_link, install_dir)
+        # iso.iso_extract_file(config.iso_link, install_dir, "boot")
+        iso.iso_extract_file(config.iso_link, install_dir, '*syslinux')
+        iso.iso_extract_file(config.iso_link, install_dir, '*menus')
+        iso.iso_extract_file(config.iso_link, install_dir, '*vmlinuz')
+        iso.iso_extract_file(config.iso_link, install_dir, '*initrd*')
+        iso.iso_extract_file(config.iso_link, usb_mount, '*modules')
+        iso.iso_extract_file(config.iso_link, usb_mount, '*packages')
+        iso.iso_extract_file(config.iso_link, usb_mount, '*optional')
+        iso.iso_extract_file(config.iso_link, usb_mount, '*liveboot')
+        #iso.iso_extract_full(config.iso_link, usb_mount)
+        # config.status_text = "Copying ISO..."
+        # copy_iso(config.iso_link, install_dir)
     elif config.distro == 'sgrubd2':
         copy_iso(config.iso_link, install_dir)
     elif config.distro == 'alt-linux':
         iso.iso_extract_file(config.iso_link, install_dir, '-xr!*rescue')
         iso.iso_extract_file(config.iso_link, config.usb_mount, 'rescue')
     elif config.distro == "generic":
-        with open(os.path.join(install_dir, "generic.cfg"), "w") as f:
-            f.write(os.path.join(isolinux_bin_dir(config.iso_link), "generic") + ".bs")
-            iso_extract_full(config.iso_link, usb_mount)
+        #with open(os.path.join(install_dir, "generic.cfg"), "w") as f:
+        #    f.write(os.path.join(isolinux_bin_dir(config.iso_link), "generic") + ".bs")
+        iso_extract_full(config.iso_link, usb_mount)
+    elif config.distro == 'grub4dos':
+        iso_extract_full(config.iso_link, usb_mount)
     else:
         iso.iso_extract_full(config.iso_link, install_dir)
 

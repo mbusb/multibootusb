@@ -28,6 +28,8 @@ def persistence_distro(distro, usb_disk, iso_link):
     usb_details = usb.details(usb_disk)
     usb_sf = usb_details['file_system']
     usb_free_size = usb_details['size_free']
+    config.usb_uuid = usb_details['uuid']
+    config.usb_label = usb_details['label']
     if usb_sf == 'vfat' or 'FAT32':
         if usb_free_size > fat_max_size:
             _max_size = fat_max_size
@@ -45,21 +47,19 @@ def persistence_distro(distro, usb_disk, iso_link):
         return None, None
     # FIXME to get debian and fedora persistence workable...
     # Able to add successfully but unable to keep persistence data.
-
-
-
     '''
-    elif distro == "fedora":
-        print "Persistence option is available."
-        return "fedora"
+        elif distro == "fedora":
+        print("Persistence option is available.")
+        return "fedora", _max_size
     '''
-
 
 def create_persistence():
     if config.distro == "ubuntu":
         fs_name = 'casper-rw'
     elif config.distro == 'debian' or config.distro == "debian-install":
         fs_name = 'live-rw'
+    elif config.distro == 'fedora':
+        fs_name = 'overlay-' + config.usb_label + '-' + config.usb_uuid
 
     persistence = config.persistence / 1024 / 1024
 
@@ -75,8 +75,13 @@ def create_persistence():
         persistence_mkfs_cmd = 'echo y|' + mkfs + ' -b 1024 -L ' + fs_name + ' ' + os.path.join(config.usb_mount, 'multibootusb',
                                                             iso.iso_basename(config.iso_link), fs_name)
 
-    persistence_dd_cmd = dd + ' if=/dev/zero ' \
-                              'of=' + os.path.join(config.usb_mount, 'multibootusb',
+    if config.distro == 'fedora':
+        persistence_dd_cmd = dd + ' if=/dev/zero ' \
+                                  'of=' + os.path.join(config.usb_mount, 'multibootusb',
+                                                       iso.iso_basename(config.iso_link), 'LiveOS', fs_name) + \
+                             ' bs=1M count=' + str(int(persistence))
+    else:
+        persistence_dd_cmd = dd + ' if=/dev/zero of=' + os.path.join(config.usb_mount, 'multibootusb',
                                                    iso.iso_basename(config.iso_link), fs_name) +\
                                 ' bs=1M count=' + str(int(persistence))
 
@@ -86,10 +91,11 @@ def create_persistence():
     if subprocess.call(persistence_dd_cmd, shell=True) == 0:
         print("\nSuccessfully created persistence file...\n")
 
-    print('Executing ==>', persistence_mkfs_cmd)
-    config.status_text = 'Applying filesystem to persistence file...'
-    if subprocess.call(persistence_mkfs_cmd, shell=True) == 0:
-        print("\nSuccessfully applied filesystem...\n")
+    if not config.distro == 'fedora':
+        print('Executing ==>', persistence_mkfs_cmd)
+        config.status_text = 'Applying filesystem to persistence file...'
+        if subprocess.call(persistence_mkfs_cmd, shell=True) == 0:
+            print("\nSuccessfully applied filesystem...\n")
 
 
 def extract_file(file_path, install_dir):
