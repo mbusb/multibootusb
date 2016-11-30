@@ -269,6 +269,9 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 config_file.write("LINUX memdisk\n")
                 config_file.write("INITRD " + "/multibootusb/" + iso_basename(iso_link) + '/' + iso_name(iso_link) + '\n')
                 config_file.write("APPEND iso\n")
+            elif distro == 'ReactOS':
+                config_file.write("COM32 mboot.c32")
+                config_file.write("APPEND /loader/setupldr.sys")
             else:
                 if isolinux_bin_exist(config.iso_link) is True:
                     if distro == "generic":

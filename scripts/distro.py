@@ -121,6 +121,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "alt-linux"
                         elif re.search(r'Sergei Strelec', string, re.I):
                             return "Windows"
+                        elif re.search(r'ReactOS', string, re.I):
+                            return "ReactOS"
 
         distro = detect_iso_from_file_list(iso_link)
         if distro:

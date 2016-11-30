@@ -89,6 +89,8 @@ def install_distro():
         iso_extract_full(config.iso_link, usb_mount)
     elif config.distro == 'grub4dos':
         iso_extract_full(config.iso_link, usb_mount)
+    elif config.distro == 'ReactOS':
+        iso_extract_full(config.iso_link, usb_mount)
     else:
         iso.iso_extract_full(config.iso_link, install_dir)
 
