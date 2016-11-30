@@ -1,5 +1,14 @@
 Version - 8.1.0
 ---------------
+* Added Fedora persistence (must not use NTFS filesystem)
+* Added Sergei Strelec
+* Fixed the knoppix booting issue
+* Unhardcode icon file type in GNU/Linux laucher, so that theming can be added
+* Fixed the bug which crashed multibootusb when distro contain non utf charecters
+* Added support for Alt Linux
+
+Version - 8.1.0
+---------------
 * Fix for debain package bug which does not pull in dependency packages
 * In cluded 7zip for extracting ISO files (including UDF)
 * Fix for windows installer
