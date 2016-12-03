@@ -1,4 +1,13 @@
-Version - 8.1.0
+Version - 8.3.0
+---------------
+* Added React OS
+* Added option to list all drived, including fixed
+* Modified USB detection code under Windows
+* Fixed all reported bugs
+* No more exit confirmation if no process is pending
+* Information about the requirement of admin privilege
+
+Version - 8.2.0
 ---------------
 * Added Fedora persistence (must not use NTFS filesystem)
 * Added Sergei Strelec
