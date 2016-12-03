@@ -12,6 +12,12 @@ import os
 import shutil
 import collections
 import ctypes
+if platform.system() == 'Windows':
+    import psutil
+    import win32com.client
+    import win32com.client
+    import wmi
+    import pythoncom
 
 
 def is_block(usb_disk):
@@ -74,7 +80,7 @@ def disk_usage(mount_path):
         raise NotImplementedError("Platform not supported.")
 
 
-def list(partition=1):
+def list(partition=1, fixed=None):
     """
     List inserted USB devices.
     :return: USB devices as list.
@@ -86,15 +92,19 @@ def list(partition=1):
 
 
         try:
-            # pyudev is good enough to detect USB devices on modern Linux
-            # machines.
+            # pyudev is good enough to detect USB devices on modern Linux machines.
             print("Using pyudev for detecting USB drives...")
             context = pyudev.Context()
-            for device in context.list_devices(subsystem='block', DEVTYPE='partition',
-                                               ID_FS_USAGE="filesystem", ID_TYPE="disk",
-                                               ID_BUS="usb"):
-                if device['ID_BUS'] == "usb" and device['DEVTYPE'] == "partition":
-                    # print(device['DEVNAME'])
+            if fixed is None:
+                for device in context.list_devices(subsystem='block', DEVTYPE='partition',
+                                                   ID_FS_USAGE="filesystem", ID_TYPE="disk",
+                                                   ID_BUS="usb"):
+                    # if device['ID_BUS'] == "usb" and device['DEVTYPE'] == "partition":
+                    if device['ID_BUS'] in ("usb", "scsi") and device['DEVTYPE'] == "partition":
+                        # print(device['DEVNAME'])
+                        devices.append(str(device['DEVNAME']))
+            else:
+                for device in context.list_devices(subsystem='block', DEVTYPE='partition'):
                     devices.append(str(device['DEVNAME']))
         except:
             bus = dbus.SystemBus()
@@ -139,12 +149,28 @@ def list(partition=1):
                     print("No USB device found...")
 
     elif platform.system() == "Windows":
-        import win32com.client
-        oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
-        oDrives = oFS.Drives
-        for drive in oDrives:
-            if drive.DriveType == 1 and drive.IsReady:
-                devices.append(drive)
+        if fixed is not None:
+            for drive in psutil.disk_partitions():
+                if 'cdrom' in drive.opts or drive.fstype == '':
+                    # Skip cdrom drives or the disk with no filesystem
+                    continue
+                devices.append(drive[0][:-1])
+        else:
+            try:
+                # Try new method using psutil. It should also detect USB 3.0 (but not tested by me)
+                for drive in psutil.disk_partitions():
+                    if 'cdrom' in drive.opts or drive.fstype == '':
+                        # Skip cdrom drives or the disk with no filesystem
+                        continue
+                    if 'removable' in drive.opts:
+                        devices.append(drive[0][:-1])
+            except:
+                # Revert back to old method if psutil fails (which is unlikely)
+                oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
+                oDrives = oFS.Drives
+                for drive in oDrives:
+                    if drive.DriveType == 1 and drive.IsReady:
+                        devices.append(drive)
 
     if devices:
         return devices
@@ -169,7 +195,8 @@ def details_udev(usb_disk_part):
         for device in context.list_devices(subsystem='block', DEVTYPE='partition',
                                            ID_FS_USAGE="filesystem", ID_TYPE="disk",
                                            ID_BUS="usb"):
-            if device['ID_BUS'] == "usb" and device['DEVTYPE'] == "partition":
+            # if device['ID_BUS'] == "usb" and device['DEVTYPE'] == "partition":
+            if device['ID_BUS'] in ("usb", "scsi") and device['DEVTYPE'] == "partition":
                 if (device['DEVNAME']) == usb_disk_part:
                     uuid = str(device['ID_FS_UUID'])
                     file_system = str(device['ID_FS_TYPE'])
@@ -279,13 +306,9 @@ def win_disk_details(disk_drive):
     :param disk_drive: USB disk like 'G:'
     :return: See the details(usb_disk_part) function for return values.
     """
-    import win32com.client
-    import wmi
-    import pythoncom
     pythoncom.CoInitialize()
     vendor = 'Not_Found'
     model = 'Not_Found'
-    c = wmi.WMI()
     selected_usb_part = str(disk_drive)
     oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
     d = oFS.GetDrive(oFS.GetDriveName(oFS.GetAbsolutePathName(selected_usb_part)))
@@ -300,12 +323,18 @@ def win_disk_details(disk_drive):
     size_total = shutil.disk_usage(mount_point)[0]
     size_used = shutil.disk_usage(mount_point)[1]
     size_free = shutil.disk_usage(mount_point)[2]
+    '''
+    # The below code works only from vista and above. I have removed it as many people reported that the software
+    # was not working under windows xp. Even then, it is significantly slow if 'All Drives' option is checked.
+    # Removing the code doesn't affect the functionality as it is only used to find vendor id and model of the drive.
+    c = wmi.WMI()
     for physical_disk in c.Win32_DiskDrive(InterfaceType="USB"):
         for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
             for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
                 if logical_disk.Caption == disk_drive:
                     vendor = (physical_disk.PNPDeviceID.split('&VEN_'))[1].split('&PROD_')[0]
                     model = (physical_disk.PNPDeviceID.split('&PROD_'))[1].split('&REV_')[0]
+    '''
 
     return {'uuid': uuid, 'file_system': file_system, 'label': label, 'mount_point': mount_point,
             'size_total': size_total, 'size_used': size_used, 'size_free': size_free,

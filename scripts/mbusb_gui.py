@@ -40,6 +40,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QDialog, Ui_Dialog):
         self.ui.setupUi(self)
 
         #  Main Tab
+        self.ui.checkBox_all_drives.clicked.connect(self.add_device)
         self.ui.detect_usb.clicked.connect(self.onRefereshClick)
         self.ui.close.clicked.connect(self.on_close_Click)
         self.ui.browse_iso.clicked.connect(self.browse_iso)
@@ -92,7 +93,11 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QDialog, Ui_Dialog):
         Adds list of available USB devices to GUI combobox.
         :return:
         """
-        detected_device = usb.list()
+        self.ui.comboBox.clear()
+        if self.ui.checkBox_all_drives.isChecked():
+            detected_device = usb.list(partition=1, fixed=True)
+        else:
+            detected_device = usb.list()
         if bool(detected_device):
             for device in detected_device:
                 self.ui.comboBox.addItem(str(device))
@@ -132,8 +137,12 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QDialog, Ui_Dialog):
         config.usb_mount = self.usb_details['mount_point']
         self.ui.usb_dev.setText("Drive :: " + usb_disk)
         # self.label.setFont(QtGui.QFont("Times",weight=QtGui.QFont.Bold))
-        self.ui.usb_vendor.setText("Vendor :: " + self.usb_details['vendor'])
-        self.ui.usb_model.setText("Model :: " + self.usb_details['model'])
+        if platform.system() == 'Windows':
+            self.ui.usb_vendor.setText("FileSystem :: " + self.usb_details['file_system'])
+            self.ui.usb_model.setText("Label :: " + self.usb_details['label'])
+        else:
+            self.ui.usb_vendor.setText("Vendor :: " + self.usb_details['vendor'])
+            self.ui.usb_model.setText("Model :: " + self.usb_details['model'])
         self.ui.usb_size.setText("Total Size :: " + str(usb.bytes2human(self.usb_details['size_total'])))
         self.ui.usb_mount.setText("Mount :: " + self.usb_details['mount_point'])
         self.update_list_box(usb_disk)
@@ -206,6 +215,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QDialog, Ui_Dialog):
             os.system('sync')
         self.ui.status.clear()
         QtWidgets.QMessageBox.information(self, 'Finished...', iso_name(config.iso_link) + ' has been successfully installed.')
+        config.process_exist = None
 
     def onInstall_syslinuxClick(self):
         """
@@ -349,6 +359,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QDialog, Ui_Dialog):
 
                             if reply == QtWidgets.QMessageBox.Yes:
                                 self.ui.slider_persistence.setEnabled(False)
+                                config.process_exist = True
                                 self.progress_thread_install.start()
 
                     else:
@@ -374,6 +385,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QDialog, Ui_Dialog):
         self.ui.pushButton.setEnabled(True)
         self.ui.imager_bootable.setText("Bootable ISO :: ")
         self.ui.imager_iso_size.setText("ISO Size :: ")
+        config.process_exist = None
         QtWidgets.QMessageBox.information(self, 'Finished...', 'ISO has been written to USB disk.\nPlease reboot your '
                                                            'system to boot from USB.')
 
@@ -420,6 +432,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QDialog, Ui_Dialog):
 
                 if reply == QtWidgets.QMessageBox.Yes:
                     self.dd_start()
+                    config.process_exist = True
                     self.progress_thread_dd.start()
 
     def on_close_Click(self):
@@ -435,16 +448,20 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QDialog, Ui_Dialog):
         :param event: Close event.
         :return:
         """
-        reply = QtWidgets.QMessageBox.question(self, 'Exit MultiBootUSB...',
-                                           "Do you really want to quit multibootusb?", QtWidgets.QMessageBox.Yes,
-                                            QtWidgets.QMessageBox.No)
-        if reply == QtWidgets.QMessageBox.Yes:
-            print("Closing multibootusb...")
+        if config.process_exist == None:
             event.accept()
-            sys.exit(0)
         else:
-            print("Close event cancelled.")
-            event.ignore()
+            reply = QtWidgets.QMessageBox.question(self, 'Exit MultiBootUSB...',
+                                               "A process is still running.\n"
+                                               "Do you really want to quit multibootusb?", QtWidgets.QMessageBox.Yes,
+                                                QtWidgets.QMessageBox.No)
+            if reply == QtWidgets.QMessageBox.Yes:
+                print("Closing multibootusb...")
+                event.accept()
+                sys.exit(0)
+            else:
+                print("Close event cancelled.")
+                event.ignore()
 
 
 class GuiInstallProgress(QtCore.QThread):
@@ -578,6 +595,20 @@ class GenericThread(QtCore.QThread):
         self.function(*self.args, **self.kwargs)
         return
 
+
+def show_admin_info():
+    """
+    Show simple information box reminding user to run the software with admin/root privilege.
+    Only required under Linux as the windows executable always will start with admin privilege.
+    :return:
+    """
+    msg = QtWidgets.QMessageBox()
+    msg.setIcon(QtWidgets.QMessageBox.Information)
+    msg.setText('Admin privilege is required to run multibootusb.\n If you are running from source try '
+                '\'sudo python3 ./multibootusb\'\n or you can try \'multibootusb-pkexec\' (post install)')
+    msg.exec_()
+
+
 def main_gui():
     app = QtWidgets.QApplication(sys.argv)
     window = AppGui()
@@ -585,4 +616,7 @@ def main_gui():
     window.show()
     window.setWindowTitle("MultiBootUSB - " + mbusb_version())
     window.setWindowIcon(QtGui.QIcon(resource_path(os.path.join("data", "tools", "multibootusb.png"))))
+    if platform.system() == 'Linux':
+        if os.getuid() != 0:
+            show_admin_info()
     sys.exit(app.exec_())

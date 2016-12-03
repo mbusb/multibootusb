@@ -43,8 +43,12 @@ def usage():
 
 
 def start_gui():
-    print('Starting multibootusb GUI...')
     from scripts import mbusb_gui
+    print('Starting multibootusb GUI...')
+    if platform.system() == 'Linux':
+        if os.getuid() != 0:
+            print('\n\n\nAdmin privilege is required to run multibootusb.\n If you are running from source try '
+                  '\'sudo python3 ./multibootusb\'\n or you can try \'multibootusb-pkexec\' (post install)\n\n\n')
     mbusb_gui.main_gui()
 
 

@@ -129,7 +129,7 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
         elif self.ui.ram_iso_1024.isChecked():
             return str(1024)
         elif self.ui.ram_iso_2048.isChecked():
-            return str(2048)
+            return str(2047)
         else:
             return None
 
@@ -147,7 +147,7 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
         if self.ui.ram_usb_1024.isChecked():
             return str(1024)
         if self.ui.ram_usb_2048.isChecked():
-            return str(2048)
+            return str(2047)
         else:
             return None
             
@@ -173,6 +173,7 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
         elif platform.system() == "Windows":
             print(resource_path(os.path.join("data", "tools", "qemu", "qemu-system-x86_64.exe")))
             return resource_path(os.path.join("data", "tools", "qemu", "qemu-system-x86_64.exe"))
+
 
     def get_physical_disk_number(self, usb_disk):
         """

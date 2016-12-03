@@ -20,6 +20,8 @@ uninstall_distro_dir_name = ""
 uninstall_distro_dir_path = ""
 iso_file_list = ''
 
+process_exist = None
+
 imager_iso_link = ""
 imager_usb_disk_selected = ""
 imager_lock = ""
