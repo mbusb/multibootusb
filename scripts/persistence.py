@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Name:     persistence.py
 # Purpose:  Module to deal with persistence of a selected distro.
@@ -38,15 +38,15 @@ def persistence_distro(distro, usb_disk, iso_link):
     else:
         _max_size = usb_free_size
     if distro == "ubuntu":
-        print("Persistence option is available.")
+        gen.log("Persistence option is available.")
         return "ubuntu", _max_size
     # FIXME to get debian persistence workable...
     #  Able to add successfully but unable to keep persistence data.
     elif distro == "debian" or distro == "debian-install":
-        print("Persistence option is available.")
+        gen.log("Persistence option is available.")
         return "debian", _max_size
     elif distro == "fedora":
-        print("Persistence option is available.")
+        gen.log("Persistence option is available.")
         return "fedora", _max_size
     else:
         return None, None
@@ -84,17 +84,18 @@ def create_persistence():
                                                    iso.iso_basename(config.iso_link), fs_name) +\
                                 ' bs=1M count=' + str(int(persistence))
 
-    print('Executing ==>', persistence_dd_cmd)
+    gen.log('Executing ==>' + persistence_dd_cmd)
     config.status_text = 'Creating persistence file...'
 
     if subprocess.call(persistence_dd_cmd, shell=True) == 0:
-        print("\nSuccessfully created persistence file...\n")
+        gen.log("\nSuccessfully created persistence file...\n")
 
     if not config.distro == 'fedora':
-        print('Executing ==>', persistence_mkfs_cmd)
+        gen.log('Applying filesystem to persistence file...')
+        gen.log('Executing ==> ' + persistence_mkfs_cmd)
         config.status_text = 'Applying filesystem to persistence file...'
         if subprocess.call(persistence_mkfs_cmd, shell=True) == 0:
-            print("\nSuccessfully applied filesystem...\n")
+            gen.log("\nSuccessfully applied filesystem...\n")
 
 
 def extract_file(file_path, install_dir):

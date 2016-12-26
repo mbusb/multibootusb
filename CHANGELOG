@@ -1,3 +1,14 @@
+Version - 8.4.0
+---------------
+* Bug fix in selection of persistence size
+* Fixed crashing of application when selecting extended drive
+* Introduction of log file (/tmp/multibootusb.log on linux and C:\Program Files (x86)\multibootusb\multibootusb.log under Windows)
+* Added F Secure Rescue CD
+* Added Tail
+* Support for latest wifislax
+* Fix for ROSA boot issue
+* Various other minor bug fixes
+
 Version - 8.3.0
 ---------------
 * Added React OS

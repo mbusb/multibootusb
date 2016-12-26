@@ -12,6 +12,8 @@ import os
 import shutil
 import collections
 import ctypes
+import subprocess
+from . import gen
 if platform.system() == 'Windows':
     import psutil
     import win32com.client
@@ -37,8 +39,8 @@ def is_block(usb_disk):
             return True
     try:
         mode = os.stat(usb_disk).st_mode
-        print(mode)
-        print(stat.S_ISBLK(mode))
+        gen.log(mode)
+        gen.log(stat.S_ISBLK(mode))
     except:
         return False
 
@@ -93,7 +95,7 @@ def list(partition=1, fixed=None):
 
         try:
             # pyudev is good enough to detect USB devices on modern Linux machines.
-            print("Using pyudev for detecting USB drives...")
+            gen.log("Using pyudev for detecting USB drives...")
             context = pyudev.Context()
             if fixed is None:
                 for device in context.list_devices(subsystem='block', DEVTYPE='partition',
@@ -101,7 +103,7 @@ def list(partition=1, fixed=None):
                                                    ID_BUS="usb"):
                     # if device['ID_BUS'] == "usb" and device['DEVTYPE'] == "partition":
                     if device['ID_BUS'] in ("usb", "scsi") and device['DEVTYPE'] == "partition":
-                        # print(device['DEVNAME'])
+                        # gen.log(device['DEVNAME'])
                         devices.append(str(device['DEVNAME']))
             else:
                 for device in context.list_devices(subsystem='block', DEVTYPE='partition'):
@@ -111,7 +113,7 @@ def list(partition=1, fixed=None):
             try:
                 # You should come here only if your system does'nt have udev installed.
                 # We will use udiskd2 for now.
-                print("Falling back to Udisks2..")
+                gen.log("Falling back to Udisks2..")
                 ud_manager_obj = bus.get_object(
                     'org.freedesktop.UDisks2', '/org/freedesktop/UDisks2')
                 ud_manager = dbus.Interface(
@@ -128,7 +130,7 @@ def list(partition=1, fixed=None):
                 try:
                     # You must be using really old distro. Otherwise, the code
                     # should not reach here.
-                    print("Falling back to Udisks1...")
+                    gen.log("Falling back to Udisks1...")
                     ud_manager_obj = bus.get_object(
                         "org.freedesktop.UDisks", "/org/freedesktop/UDisks")
                     ud_manager = dbus.Interface(
@@ -146,7 +148,7 @@ def list(partition=1, fixed=None):
                                     'org.freedesktop.UDisks.Device', "DeviceFile")
                                 devices.append(device_file)
                 except:
-                    print("No USB device found...")
+                    gen.log("No USB device found...")
 
     elif platform.system() == "Windows":
         if fixed is not None:
@@ -175,7 +177,7 @@ def list(partition=1, fixed=None):
     if devices:
         return devices
     else:
-        print("No USB device found...")
+        gen.log("No USB device found...")
         return None
 
 
@@ -190,13 +192,20 @@ def details_udev(usb_disk_part):
         This is the easiest and reliable method to find USB details.
         Also, it is a standalone package and no dependencies are required.
         """
-        # print "Using PyUdev for detecting USB details..."
+        # gen.log "Using PyUdev for detecting USB details..."
         context = pyudev.Context()
         for device in context.list_devices(subsystem='block', DEVTYPE='partition',
                                            ID_FS_USAGE="filesystem", ID_TYPE="disk",
                                            ID_BUS="usb"):
-            # if device['ID_BUS'] == "usb" and device['DEVTYPE'] == "partition":
-            if device['ID_BUS'] in ("usb", "scsi") and device['DEVTYPE'] == "partition":
+            fdisk_cmd_out = subprocess.check_output('fdisk -l ' + usb_disk_part, shell=True)
+            if b'Extended' in fdisk_cmd_out:
+                mount_point = ''
+                uuid = 'No_UUID'
+                file_system = 'No_FS'
+                vendor = 'No_Vendor'
+                model = 'No_Model'
+                label = 'No_Label'
+            elif device['ID_BUS'] in ("usb", "scsi") and device['DEVTYPE'] == "partition":
                 if (device['DEVNAME']) == usb_disk_part:
                     uuid = str(device['ID_FS_UUID'])
                     file_system = str(device['ID_FS_TYPE'])
@@ -399,4 +408,4 @@ if __name__ == '__main__':
     usb_devices = list()
     if usb_devices is not None:
         for dev in usb_devices:
-            print(details(dev))
+            gen.log(details(dev))

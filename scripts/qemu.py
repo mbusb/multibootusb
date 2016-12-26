@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Name:     qemu.py
 # Purpose:  Module to boot ISO and USB disks using QEMU.
@@ -34,14 +34,14 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
         
             qemu_iso_link = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', "",  "ISO Files (*.iso)")[0]
         else:
-            print("QEMU does not exist.\nPlease install qemu package to avail this feature.")
+            log("QEMU does not exist.\nPlease install qemu package to avail this feature.")
             QtWidgets.QMessageBox.information(self, 'No QEMU...', 'Please install qemu package to avail this feature.')
             qemu_iso_link = None
 
         if not qemu_iso_link is None:
             self.ui.lineEdit_2.insert(qemu_iso_link)
         else:
-            print ("File not selected.")
+            log ("File not selected.")
             
     def on_Qemu_Boot_iso_Click(self):
         """
@@ -54,7 +54,7 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
             qemu = self.check_qemu_exist()
             qemu_iso_link = str(self.ui.lineEdit_2.text())
             if qemu is None:
-                print("QEMU does not exist.\nPlease install qemu package to avail this feature.")
+                log("QEMU does not exist.\nPlease install qemu package to avail this feature.")
                 QtWidgets.QMessageBox.information(self, 'No QEMU...', 'Please install qemu to avail this feature.')
             else:
                 ram = self.qemu_iso_ram()
@@ -62,14 +62,14 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
                     self.ui.lineEdit_2.clear()
                     if platform.system() == "Windows":
                         try:
-                            print("Executing ==>  " + qemu + " -cdrom " + str(qemu_iso_link) + " -boot d -m " + ram)
+                            log("Executing ==>  " + qemu + " -cdrom " + str(qemu_iso_link) + " -boot d -m " + ram)
                             subprocess.Popen(qemu + " -cdrom " + str(qemu_iso_link) + " -boot d -m " + ram, shell=True)
                         except:
                             QtWidgets.QMessageBox.information(self, 'Error...', 'Unable to start QEMU.')
                     else:
-                        print(qemu + ' -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d')
+                        log(qemu + ' -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d')
                         try:
-                            print("Executing ==>  " + qemu + " -cdrom " + str(qemu_iso_link) + " -boot d -m " + ram)
+                            log("Executing ==>  " + qemu + " -cdrom " + str(qemu_iso_link) + " -boot d -m " + ram)
                             subprocess.Popen(qemu + " -cdrom " + str(qemu_iso_link) + " -boot d -m " + ram, shell=True)
                         except:
                             QtWidgets.QMessageBox.information(self, 'Error...', 'Error booting ISO\n'
@@ -87,7 +87,7 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
         qemu = self.check_qemu_exist()
 
         if qemu is None:
-            print("QEMU does not exist.\nPlease install qemu package to avail this feature.")
+            log("QEMU does not exist.\nPlease install qemu package to avail this feature.")
             QtWidgets.QMessageBox.information(self, 'No QEMU...', 'Please install qemu to avail this feature.')
         else:
             ram = self.qemu_usb_ram()
@@ -99,7 +99,7 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
                     parent_dir = os.getcwd()
                     os.chdir(resource_path(os.path.join("data", "tools", "qemu")))
                     try:
-                        print("Executing ==>  " + qemu + " -L . -boot c -m " + ram + " -hda //./PhysicalDrive" + disk_number)
+                        log("Executing ==>  " + qemu + " -L . -boot c -m " + ram + " -hda //./PhysicalDrive" + disk_number)
                         subprocess.Popen("qemu-system-x86_64.exe -L . -boot c -m "  + ram + " -hda //./PhysicalDrive" + disk_number, shell=True)
                     except:
                         QtWidgets.QMessageBox.information(self, 'Error...', 'Error booting USB\n'
@@ -108,7 +108,7 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
                 elif platform.system() == "Linux":
                     try:
                         qemu_cmd = qemu + ' -hda ' + usb_disk[:-1] + ' -m ' + ram + ' -vga std'
-                        print('Executing ==>', qemu_cmd)
+                        log('Executing ==> ' + qemu_cmd)
                         # adminCmd([qemu, '-hda', usb_disk[:-1], '-m', ram, '-vga std'], gui=True)
                         subprocess.Popen(qemu_cmd, shell=True)
                         # adminCmd(qemu_cmd, gui=True)
@@ -158,10 +158,10 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
         """
         if platform.system() == "Linux":
             if subprocess.call('which qemu-system-x86_64', shell=True) == 0:
-                print("qemu-system-x86_64 exists...")
+                log("qemu-system-x86_64 exists...")
                 qemu = "qemu-system-x86_64"
             elif subprocess.call('which qemu', shell=True) == 0:
-                print("qemu exists")
+                log("qemu exists")
                 qemu = "qemu"
             else:
                 qemu = None
@@ -171,7 +171,7 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
             else:
                 return None
         elif platform.system() == "Windows":
-            print(resource_path(os.path.join("data", "tools", "qemu", "qemu-system-x86_64.exe")))
+            log(resource_path(os.path.join("data", "tools", "qemu", "qemu-system-x86_64.exe")))
             return resource_path(os.path.join("data", "tools", "qemu", "qemu-system-x86_64.exe"))
 
 
@@ -188,9 +188,9 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
                 for logical_disk in partition.associators ("Win32_LogicalDiskToPartition"):
                     if logical_disk.Caption == usb_disk:
                         """
-                        print physical_disk.Caption
-                        print partition.Caption
-                        print logical_disk.Caption
+                        log physical_disk.Caption
+                        log partition.Caption
+                        log logical_disk.Caption
                         """
-                        print("Physical Device Number is " + partition.Caption[6:-14])
+                        log("Physical Device Number is " + partition.Caption[6:-14])
                         return str(partition.Caption[6:-14])

@@ -27,6 +27,7 @@ import re
 import stat
 from ctypes import *
 from . import config
+from . import gen
 
 
 BLOCK_SIZE = 2048
@@ -125,7 +126,7 @@ class ISO9660:
                 if flag == 255:
                     break
             except Exception as e:
-                print("Got exception when init iso file:", sys.exc_info()[0])
+                gen.log("Got exception when init iso file:", sys.exc_info()[0])
                 self.priVol = None
                 self.rootDir = None
                 break
@@ -151,15 +152,15 @@ class ISO9660:
         BLOCK_SIZE = priVol.blockSize
 
         # Check RRIP
-        #print ("loc extent(%d)"%(dirRec.locExtent))
+        #gen.log ("loc extent(%d)"%(dirRec.locExtent))
         self.priVol = priVol # readDirItems will use self.priVol
         root_dir = self.readDirItems(dirRec.locExtent, priVol.rootTotal)[0]
         rripNode = self.__rripLoop__(root_dir.suspBuf, root_dir.lenDr-root_dir.sysUseStar)
         if rripNode.offset != -1:
             self.rripOffset = rripNode.offset
-            #print ("RRIP: rrip_offset %d"%(self.rripOffset))
+            #gen.log ("RRIP: rrip_offset %d"%(self.rripOffset))
         else:
-            print (" This disc don't support RRIP")
+            gen.log (" This disc don't support RRIP")
         self.rootDir = root_dir
 
     #  Rrip extension
@@ -167,7 +168,7 @@ class ISO9660:
 
         if self.rripOffset > 0:
             entry_buf = desc_buf[self.rripOffset:]
-            print ("__rripLoop__ offset:%d"%(self.rripOffset))
+            gen.log ("__rripLoop__ offset:%d"%(self.rripOffset))
         else:
             entry_buf = desc_buf
 
@@ -180,7 +181,7 @@ class ISO9660:
             len_entry = 0
 
             while True:
-                #print (("\n%d, %d\n")%(len_buf, head))
+                #gen.log (("\n%d, %d\n")%(len_buf, head))
                 head += len_entry
                 if len_buf - head < 4: # less than one entry
                     break
@@ -191,7 +192,7 @@ class ISO9660:
                 len_entry = struct.unpack("B", entry_buf[2:3])[0]
                 ver = struct.unpack("B", entry_buf[3:4])[0]
                 #if len_entry == 0:
-                #    print "Got a entry in __rripLoop__ (%c,%c) of SUSP with length:(%d),version:(%d)-->"%(sig1,sig2,len_entry, ver),
+                #    gen.log "Got a entry in __rripLoop__ (%c,%c) of SUSP with length:(%d),version:(%d)-->"%(sig1,sig2,len_entry, ver),
                 if len_entry == 0:
                    break;
 
@@ -199,7 +200,7 @@ class ISO9660:
                     ck1 = struct.unpack("B", entry_buf[4:5])[0]
                     ck2 = struct.unpack("B", entry_buf[5:6])[0]
                     skip = struct.unpack("B", entry_buf[6:7])[0]
-                    #print "-->(0x%x==0xBE,0x%x==EF,%d)" %(ck1, ck2, skip)
+                    #gen.log "-->(0x%x==0xBE,0x%x==EF,%d)" %(ck1, ck2, skip)
                     if ck1 == 0xBE and ck2 == 0xEF:
                         rr.offset = skip
                     continue
@@ -208,12 +209,12 @@ class ISO9660:
                     ce_blk = struct.unpack("<L", entry_buf[4:8])[0]
                     ce_off = struct.unpack("<L", entry_buf[12:16])[0]
                     ce_len = struct.unpack("<L", entry_buf[20:24])[0]
-                    #print "-->(%d,%d,%d)" %(ce_blk, ce_off, ce_len)
+                    #gen.log "-->(%d,%d,%d)" %(ce_blk, ce_off, ce_len)
                     continue
 
                 if sig1 == ord('N') and sig2 == ord('M'):
                     flag = struct.unpack("B", entry_buf[4:5])[0]
-                    #print "-->(flag:(0x%x), name:(%s))" %(flag, entry_buf[5:len_entry])
+                    #gen.log "-->(flag:(0x%x), name:(%s))" %(flag, entry_buf[5:len_entry])
                     if flag == 0x02:     # FLAG_CURRENT
                         rr.altname += "."
                     elif flag == 0x04:   # FLAG_PARENT
@@ -244,11 +245,11 @@ class ISO9660:
                 if sig1 == ord('S') and sig2 == ord('T'):
                     return rr
 
-                #print "\n"
+                #gen.log "\n"
             # while (True) end #
 
             if ce_len > 0:
-                #print " Read CE block, (%d, %d, %d)"%(ce_blk, ce_len, ce_off)
+                #gen.log " Read CE block, (%d, %d, %d)"%(ce_blk, ce_len, ce_off)
                 self.isoFile.seek(ce_blk*BLOCK_SIZE + ce_off)
                 entry_buf = self.isoFile.read(ce_len)
                 len_buf = ce_len
@@ -276,7 +277,7 @@ class ISO9660:
         s1 = struct.unpack('B', h[0:1])[0]
         s2 = struct.unpack('B', h[1:2])[0]
 
-        #print "-->(0x%x,0x%x)" %(s1, s2)
+        #gen.log "-->(0x%x,0x%x)" %(s1, s2)
 
         if (s1 == 0x55) and (s2 == 0xAA):
             result = True   # "Bootable"
@@ -313,7 +314,7 @@ class ISO9660:
                     pdir_loc = item.locExtent
                     pdir_len = item.lenData
                     found = True
-                    #print "found (%s)"%(dircomps[i_dircomp])
+                    #gen.log "found (%s)"%(dircomps[i_dircomp])
                     break
             if found: # advacne
                 if i_dircomp < len(dircomps)-1:
@@ -321,7 +322,7 @@ class ISO9660:
                 else:
                     return item
             else:
-                print ("can't find " + dircomps[i_dircomp])
+                gen.log ("can't find " + dircomps[i_dircomp])
                 return None
 
     def readDirrecord(self, desc_buf):
@@ -374,7 +375,7 @@ class ISO9660:
                     if rripNode.altname != "":
                         dirRec.fIdentifier = rripNode.altname
                         dirRec.lenFi = len(rripNode.altname)
-                        #print "rrip_altname: %s"%(dirRec.fIdentifier)
+                        #gen.log "rrip_altname: %s"%(dirRec.fIdentifier)
                 # if rripNode end #
             # if self.rripOffset != -1 end #
         # if dirRec.lenDr > .. end #
@@ -464,7 +465,7 @@ class ISO9660:
             if pattern != "":
                 p = r'{0}'.format(pattern)
                 pp = re.compile(p)
-            #print "writeDir: flag(%x)"%(d.fFlag)
+            #gen.log "writeDir: flag(%x)"%(d.fFlag)
             if d.fFlag & 0x02 == 0x02:
                 # Check if a clean directory.
                 #try:
@@ -482,7 +483,7 @@ class ISO9660:
             return E_FAILURE
 
     def writeDir_r(self, det_dir, dire, pp, r, all_type):
-        #print "writeDir_r:(%s)"%(det_dir)
+        #gen.log "writeDir_r:(%s)"%(det_dir)
         dirs = self.readDirItems(dire.locExtent, dire.lenData)
         for d in dirs:
             if not d.fIdentifier in [".", ".."]:
@@ -490,7 +491,7 @@ class ISO9660:
                     match = False
                 else:
                     match = True
-                #print "mathing %s, %s, (%x)"%(match, d.fIdentifier, d.fFlag)
+                #gen.log "mathing %s, %s, (%x)"%(match, d.fIdentifier, d.fFlag)
                 p = det_dir + "/" + d.fIdentifier
                 if d.fFlag & 0x02 == 0x02:
                     if not os.path.exists(p):
@@ -514,7 +515,7 @@ class ISO9660:
             sys.stderr.write("can't write file\n")
             return E_FAILURE
 
-        #print "write file (%s)"%(detFile)
+        #gen.log "write file (%s)"%(detFile)
         config.status_text = detFile
 
         dirname = os.path.dirname(detFile)
@@ -550,7 +551,7 @@ class ISO9660:
         loc = dirRec.locExtent
         length = dirRec.lenData
         self.isoFile.seek(BLOCK_SIZE * loc)
-        #print "file length(%d)"%(length)
+        #gen.log "file length(%d)"%(length)
         r_size = BLOCK_SIZE*1024*50 #100M cache
 
         try:
@@ -580,7 +581,7 @@ class ISO9660:
         d = self.searchDir(dir_path)
         if d != None:
             if (d.fFlag & 0x02) == 0x02:
-                #print "readDir (%x, %x)"%(d.locExtent, d.lenData)
+                #gen.log "readDir (%x, %x)"%(d.locExtent, d.lenData)
                 if dir_path.endswith("/"):
                     dir_path = dir_path[0:-1]
                 self.readDir_r(file_list, dir_path, d, r)
@@ -614,26 +615,26 @@ class ISO9660:
 
         # find last file item to check
         for dr in reversed(path_table):
-            #print dr.fIdentifier
+            #gen.log dr.fIdentifier
             dirs = self.readDirItems(dr.locExtent, BLOCK_SIZE)
             if len(dirs) > 2:
                 dot = dirs[0]
                 dirs2 = self.readDirItems(dot.locExtent, dot.lenData) # get the whole items.
                 for dr2 in reversed(dirs2): # search last file item.
                     if dr2.fFlag == 0:
-                        #print "get last file(%s)"%(dr2.fIdentifier)
+                        #gen.log "get last file(%s)"%(dr2.fIdentifier)
                         try:
                             #self.isoFile.seek(BLOCK_SIZE * dr2.locExtent+dr2.lenData)
                             lastfile_end = BLOCK_SIZE * dr2.locExtent + dr2.lenData
                             self.isoFile.seek(0, os.SEEK_END)
                             iso_end = self.isoFile.tell()
-                            #print ("%d-->%d")%(lastfile_end, iso_end)
+                            #gen.log ("%d-->%d")%(lastfile_end, iso_end)
                             if iso_end >= lastfile_end:
                                 return True
                             else:
                                 return False
                         except(IOError):
-                            #print "exception when seek. iso is broken"
+                            #gen.log "exception when seek. iso is broken"
                             return False
             elif len(dirs) < 2: # Dir record is broken. At least, should have two entries.
                return False
@@ -643,11 +644,11 @@ class ISO9660:
 def dump_dir_record(dirs):
     """ Dump all the file dirctory records contained in desc_buf """
 
-    print("Dump file/deirectory record")
-    print("===========================", end="\n")
+    gen.log("Dump file/deirectory record")
+    gen.log("===========================", end="\n")
     if dirs != None:
         for f in dirs:
-            print("length of directory record:(0x%x), length of extend attribute:(%d), \
+            gen.log("length of directory record:(0x%x), length of extend attribute:(%d), \
 location of record:(%d)BLOCK->(0x%x), data length(%d) size of file unit:(%d), \
 interleave gap size:(%d), file flag:(0x%x),name length:(%d) identify:(%s)\n" \
 %(f.lenDr, f.lenEattr, f.locExtent, f.locExtent*BLOCK_SIZE,f.lenData, \
@@ -656,16 +657,16 @@ interleave gap size:(%d), file flag:(0x%x),name length:(%d) identify:(%s)\n" \
 def dump_pathtable_L(path_table):
     """ Dump path table of L typde """
 
-    print("Dump path table")
-    print("================", end="\n")
+    gen.log("Dump path table")
+    gen.log("================", end="\n")
     #path_table = readPathtableL()
     i = 0
     for t in path_table:
         i = i + 1
         if t.lenDi == 1:
             if t.fIdentifier in [0, 1]:
-                print("is a root directory(%d)" %(is_root))
-        print("%d->length of identify:(%d), length of extend attribute:(%d), \
+                gen.log("is a root directory(%d)" %(is_root))
+        gen.log("%d->length of identify:(%d), length of extend attribute:(%d), \
 local:(%d)->(0x%x), parent dir number:(%d), identify:(%s)\n" \
 %(i, t.lenDi, t.lenEattr, t.locExtent, t.locExtent*BLOCK_SIZE, t.pdirNr, t.fIdentifier))
 
@@ -673,42 +674,42 @@ def dump_primary_volume(privol=None):
     """ Dump primary volume descriptor """
 
     if privol == None:
-        print("Can't dump, maybe iso is broken")
+        gen.log("Can't dump, maybe iso is broken")
         return
-    print("===== Dump primary volume descriptor ==")
+    gen.log("===== Dump primary volume descriptor ==")
 
-    print("System Identifier:(%s)" %(privol.sysIdentifier.decode()))
-    print("Volume Identifier:(%s)" %privol.volIdentifier.decode())
-    print("Volume Space size:(0x%x)BLOCKS(2kB)" %privol.volSize)
-    print("Volume sequence number:(%d)" %(privol.volSeq))
-    print("logic block size:(0x%x)" %(privol.blockSize))
-    print("Volume path talbe L's BLOCK number is :(0x%x-->0x%x), size(%d)" %(privol.ptLRd, privol.ptLRd*BLOCK_SIZE, privol.ptSize))
-#    print "Abstract File Identifier: (%s)" %(volume_dsc[739:776])
-#    print "Bibliographic File Identifier: (%s)" %(volume_dsc[776:813])
-    print("pathtable locate (%d)" %(privol.ptLRd))
-    print("File Structure Version:(%d)" %(privol.fsVer))
-    print("Root directory is at (%d)block, have(0x%x)bytes" %(privol.rootLoc, privol.rootTotal))
+    gen.log("System Identifier:(%s)" %(privol.sysIdentifier.decode()))
+    gen.log("Volume Identifier:(%s)" %privol.volIdentifier.decode())
+    gen.log("Volume Space size:(0x%x)BLOCKS(2kB)" %privol.volSize)
+    gen.log("Volume sequence number:(%d)" %(privol.volSeq))
+    gen.log("logic block size:(0x%x)" %(privol.blockSize))
+    gen.log("Volume path talbe L's BLOCK number is :(0x%x-->0x%x), size(%d)" %(privol.ptLRd, privol.ptLRd*BLOCK_SIZE, privol.ptSize))
+#    gen.log "Abstract File Identifier: (%s)" %(volume_dsc[739:776])
+#    gen.log "Bibliographic File Identifier: (%s)" %(volume_dsc[776:813])
+    gen.log("pathtable locate (%d)" %(privol.ptLRd))
+    gen.log("File Structure Version:(%d)" %(privol.fsVer))
+    gen.log("Root directory is at (%d)block, have(0x%x)bytes" %(privol.rootLoc, privol.rootTotal))
 #    dump_dir_record(None, 23, 1)
 
 def dump_boot_record(volume_dsc):
     """ Dump boot record  """
 
-    print("===== Dump boot record ==")
+    gen.log("===== Dump boot record ==")
     std_identifier = volume_dsc[1:6]
-    print("Standard Identifier:(%s)" %std_identifier)
+    gen.log("Standard Identifier:(%s)" %std_identifier)
 
     vol_ver = struct.unpack('B', volume_dsc[6])
-    print("Volume descriptor version:(%d)" %vol_ver)
+    gen.log("Volume descriptor version:(%d)" %vol_ver)
 
     bootsys_identifier = volume_dsc[7:39]
-    print("boot system identifier(%s)" %bootsys_identifier)
+    gen.log("boot system identifier(%s)" %bootsys_identifier)
 
     boot_identifier = volume_dsc[39:71]
-    print("boot  identifier(%s)" %boot_identifier)
+    gen.log("boot  identifier(%s)" %boot_identifier)
 
 def usage():
     """ Prompt user how to use   """
-    print("""
+    gen.log("""
 Usage: isodump  dump-what [options]  iso-file
        [dump-what]
        -----------
@@ -749,7 +750,7 @@ if __name__ == '__main__':
     iso9660fs = ISO9660(argv[-1])
     integrity = iso9660fs.checkIntegrity()
     if integrity == False:
-        print("iso file is broken")
+        gen.log("iso file is broken")
         sys.exit(-1)
 
     dump_what = argv[1]
@@ -761,7 +762,7 @@ if __name__ == '__main__':
         dump_pathtable_L(path_table)
     if dump_what == "dir-record":
         if len(argv) == 5:
-            print("dump dir-record (%s, %s)"%(argv[2], argv[3]))
+            gen.log("dump dir-record (%s, %s)"%(argv[2], argv[3]))
             dirs = iso9660fs.readDirItems(int(argv[2]), int(argv[3]))
             dump_dir_record(dirs)
         else:
@@ -792,14 +793,14 @@ if __name__ == '__main__':
 
         isodir = dump_what[4:]
         if o_path == "":
-            print("dump_dir(%s)"%(isodir))
+            gen.log("dump_dir(%s)"%(isodir))
             filelist = iso9660fs.readDir(isodir, r)
             if filelist == []:
-                print("can't read any file from (%s)"%(isodir))
+                gen.log("can't read any file from (%s)"%(isodir))
             else:
                 for f in filelist:
-                    print(f)
+                    gen.log(f)
         else:
-            print("writeDir(%s)->(%s) with pattern(%s)"%(isodir, o_path, pattern))
+            gen.log("writeDir(%s)->(%s) with pattern(%s)"%(isodir, o_path, pattern))
             sys.exit(iso9660fs.writeDir(isodir, o_path, pattern, r, True))
 

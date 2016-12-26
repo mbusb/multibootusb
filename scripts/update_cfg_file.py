@@ -30,7 +30,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
         isolinux_path = os.path.join(iso_cfg_ext_dir, isolinux_bin_path(iso_link)[1:])
     config.status_text = "Updating config files..."
     install_dir = os.path.join(usb_mount, "multibootusb", iso_basename(iso_link))
-    print('Updating distro specific config files...')
+    log('Updating distro specific config files...')
     for dirpath, dirnames, filenames in os.walk(install_dir):
         for f in filenames:
             if f.endswith(".cfg") or f.endswith('.CFG') or f.endswith('.lst'):
@@ -38,7 +38,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                 try:
                     string = open(cfg_file, errors='ignore').read()
                 except IOError:
-                    print("Unable to read ", cfg_file)
+                    log("Unable to read ", cfg_file)
                 else:
                     if not distro == "generic":
                         replace_text = r'\1/multibootusb/' + iso_basename(iso_link) + '/'
@@ -111,7 +111,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                     string = re.sub(r'initrd=',
                                     r'from=/multibootusb/' + iso_basename(iso_link) + '/slax fromusb initrd=', string)
                 elif distro == "knoppix":
-                    string = re.sub(r'initrd=', 'knoppix_dir=/multibootusb/' + iso_basename(iso_link) + '/KNOPPIX  initrd=', string)
+                    string = re.sub(r'initrd=', 'knoppix_dir=/multibootusb/' + iso_basename(iso_link) + '/KNOPPIX initrd=', string)
                     #string = re.sub(r'(append)',
                     #                r'\1  knoppix_dir=/multibootusb/' + iso_basename(iso_link) + '/KNOPPIX',
                     #                string)
@@ -165,9 +165,16 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                     string = re.sub(r'prompt', '#prompt', string)
                     string = re.sub(r'ui gfxboot.com', '#ui gfxboot.com', string)
                     string = re.sub(r'timeout', '#timeout', string)
-                elif distro == "porteus" or distro == "wifislax":
-                    string = re.sub(r'initrd=',
-                                    'from=' + '/multibootusb/' + iso_basename(iso_link) + ' initrd=', string)
+                elif distro == "wifislax":
+                    string = re.sub(r'vmlinuz',
+                                    'vmlinuz from=multibootusb/' + iso_basename(iso_link) + ' noauto', string)
+                    string = re.sub(r'vmlinuz2',
+                                    'vmlinuz2 from=multibootusb/' + iso_basename(iso_link) + ' noauto', string)
+                elif distro == "porteus":
+                    string = re.sub(r'APPEND',
+                                    'APPEND from=/multibootusb/' + iso_basename(iso_link) + ' noauto', string)
+                    string = re.sub(r'vmlinuz2',
+                                    'vmlinuz2 from=multibootusb/' + iso_basename(iso_link) + ' noauto', string)
                 elif distro == "hbcd":
                     if not 'multibootusb' in string:
                         string = re.sub(r'/HBCD', '/multibootusb/' + iso_basename(iso_link) + '/HBCD', string)
@@ -188,6 +195,9 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                     #string = re.sub(r'initrd', 'from=/multibootusb/' + iso_basename(iso_link) + '/' + ' initrd', string)
                 elif distro == 'alt-linux':
                     string = re.sub(r':cdrom', ':disk', string)
+                elif distro == 'fsecure':
+                    string = re.sub(r'APPEND ramdisk_size', 'APPEND noprompt ' + 'knoppix_dir=/multibootusb/' + iso_basename(iso_link)
+                                    + '/KNOPPIX ramdisk_size', string)
 
                 config_file = open(cfg_file, "w")
                 config_file.write(string)
@@ -201,7 +211,7 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
     Update main multibootusb suslinux.cfg file after distro is installed.
     :return:
     """
-    print('Updating multibootusb config file...')
+    log('Updating multibootusb config file...')
     sys_cfg_file = os.path.join(usb_mount, "multibootusb", "syslinux.cfg")
     install_dir = os.path.join(usb_mount, "multibootusb", iso_basename(iso_link))
     if os.path.exists(sys_cfg_file):
@@ -299,16 +309,8 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
     for dirpath, dirnames, filenames in os.walk(install_dir):
         for f in filenames:
             if f.endswith("isolinux.cfg") or f.endswith("ISOLINUX.CFG"):
-                shutil.copy2(os.path.join(dirpath, f), os.path.join(dirpath, "syslinux.cfg"))
-
-            '''
-            else:
-                if distro == "ubuntu" and config.sys_version == "6":
-                    config_file.write("CONFIG " + "/multibootusb/" + iso_basename(iso_link) +
-                                      "/isolinux/isolinux.cfg" + "\n")
-                    config_file.write("APPEND " + "/multibootusb/" + iso_basename(iso_link) +
-                                      "/isolinux" + "\n")
-            '''
+                if not os.path.exists(os.path.join(dirpath, "syslinux.cfg")) or not os.path.exists(os.path.join(dirpath, "SYSLINUX.CFG")):
+                    shutil.copy2(os.path.join(dirpath, f), os.path.join(dirpath, "syslinux.cfg"))
 
 
 def kaspersky_config(distro):

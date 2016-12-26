@@ -33,7 +33,7 @@ def dd_linux():
     output = "of=" + config.imager_usb_disk
     os.system("umount " + config.imager_usb_disk + "1")
     command = ['dd', input, output, "bs=1M"]
-    print("Executing ==> ", command)
+    log("Executing ==> " + command)
     dd_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
     pbar = progressbar.ProgressBar(maxval=100).start()  # bar = progressbar.ProgressBar(redirect_stdout=True)
     while dd_process.poll() is None:
@@ -50,9 +50,9 @@ def dd_linux():
                     break
 
     if dd_process.poll() is not None:
-        print("Executing ==> sync")
+        log("Executing ==> sync")
         os.system("sync")
-        print("ISO has been written to USB disk...")
+        log("ISO has been written to USB disk...")
         return
 
 
@@ -60,25 +60,25 @@ def dd_win():
 
     windd = resource_path(os.path.join("data", "tools", "dd", "dd.exe"))
     if os.path.exists(resource_path(os.path.join("data", "tools", "dd", "dd.exe"))):
-        print("dd exist")
+        log("dd exist")
     input = "if=" + config.imager_iso_link
     in_file_size = float(os.path.getsize(config.imager_iso_link) / 1024 / 1024)
     output = "of=\\\.\\" + config.imager_usb_disk
     command = [windd, input, output, "bs=1M", "--progress"]
-    print("Executing ==> ", command)
+    log("Executing ==> " + command)
     dd_process = subprocess.Popen(command, universal_newlines=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
                                   shell=False)
     while dd_process.poll() is None:
         for line in iter(dd_process.stderr.readline, ''):
             line = line.strip()
             if 'error' in line.lower() or 'invalid' in line.lower():
-                print("Error writing to disk...")
+                log("Error writing to disk...")
                 break
             if line and line[-1] == 'M':
                 copied = float(line.strip('M').replace(',', ''))
                 config.imager_percentage = round((copied / float(in_file_size) * 100))
 
-        print("ISO has been written to USB disk...")
+        log("ISO has been written to USB disk...")
 
         return
 
@@ -107,26 +107,26 @@ class Imager(QtWidgets.QDialog, Ui_Dialog):
             self.ui.lineEdit_3.insert(str(config.imager_iso_link))
             self.add_iso_gui_label_text()
         else:
-            print("File not selected...")
+            log("File not selected...")
 
     def add_iso_gui_label_text(self):
         """
         Simple function to add text label to GUI widgets.
         :return:
         """
-        print("Testing ISO...")
+        log("Testing ISO...")
         if iso.is_bootable(config.imager_iso_link) is True:
             self.ui.imager_bootable.setText("Bootable ISO :: Yes")
-            print("ISO is bootable.")
+            log("ISO is bootable.")
         else:
             self.ui.imager_bootable.setText("Bootable ISO :: No")
-            print("ISO is not bootable.")
+            log("ISO is not bootable.")
 
         if os.path.exists(config.imager_iso_link):
-            print("Path " + config.imager_iso_link + " is exist...")
+            log("Path " + config.imager_iso_link + " is exist...")
             self.iso_size = str(round(os.path.getsize(config.imager_iso_link) / 1024 / 1024))
             self.ui.imager_iso_size.setText("ISO Size :: " + self.iso_size + " MB")
-            print("ISO Size is ", self.iso_size, " MB")
+            log("ISO Size is " + self.iso_size + " MB")
 
     def onImagerComboChange(self):
         config.imager_usb_disk = str(self.ui.comboBox_2.currentText())
@@ -206,7 +206,7 @@ class Imager(QtWidgets.QDialog, Ui_Dialog):
                 usb_type = "Removable"
                 model = label
             except:
-                print("Error detecting USB details.")
+                log("Error detecting USB details.")
 
         return _ntuple_diskusage(total_size, usb_type, model)
 
@@ -219,7 +219,7 @@ class Imager(QtWidgets.QDialog, Ui_Dialog):
         if platform.system() == "Linux":
             cat_output = subprocess.check_output("cat /proc/partitions | grep  " + usb_disk[5:], shell=True)
             usb_size = int(cat_output.split()[2]) * 1024
-            print(usb_size)
+            # log(usb_size)
             return usb_size
         else:
             usb_size = self.usb.disk_usage(self.usb.get_usb(usb_disk).mount).total

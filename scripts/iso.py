@@ -91,8 +91,9 @@ def isolinux_bin_dir(iso_link):
         if any("isolinux.bin" in s.lower() for s in iso_file_list):
             for f in iso_file_list:
                 if 'isolinux.bin' in f.lower():
-                    bin_dir = os.path.dirname(f)
-                    break
+                    if 'efi' not in f.lower():  # Certain distros place their isolinux.bin in to /EFI/BOOT director and we don't want to include them
+                        bin_dir = os.path.dirname(f)
+                        break
 
         return bin_dir
 
@@ -157,7 +158,7 @@ def isolinux_version(isolinux_bin_path):
             if re.search(r'isolinux ', strin, re.I):
                 for number in version:
                     if re.search(r'isolinux ' + number, strin, re.I):
-                        print("\n\nFound syslinux version " + number + "\n\n")
+                        log("\n\nFound syslinux version " + number + "\n\n")
                         return str(number)
 
 
@@ -196,18 +197,18 @@ if __name__ == '__main__':
     #iso_path = '../../../DISTROS/2016/debian-live-8.3.0-amd64-lxde-desktop.iso'
     iso_path = '../../../DISTROS/2015/super_grub2_disk_hybrid_2.02s3.iso'
     test_iso_bin_path = os.path.join('test', 'isolinux', 'isolinux.bin')
-    print('iso_name(iso_path) : ', iso_name(iso_path))
-    print('iso_basename(iso_path) : ', iso_basename(iso_path))
-    print('Integrity of ISO is : ', integrity(iso_path))
+    log('iso_name(iso_path) : ', iso_name(iso_path))
+    log('iso_basename(iso_path) : ', iso_basename(iso_path))
+    log('Integrity of ISO is : ', integrity(iso_path))
     f_list = (iso_file_list(iso_path))
     if f_list:
         for f in f_list:
-            print(f)
-    print('isolinux_bin_exist(iso_path) : ', isolinux_bin_exist(iso_path))
-    #print('is_bootable : ', is_bootable(iso_path))
-    print('isolinux_bin_dir() : ', isolinux_bin_dir(iso_path))
-    print('isolinux_bin_path(iso_path) : ', isolinux_bin_path(iso_path))
+            log(f)
+    log('isolinux_bin_exist(iso_path) : ', isolinux_bin_exist(iso_path))
+    #log('is_bootable : ', is_bootable(iso_path))
+    log('isolinux_bin_dir() : ', isolinux_bin_dir(iso_path))
+    log('isolinux_bin_path(iso_path) : ', isolinux_bin_path(iso_path))
     iso_extract_full(iso_path, 'test')
     iso_extract_file(iso_path, 'test', 'isolinux.bin')
-    print(isolinux_version(test_iso_bin_path))
+    log(isolinux_version(test_iso_bin_path))
 

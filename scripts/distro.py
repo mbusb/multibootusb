@@ -64,7 +64,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "solydx"
                         elif re.search(r'knoppix', string, re.I):
                             return "knoppix"
-                        elif re.search(r'root=live', string, re.I):
+                        elif re.search(r'root=live:CDLABEL=', string, re.I):
                             return "fedora"
                         elif re.search(r'redhat', string, re.I):
                             return "redhat"
@@ -74,7 +74,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                                        re.I):
                             return "opensuse"
                         elif re.search(
-                                r'slitaz|dban|ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|'
+                                r'slitaz|dban |ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|android-x86.png|'
                                 r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/|AVG Rescue CD', string, re.I):
                             return "slitaz"
                         elif re.search(r'boot=casper', string, re.I):
@@ -123,6 +123,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "Windows"
                         elif re.search(r'ReactOS', string, re.I):
                             return "ReactOS"
+                        elif re.search(r'fsecure', string, re.I):
+                            return "fsecure"
 
         distro = detect_iso_from_file_list(iso_link)
         if distro:
@@ -159,11 +161,11 @@ def detect_iso_from_file_list(iso_link):
         elif any("menu.lst" in s.lower() for s in iso_file_list):
             return "grub4dos"
         else:
-            print(iso_file_list)
+            log(iso_file_list)
 
 if __name__ == '__main__':
     iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
     #iso_link = '../../../DISTROS/2016/debian-live-8.3.0-amd64-lxde-desktop.iso'
     iso_link = '/media/sundar/Data/DISTROS/ubuntu_14_04_backup/Downloads/clonezilla-live-2.4.2-32-amd64.iso'
     iso_extract_file(iso_link, iso_cfg_ext_dir, 'cfg')
-    print(distro(iso_cfg_ext_dir))
+    log(distro(iso_cfg_ext_dir))

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Name:     uninstall_distro.py
 # Purpose:  Module to uninstall distros installed by multibootusb
@@ -13,6 +13,7 @@ import threading
 import platform
 from .usb import *
 from . import config
+from . import gen
 
 
 def install_distro_list():
@@ -38,7 +39,7 @@ def unin_distro():
     usb_details = details(config.usb_disk)
     usb_mount = usb_details['mount_point']
     config.uninstall_distro_dir_name = config.uninstall_distro_dir_name.replace('\n', '')
-    print(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "multibootusb.cfg"))
+    gen.log(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "multibootusb.cfg"))
     if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "multibootusb.cfg")):
         with open(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "multibootusb.cfg"), "r") as multibootusb_cfg:
             config.distro = multibootusb_cfg.read().replace('\n', '')
@@ -69,7 +70,7 @@ def delete_frm_file_list():
                 os.unlink(os.path.join(usb_mount, "ldlinux.sys"))
 
             if os.path.exists(os.path.join(usb_mount, f)):
-                print("Removing " + (os.path.join(usb_mount, f)))
+                gen.log("Removing " + (os.path.join(usb_mount, f)))
                 if os.path.isfile(os.path.join(usb_mount, f)):
                     os.remove(os.path.join(usb_mount, f))
                 elif os.path.isdir(os.path.join(usb_mount, f)):
@@ -83,8 +84,8 @@ def delete_frm_file_list():
                 if os.path.exists(os.path.join(usb_mount, generic.strip("/"))):
                     os.remove(os.path.join(usb_mount, generic.strip("/")))
     if platform.system() == 'Linux':
-        print('Removed files from', config.uninstall_distro_dir_name)
-        print('Syncing....')
+        gen.log('Removed files from' + config.uninstall_distro_dir_name)
+        gen.log('Syncing....')
         os.system('sync')
 
 
@@ -107,7 +108,7 @@ def uninstall_distro():
     if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "iso_file_list.cfg")):
         with open(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "iso_file_list.cfg"), "r") as f:
             config.iso_file_list = f.readlines()
-            # print iso_file_list
+            # gen.log iso_file_list
 
     for path, subdirs, files in os.walk(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name)):
         for name in files:
@@ -149,9 +150,9 @@ def update_sys_cfg_file():
 
     sys_cfg_file = os.path.join(config.usb_mount, "multibootusb", "syslinux.cfg")
     if not os.path.exists(sys_cfg_file):
-        print("syslinux.cfg file not found for updating changes.")
+        gen.log("syslinux.cfg file not found for updating changes.")
     else:
-        print("Updating syslinux.cfg file...")
+        gen.log("Updating syslinux.cfg file...")
         string = open(sys_cfg_file).read()
         string = re.sub(r'#start ' + config.uninstall_distro_dir_name + '.*?' + '#end ' + config.uninstall_distro_dir_name + '\s*', '', string, flags=re.DOTALL)
         config_file = open(sys_cfg_file, "w")
@@ -176,7 +177,7 @@ def uninstall_progress():
             config.distro = multibootusb_cfg.read().replace('\n', '')
     else:
         config.distro = ""
-    print("Installed distro type is",  config.distro)
+    gen.log("Installed distro type is " +  config.distro)
 
     if config.distro == "opensuse":
         if os.path.exists(os.path.join(usb_mount, config.uninstall_distro_dir_name) + ".iso"):

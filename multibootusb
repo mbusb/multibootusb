@@ -6,6 +6,7 @@
 # Licence:  This file is a part of multibootusb package. You can redistribute it or modify
 # under the terms of GNU General Public License, v.2 or above
 
+import logging
 import getopt
 import sys
 import os
@@ -16,10 +17,12 @@ import platform
 try:
     from scripts.mbusb_cli import *
     from scripts import admin
+    from scripts import gen
 except:
     try:
         from .scripts.mbusb_cli import *
         from .scripts import admin
+        from .scripts import gen
     except:
         import scripts
 
@@ -44,16 +47,16 @@ def usage():
 
 def start_gui():
     from scripts import mbusb_gui
-    print('Starting multibootusb GUI...')
+    gen.log('Starting multibootusb GUI...')
     if platform.system() == 'Linux':
         if os.getuid() != 0:
-            print('\n\n\nAdmin privilege is required to run multibootusb.\n If you are running from source try '
-                  '\'sudo python3 ./multibootusb\'\n or you can try \'multibootusb-pkexec\' (post install)\n\n\n')
+            gen.log('\n\nAdmin privilege is required to run multibootusb.\n If you are running from source try '
+                  '\'sudo python3 ./multibootusb\'\n or you can try \'multibootusb-pkexec\' (post install)\n\n',
+                    info=False, debug=True)
     mbusb_gui.main_gui()
 
 
 if __name__ == '__main__':
-
     if platform.system() == 'Windows':
         if not admin.isUserAdmin():
             admin.runAsAdmin()

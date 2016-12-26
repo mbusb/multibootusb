@@ -31,7 +31,7 @@ def install_distro():
     _iso_file_list = iso.iso_file_list(config.iso_link)
 
     if not os.path.exists(os.path.join(usb_mount, "multibootusb")):
-        print("Copying multibootusb directory to ", usb_mount)
+        log("Copying multibootusb directory to " + usb_mount)
         shutil.copytree(resource_path(os.path.join("data", "tools", "multibootusb")),
                         os.path.join(config.usb_mount, "multibootusb"))
 
@@ -42,7 +42,7 @@ def install_distro():
         with open(os.path.join(install_dir, "iso_file_list.cfg"), 'w') as f:
             for file_path in _iso_file_list:
                 f.write(file_path + "\n")
-    print("Installing ", iso_name(config.iso_link), "on", install_dir)
+    log("Installing " + iso_name(config.iso_link) + " on " + install_dir)
 
     if config.distro == "opensuse":
         iso.iso_extract_file(config.iso_link, install_dir, 'boot')
@@ -50,10 +50,10 @@ def install_distro():
         if platform.system() == "Windows":
             subprocess.call(["xcopy", config.iso_link, usb_mount], shell=True)  # Have to use xcopy as python file copy is dead slow.
         elif platform.system() == "Linux":
-            print(config.iso_link, usb_mount)
+            log("Copying " + config.iso_link + " to " + usb_mount)
             shutil.copy(config.iso_link, usb_mount)
     elif config.distro == "Windows" or config.distro == "alpine":
-        print("Extracting iso to " + usb_mount)
+        log("Extracting iso to " + usb_mount)
         iso_extract_full(config.iso_link, usb_mount)
     elif config.distro == "trinity-rescue":
         iso.iso_extract_file(config.iso_link, usb_mount, '*trk3')
@@ -95,10 +95,11 @@ def install_distro():
         iso.iso_extract_full(config.iso_link, install_dir)
 
     if platform.system() == 'Linux':
-        print('ISO extracted successfully. Sync is in progress...')
+        log('ISO extracted successfully. Sync is in progress...')
         os.system('sync')
 
     if config.persistence != 0:
+        log('Creating Persistence...')
         config.status_text = 'Creating Persistence...'
         persistence.create_persistence()
 
@@ -161,8 +162,8 @@ def install_patch():
                         try:
                             os.remove(os.path.join(config.usb_mount, "multibootusb",
                                                    iso_basename(config.iso_link), isolinux_bin_dir(config.iso_link), module))
-                            print("Copying ", module)
-                            print((resource_path(
+                            log("Copying " +  module)
+                            log((resource_path(
                                 os.path.join(multibootusb_host_dir(), "syslinux", "modules", config.syslinux_version, module)),
                                         os.path.join(config.usb_mount, "multibootusb", iso_basename(config.iso_link),
                                                      isolinux_bin_dir(config.iso_link), module)))
@@ -171,10 +172,10 @@ def install_patch():
                                         os.path.join(config.usb_mount, "multibootusb", iso_basename(config.iso_link),
                                                      isolinux_bin_dir(config.iso_link), module))
                         except Exception as err:
-                            print(err)
-                            print("Could not copy ", module)
+                            log(err)
+                            log("Could not copy " + module)
         else:
-            print('Patch not required...')
+            log('Patch not required...')
 
 
 if __name__ == '__main__':

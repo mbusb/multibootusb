@@ -65,7 +65,7 @@ class pkg():
             print("Ensure thta you have python-stdeb package installed!")
             stdcfg = """[DEFAULT]
                       Package: multibootusb
-                      Depends3: python3-pyqt5, parted, util-linux, mtools, python3-dbus, p7zip-full
+                      Depends3: python3-pyqt5, parted, util-linux, mtools, python3-dbus, p7zip-full, python3-six
                       Build-Depends: python3-all
                       Section: system
                       XS-Python-Version: = 3.5
@@ -88,9 +88,9 @@ class pkg():
                 result = True
         elif self.pkg_name == 'rpm' or self.pkg_name == 'suse' or self.pkg_name == 'mageia':
             if self.pkg_name == 'suse' or self.pkg_name == 'mageia':
-                require = "python3-qt5, parted, util-linux, mtools, python3-dbus, p7zip, p7zip-plugins"
+                require = "python3-qt5, parted, util-linux, mtools, python3-dbus, p7zip, p7zip-plugins, python3-six"
             else:
-                require = "PyQt5, parted, util-linux, mtools, python3-dbus, p7zip, p7zip-plugins"
+                require = "PyQt5, parted, util-linux, mtools, python3-dbus, p7zip, p7zip-plugins, python3-six"
             setup_cfg = ("[bdist_rpm]\n"
                          "Group = Applications/System\n"
                          "Vendor = Sundar <feedback.multibootusb@gmail.com>\n"

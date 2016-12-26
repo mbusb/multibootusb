@@ -39,7 +39,7 @@ def extract_iso(src, dst, pattern=None, suppress_out=True):
             suppress_out = ' 2> /dev/null'
 
     if not os.path.exists(src):
-        print('ISO file could not be found on the location specified.')
+        gen.log('ISO file could not be found on the location specified.')
         return False
     if not os.path.exists(dst):
         os.makedirs(dst, exist_ok=True)
@@ -48,13 +48,13 @@ def extract_iso(src, dst, pattern=None, suppress_out=True):
         _cmd = _7zip + cli_option + ' x -y -o' + gen.quote(dst) + ' ' + gen.quote(src) + suppress_out
     else:
         _cmd = _7zip + ' -y x ' + gen.quote(src) + ' -o' + dst + ' ' + gen.quote(pattern) + ' -r' + suppress_out
-    # print('Executing', _cmd)
+    # gen.log('Executing', _cmd)
     _7zip_process = subprocess.Popen(_cmd, universal_newlines=True, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
                                      stdout=subprocess.PIPE, shell=True)
     config.status_text = 'Extracting ' + os.path.basename(src)
     while True:
         line = _7zip_process.stdout.readline()
-        # print(line)
+        # gen.log(line)
         if line.startswith('- '):
             config.status_text = 'Extracting ' + line[2:]
         elif platform.system() == 'Linux': # line.startswith('Extracting'):  # Under Linux it prints directly all the process (may be due to version diff).
@@ -71,12 +71,12 @@ def list_iso(iso_link, suppress_out=True):
         if suppress_out is True:
             suppress_out = ' 2> /dev/null'
     if not os.path.exists(iso_link):
-        print('Path to ISO link does not exist.')
+        gen.log('Path to ISO link does not exist.')
         return False
     else:
         file_list = []
         _cmd = _7zip + ' l ' + gen.quote(iso_link) + suppress_out
-        # print('Executing', _cmd)
+        # gen.log('Executing', _cmd)
         _cmd_out = subprocess.check_output(_cmd, universal_newlines=True, stderr=subprocess.PIPE, shell=True).splitlines()
         for line in _cmd_out:
             line = line.split()
@@ -109,7 +109,7 @@ def test_iso(iso_link, suppress_out=True):
 
     _cmd = _7zip + ' t ' + iso_link + suppress_out
 
-    # print('Executing', _cmd)
+    # gen.log('Executing', _cmd)
 
     rc = subprocess.call(_cmd, shell=True)
 

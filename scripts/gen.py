@@ -1,20 +1,53 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*
-# Name:     gen.py
+# Name:     log.py
 # Purpose:  This 'general' module contain many functions required to be called at many places
 # Authors:  Sundar
 # Licence:  This file is a part of multibootusb package. You can redistribute it or modify
 # under the terms of GNU General Public License, v.2 or above
 
+import logging
 import sys
 import os
 import platform
 import shutil
 import string
 import zipfile
+import tempfile
+
 
 def scripts_dir_path():
     return os.path.dirname(os.path.realpath(__file__))
+
+
+def log(message, info=True, error=False, debug=False):
+    """
+    Dirty function to log messages to file and also print on screen.
+    :param message:
+    :param info:
+    :param error:
+    :param debug:
+    :return:
+    """
+    # LOG_FILE_PATH = os.path.join(multibootusb_host_dir(), 'multibootusb.log')
+    LOG_FILE_PATH = mbusb_log_file()
+    if os.path.exists(LOG_FILE_PATH):
+        log_file_size = os.path.getsize(LOG_FILE_PATH) / (1024.0 * 1024.0)
+        if log_file_size > 1:
+            print('Removing log file as it crosses beyond 1mb')
+            os.remove(LOG_FILE_PATH)
+    logging.basicConfig(filename=LOG_FILE_PATH,
+                        filemode='a',
+                        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                        datefmt='%H:%M:%S',
+                        level=logging.DEBUG)
+    print(message)
+    if info is True:
+        logging.info(message)
+    elif error is not False:
+        logging.error(message)
+    elif debug is not False:
+        logging.debug(message)
 
 def resource_path(relativePath):
     """
@@ -25,11 +58,11 @@ def resource_path(relativePath):
 
     try:
         basePath = sys._MEIPASS  # Try if we are running as standalone executable
-        # print('Running stand alone executable.')
+        # log('Running stand alone executable.')
     except:
         basePath = '/usr/share/multibootusb'  # Check if we run in installed environment
         #if os.path.exists('/usr/share/multibootusb'):
-            #print('Running from installed machine.')
+            #log('Running from installed machine.')
         if not os.path.exists(basePath):
             #basePath = os.path.abspath(".")
             basePath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -48,10 +81,10 @@ def resource_path(relativePath):
 
 def print_version():
     """
-    Simple print the version number of the multibootusb application
+    Simple log the version number of the multibootusb application
     :return:
     """
-    print('multibootusb version : ', mbusb_version())
+    log('multibootusb version : ', mbusb_version())
 
 
 def quote(text):
@@ -95,13 +128,28 @@ def sys_64bits():
     return sys.maxsize > 2**32
 
 
+def mbusb_log_file():
+    """
+    Function to genrate path to log file.
+    Under linux path is created as /tmp/multibootusb.log
+    Under Windows the file is created under 
+    """
+    if platform.system() == "Linux":
+        home_dir = os.path.expanduser('~')
+        # log_file = os.path.join(home_dir, "multibootusb.log")
+        log_file = os.path.join(tempfile.gettempdir(), "multibootusb.log")
+    elif platform.system() == "Windows":
+        # log_file = os.path.join(tempfile.gettempdir(), "multibootusb", "multibootusb.log")
+        log_file = os.path.join("multibootusb.log")
+
+    return log_file
+
+
 def multibootusb_host_dir():
     """
     Cross platform way to detect multibootusb directory on host system.
     :return: Path to multibootusb directory of host system.
     """
-    import tempfile
-
     if platform.system() == "Linux":
         home_dir = os.path.expanduser('~')
         mbusb_dir = os.path.join(home_dir, ".multibootusb")
@@ -133,7 +181,7 @@ def clean_iso_cfg_ext_dir(iso_cfg_ext_dir):
             else:
                 os.remove(os.path.join(iso_cfg_ext_dir, f))
     else:
-        print('iso_cfg_ext_dir directory does not exist.')
+        log('iso_cfg_ext_dir directory does not exist.')
 
 
 def copy_mbusb_dir_usb(usb_disk):
@@ -149,13 +197,13 @@ def copy_mbusb_dir_usb(usb_disk):
     usb_mount_path = usb_details['mount_point']
     if not os.path.exists(os.path.join(usb_mount_path, "multibootusb")):
         try:
-            print('Copying multibootusb directory to', usb_mount_path)
+            log('Copying multibootusb directory to ' + usb_mount_path)
             shutil.copytree(resource_path(os.path.join("data", "multibootusb")), os.path.join(usb_mount_path, "multibootusb"))
             return True
         except:
             return False
     else:
-        print('multibootus directory already exist. Not copying.')
+        log('multibootus directory already exist. Not copying.')
 
 
 def read_input_yes():
@@ -212,7 +260,7 @@ def prepare_mbusb_host_dir():
     if not os.path.exists(home):
         os.makedirs(home)
     else:
-        print("Cleaning old multibootusb directory...")
+        log("Cleaning old multibootusb directory...")
         shutil.rmtree(home)
         os.makedirs(home)
 
@@ -223,50 +271,50 @@ def prepare_mbusb_host_dir():
         os.makedirs(os.path.join(home, "iso_cfg_ext_dir"))
 
     if os.path.exists(os.path.join(home, "syslinux", "bin", "syslinux4")):
-        print("Syslinux exist in multibootusb directory...")
+        log("Syslinux exist in multibootusb directory...")
     else:
-        print("Extracting syslinux to multibootusb directory...")
+        log("Extracting syslinux to multibootusb directory...")
         if platform.system() == "Linux":
             if sys_64bits() is True:
-                print('Host OS is 64 bit...')
-                print("Extracting syslinux 64 bit...")
-                # print(resource_path(os.path.join("data", "tools", "syslinux", "syslinux_linux_64.zip")))
+                log('Host OS is 64 bit...')
+                log("Extracting syslinux 64 bit...")
+                # log(resource_path(os.path.join("data", "tools", "syslinux", "syslinux_linux_64.zip")))
                 with zipfile.ZipFile(resource_path(os.path.join("data", "tools", "syslinux", "syslinux_linux_64.zip")), "r") as z:
                     z.extractall(home)
             else:
-                print("Extracting syslinux 32 bit...")
+                log("Extracting syslinux 32 bit...")
                 with zipfile.ZipFile(resource_path(os.path.join("data", "tools", "syslinux", "syslinux_linux.zip")), "r") as z:
                     z.extractall(home)
         else:
             with zipfile.ZipFile(resource_path(os.path.join("data", "tools", "syslinux", "syslinux_windows.zip")), "r") as z:
                 z.extractall(home)
-        print("Extracting syslinux modules to multibootusb directory...")
+        log("Extracting syslinux modules to multibootusb directory...")
         with zipfile.ZipFile(resource_path(os.path.join("data", "tools", "syslinux", "syslinux_modules.zip")), "r") as z:
                 z.extractall(os.path.join(home, "syslinux"))
 
     if os.listdir(os.path.join(home, "iso_cfg_ext_dir")):
-        print(os.listdir(os.path.join(home, "iso_cfg_ext_dir")))
-        print("iso extract directory is not empty.")
-        print("Removing junk files...")
+        log(os.listdir(os.path.join(home, "iso_cfg_ext_dir")))
+        log("iso extract directory is not empty.")
+        log("Removing junk files...")
         for files in os.listdir(os.path.join(home, "iso_cfg_ext_dir")):
             if os.path.isdir(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files))):
-                print (os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
+                log (os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
                 os.chmod(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)), 0o777)
                 shutil.rmtree(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
             else:
                 try:
-                    print (os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
+                    log (os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
                     os.chmod(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)), 0o777)
                     os.unlink(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
                     os.remove(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
                 except OSError:
-                    print("Can't remove the file. Skipping it.")
+                    log("Can't remove the file. Skipping it.")
 
 if __name__ == '__main__':
-    print(quote("""Test-string"""))
-    print(has_digit("test-string-with-01-digit"))
-    print(sys_64bits())
-    print(multibootusb_host_dir())
-    print(iso_cfg_ext_dir())
+    log(quote("""Test-string"""))
+    log(has_digit("test-string-with-01-digit"))
+    log(sys_64bits())
+    log(multibootusb_host_dir())
+    log(iso_cfg_ext_dir())
     strings_test = strings('../../text-stings.bin')
-    print(strings_test)
+    log(strings_test)

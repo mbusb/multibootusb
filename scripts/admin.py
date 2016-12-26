@@ -38,6 +38,7 @@ import platform
 import sys
 import subprocess
 from PyQt5 import QtWidgets
+from . import gen
 
 
 def isUserAdmin():
@@ -46,7 +47,7 @@ def isUserAdmin():
     (root on Unix), otherwise False.
 
     Warning: The inner function fails unless you have Windows XP SP2 or
-    higher. The failure causes a traceback to be printed and this
+    higher. The failure causes a traceback to be gen.loged and this
     function to return False.
     """
 
@@ -57,7 +58,7 @@ def isUserAdmin():
             return ctypes.windll.shell32.IsUserAnAdmin()
         except:
             traceback.print_exc()
-            print("Admin check failed, assuming not an admin.")
+            gen.log("Admin check failed, assuming not an admin.")
             return False
     elif platform.system() == "Linux":
         return os.getuid() == 0
@@ -103,7 +104,7 @@ def runAsAdmin(cmdLine=None, wait=True):
         #showCmd = win32con.SW_HIDE
         lpVerb = 'runas'  # causes UAC elevation prompt.
 
-        #print("Running", cmd, params)
+        #gen.log("Running", cmd, params)
 
         # ShellExecute() doesn't seem to allow us to fetch the PID or handle
         # of the process, so we can't get anything useful from it. Therefore
@@ -121,7 +122,7 @@ def runAsAdmin(cmdLine=None, wait=True):
             procHandle = procInfo['hProcess']
             obj = win32event.WaitForSingleObject(procHandle, win32event.INFINITE)
             rc = win32process.GetExitCodeProcess(procHandle)
-            #print "Process handle %s returned code %s" % (procHandle, rc)
+            #gen.log "Process handle %s returned code %s" % (procHandle, rc)
         else:
             rc = None
 
@@ -157,10 +158,10 @@ def adminCmd(cmd, fork=False, gui=False):
                                           'Could not find any of: pkexec, sudo, gksu, kdesu, gksudo, or kdesudo. Please install one then restart multibootusb.')
             sys.exit(0)
     final_cmd = ' '.join(sudo_cmd + ['"' + ' '.join(cmd).replace('"', '\\"') + '"'])
-    print("Executing ==>  " + final_cmd)
+    gen.log("Executing ==>  " + final_cmd)
     if fork:
         return subprocess.Popen(final_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1, shell=True)
     else:
         ret = subprocess.call(final_cmd, shell=True)
-        print("Process returned ==>   " + str(ret))
+        gen.log("Process returned ==>   " + str(ret))
         return ret
