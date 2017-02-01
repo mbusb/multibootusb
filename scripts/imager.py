@@ -33,7 +33,7 @@ def dd_linux():
     output = "of=" + config.imager_usb_disk
     os.system("umount " + config.imager_usb_disk + "1")
     command = ['dd', input, output, "bs=1M"]
-    log("Executing ==> " + command)
+    log("Executing ==> " + " ".join(command))
     dd_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
     pbar = progressbar.ProgressBar(maxval=100).start()  # bar = progressbar.ProgressBar(redirect_stdout=True)
     while dd_process.poll() is None:
