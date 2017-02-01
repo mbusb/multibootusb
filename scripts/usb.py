@@ -102,7 +102,7 @@ def list(partition=1, fixed=None):
                                                    ID_FS_USAGE="filesystem", ID_TYPE="disk",
                                                    ID_BUS="usb"):
                     # if device['ID_BUS'] == "usb" and device['DEVTYPE'] == "partition":
-                    if device['ID_BUS'] in ("usb", "scsi") and device['DEVTYPE'] == "partition":
+                    if device.get('ID_BUS') in ("usb", "scsi") and device.get('DEVTYPE') == "partition":
                         # gen.log(device['DEVNAME'])
                         devices.append(str(device['DEVNAME']))
             else:
@@ -205,7 +205,7 @@ def details_udev(usb_disk_part):
                 vendor = 'No_Vendor'
                 model = 'No_Model'
                 label = 'No_Label'
-            elif device['ID_BUS'] in ("usb", "scsi") and device['DEVTYPE'] == "partition":
+            elif device.get('ID_BUS') in ("usb", "scsi") and device.get('DEVTYPE') == "partition":
                 if (device['DEVNAME']) == usb_disk_part:
                     uuid = str(device['ID_FS_UUID'])
                     file_system = str(device['ID_FS_TYPE'])
