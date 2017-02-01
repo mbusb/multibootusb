@@ -65,13 +65,17 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid ignore_bootid root=UUID=' +
                                     usb_uuid + ' file', string)
                 elif distro == "fedora":
-                    string = re.sub(r'root=\S*', 'root=UUID=' + usb_uuid, string)
+                    string = re.sub(r'root=\S*', 'root=live:UUID=' + usb_uuid, string)
                     if re.search(r'liveimg', string, re.I):
                         string = re.sub(r'liveimg', 'liveimg live_dir=/multibootusb/' +
                                         iso_basename(iso_link) + '/LiveOS', string)
                     elif re.search(r'rd.live.image', string, re.I):
                         string = re.sub(r'rd.live.image', 'rd.live.image rd.live.dir=/multibootusb/' +
                                         iso_basename(iso_link) + '/LiveOS', string)
+                    elif re.search(r'Solus', string, re.I):
+                        string = re.sub(r'initrd=', 'rd.live.dir=/multibootusb/' + iso_basename(iso_link) +
+                                        '/LiveOS initrd=', string)
+
                     if not persistence == 0:
                         if re.search(r'liveimg', string, re.I):
                             string = re.sub(r'liveimg', 'liveimg overlay=UUID=' + usb_uuid, string)
@@ -148,6 +152,12 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                         if not os.path.exists(os.path.join(usb_mount, '.miso')):
                             with open(os.path.join(usb_mount, '.miso'), "w") as f:
                                 f.write('')
+                elif distro == "kaos":
+                    string = re.sub(r'kdeosisolabel=\S*',
+                                    'kdeosisodevice=/dev/disk/by-uuid/' + usb_uuid, string, flags=re.I)
+                    string = re.sub(r'append',
+                                    'append kdeosisobasedir=/multibootusb/' + iso_basename(iso_link) + '/kdeos/', string, flags=re.I)
+                    string = re.sub(r'ui gfxboot', '# ui gfxboot', string)  # Bug in the isolinux package
                 elif distro == "suse" or distro == "opensuse":
                     if re.search(r'opensuse_12', string, re.I):
                         string = re.sub(r'append',

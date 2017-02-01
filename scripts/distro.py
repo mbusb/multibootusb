@@ -56,6 +56,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "arch"
                         elif re.search(r'chakraisolabel', string, re.I):
                             return "chakra"
+                        elif re.search(r'kdeosisolabel', string, re.I):
+                            return "kaos"
                         elif re.search(r'boot=live', string, re.I) and isolinux_bin_exist(iso_link):
                             return "debian"
                         elif re.search(r'debian-installer', string, re.I) and isolinux_bin_exist(iso_link):
