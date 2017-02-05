@@ -3,6 +3,7 @@ Version - 8.5.0
 * Added Solus OS
 * Added Ka OS
 * Added PC Unlocker
+* Added Acronis True Image
 * Fixed bug - Same drives appearing multiple times under imager tab
 * Fixed HBCD boot issue
 * Fix crash when using ISO Imager option to write ISO files (fix by bagage)
