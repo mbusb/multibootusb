@@ -233,7 +233,12 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 string = re.sub(r'/HBCD', '/multibootusb/' + iso_basename(iso_link) + '/HBCD', _config_file)
                 config_file.write(string)
                 config_file.close()
-
+            with open(sys_cfg_file, "a") as f:
+                f.write("#start " + iso_basename(config.iso_link) + "\n")
+                f.write("LABEL " + iso_basename(config.iso_link) + "\n")
+                f.write("MENU LABEL " + iso_basename(config.iso_link) + "\n")
+                f.write("BOOT " + '/multibootusb/' + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '/' + distro + '.bs' + "\n")
+                f.write("#end " + iso_basename(config.iso_link) + "\n")
         elif distro == "Windows":
             if os.path.exists(sys_cfg_file):
                 config_file = open(sys_cfg_file, "a")
@@ -264,6 +269,8 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 config_file.close()
         elif distro == 'grub4dos':
             update_menu_lst()
+        elif distro == 'grub4dos_iso':
+            update_grub4dos_iso_menu()
         else:
             # admin.adminCmd(["mount", "-o", "remount,rw", config.usb_disk])
             config_file = open(sys_cfg_file, "a")
@@ -290,8 +297,11 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 config_file.write("INITRD " + "/multibootusb/" + iso_basename(iso_link) + '/' + iso_name(iso_link) + '\n')
                 config_file.write("APPEND iso\n")
             elif distro == 'ReactOS':
-                config_file.write("COM32 mboot.c32")
-                config_file.write("APPEND /loader/setupldr.sys")
+                config_file.write("COM32 mboot.c32" + '\n')
+                config_file.write("APPEND /loader/setupldr.sys" + '\n')
+            elif distro == 'pc-unlocker':
+                config_file.write("kernel ../ldntldr" + '\n')
+                config_file.write("append initrd=../ntldr" + '\n')
             else:
                 if isolinux_bin_exist(config.iso_link) is True:
                     if distro == "generic":
@@ -350,3 +360,24 @@ def update_menu_lst():
         f.write("KERNEL grub.exe" + "\n")
         f.write('APPEND --config-file=/' + menu_lst + "\n")
         f.write("#end " + iso_basename(config.iso_link) + "\n")
+
+def update_grub4dos_iso_menu():
+        sys_cfg_file = os.path.join(config.usb_mount, "multibootusb", "syslinux.cfg")
+        install_dir = os.path.join(config.usb_mount, "multibootusb", iso_basename(config.iso_link))
+        menu_lst_file = os.path.join(install_dir, 'menu.lst')
+        with open(menu_lst_file, "w") as f:
+            f.write("title Boot " + iso_name(config.iso_link) + "\n")
+            f.write("find --set-root --ignore-floppies --ignore-cd /multibootusb/" + iso_basename(config.iso_link) + '/'
+                    + iso_name(config.iso_link) + "\n")
+            f.write("map --heads=0 --sectors-per-track=0 /multibootusb/" + iso_basename(config.iso_link)
+                    + '/' + iso_name(config.iso_link) + ' (hd32)' + "\n")
+            f.write("map --hook" + "\n")
+            f.write("chainloader (hd32)")
+
+        with open(sys_cfg_file, "a") as f:
+            f.write("#start " + iso_basename(config.iso_link) + "\n")
+            f.write("LABEL " + iso_basename(config.iso_link) + "\n")
+            f.write("MENU LABEL " + iso_basename(config.iso_link) + "\n")
+            f.write("KERNEL grub.exe" + "\n")
+            f.write('APPEND --config-file=/multibootusb/' + iso_basename(config.iso_link) + '/' + iso_name(config.iso_link) + "\n")
+            f.write("#end " + iso_basename(config.iso_link) + "\n")

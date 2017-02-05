@@ -1,8 +1,8 @@
 ;--------------------------------
 ;NSIS script for creating multibootusb setup file
 
-Name "multibootusb 8.4.0"
-OutFile "multibootusb-8.4.0-setup.exe"
+Name "multibootusb 8.5.0"
+OutFile "multibootusb-8.5.0-setup.exe"
 
 SetCompressor lzma
 

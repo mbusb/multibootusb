@@ -72,8 +72,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "redhat"
                         # elif re.search(r'suse', string, re.I):
                         #   return "suse"
-                        elif re.search(r'opensuse', string,
-                                       re.I):
+                        elif re.search(r'opensuse', string, re.I):
                             return "opensuse"
                         elif re.search(
                                 r'slitaz|dban |ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|android-x86.png|'
@@ -127,6 +126,9 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "ReactOS"
                         elif re.search(r'fsecure', string, re.I):
                             return "fsecure"
+                        elif re.search(r'default rwp', string, re.I):
+                            return "pc-unlocker"
+
 
         distro = detect_iso_from_file_list(iso_link)
         if distro:
@@ -162,12 +164,13 @@ def detect_iso_from_file_list(iso_link):
             return "mentest"
         elif any("menu.lst" in s.lower() for s in iso_file_list):
             return "grub4dos"
+        elif any("bootwiz.cfg" in s.lower() for s in iso_file_list) and any("bootmenu_logo.png" in s.lower() for s in iso_file_list):
+            return "grub4dos_iso"
         else:
             log(iso_file_list)
 
 if __name__ == '__main__':
     iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
-    #iso_link = '../../../DISTROS/2016/debian-live-8.3.0-amd64-lxde-desktop.iso'
-    iso_link = '/media/sundar/Data/DISTROS/ubuntu_14_04_backup/Downloads/clonezilla-live-2.4.2-32-amd64.iso'
+    iso_link = 'Downloads/clonezilla-live-2.4.2-32-amd64.iso'
     iso_extract_file(iso_link, iso_cfg_ext_dir, 'cfg')
     log(distro(iso_cfg_ext_dir))

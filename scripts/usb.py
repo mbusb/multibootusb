@@ -14,6 +14,9 @@ import collections
 import ctypes
 import subprocess
 from . import gen
+if platform.system() == 'Linux':
+    from . import udisks
+    u = udisks.get_udisks(ver=None)
 if platform.system() == 'Windows':
     import psutil
     import win32com.client
@@ -213,8 +216,8 @@ def details_udev(usb_disk_part):
                         label = str(device['ID_FS_LABEL'])
                     except:
                         label = "No_Label"
-                    mount_point = os.popen('findmnt -nr -o target -S %s'
-                                           % usb_disk_part).read().strip()
+                    mount_point = u.mount(usb_disk_part)
+                    # mount_point = os.popen('findmnt -nr -o target -S %s' % usb_disk_part).read().strip()
                     # Convert the hex string of space to empty space.
                     mount_point = mount_point.replace('\\x20', ' ')
                     try:
@@ -259,7 +262,10 @@ def details_udisks2(usb_disk_part):
         # mount_point = str(bytearray(mount_point[0]).decode('utf-8').replace(b'\x00', b''))
         mount_point = bytearray(mount_point[0]).replace(b'\x00', b'').decode('utf-8')
     else:
-        mount_point = "No_Mount"
+        try:
+            mount_point = u.mount(usb_disk_part)
+        except:
+            mount_point = "No_Mount"
     try:
         label = bd.Get('org.freedesktop.UDisks2.Block', 'IdLabel', dbus_interface='org.freedesktop.DBus.Properties')
     except:

@@ -52,7 +52,7 @@ def install_distro():
         elif platform.system() == "Linux":
             log("Copying " + config.iso_link + " to " + usb_mount)
             shutil.copy(config.iso_link, usb_mount)
-    elif config.distro == "Windows" or config.distro == "alpine":
+    elif config.distro == "Windows" or config.distro == "alpine" or config.distro == 'pc-unlocker':
         log("Extracting iso to " + usb_mount)
         iso_extract_full(config.iso_link, usb_mount)
     elif config.distro == "trinity-rescue":
@@ -91,6 +91,8 @@ def install_distro():
         iso_extract_full(config.iso_link, usb_mount)
     elif config.distro == 'ReactOS':
         iso_extract_full(config.iso_link, usb_mount)
+    elif config.distro == 'grub4dos_iso':
+        copy_iso(config.iso_link, install_dir)
     else:
         iso.iso_extract_full(config.iso_link, install_dir)
 
@@ -107,6 +109,13 @@ def install_distro():
 
 
 def copy_iso(src, dst):
+    """
+    A simple wrapper for copying larger files. This is necessary as
+    shutil copy files is much slower under Windows platform
+    :param src: Path to source file
+    :param dst: Destination directory
+    :return:
+    """
     if platform.system() == "Windows":
         subprocess.call("xcopy " + src + " " + dst, shell=True)
     elif platform.system() == "Linux":

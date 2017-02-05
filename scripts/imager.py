@@ -65,7 +65,7 @@ def dd_win():
     in_file_size = float(os.path.getsize(config.imager_iso_link) / 1024 / 1024)
     output = "of=\\\.\\" + config.imager_usb_disk
     command = [windd, input, output, "bs=1M", "--progress"]
-    log("Executing ==> " + command)
+    log("Executing ==> " + " ".join(command))
     dd_process = subprocess.Popen(command, universal_newlines=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
                                   shell=False)
     while dd_process.poll() is None:
@@ -224,4 +224,3 @@ class Imager(QtWidgets.QDialog, Ui_Dialog):
         else:
             usb_size = self.usb.disk_usage(self.usb.get_usb(usb_disk).mount).total
             return usb_size
-

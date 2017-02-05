@@ -94,6 +94,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QDialog, Ui_Dialog):
         :return:
         """
         self.ui.comboBox.clear()
+        self.ui.comboBox_2.clear()
         if self.ui.checkBox_all_drives.isChecked():
             detected_device = usb.list(partition=1, fixed=True)
         else:
