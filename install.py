@@ -82,7 +82,7 @@ class Install():
                 result = True
         elif subprocess.call("which yum", shell=True) == 0:
             subprocess.call("yum check-update", shell=True)
-            if subprocess.call("yum install mtools PyQt5 pkexec util-linux parted p7zip p7zip-plugins python3-dbus -y", shell=True) == 0:
+            if subprocess.call("dnf install mtools python3-PyQt5 util-linux parted p7zip p7zip-plugins python3-dbus -y", shell=True) == 0:
                 result = True
         elif subprocess.call("which apt-get", shell=True) == 0:
             subprocess.call("apt-get -q update", shell=True)
