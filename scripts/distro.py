@@ -60,7 +60,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "kaos"
                         elif re.search(r'boot=live', string, re.I) and isolinux_bin_exist(iso_link):
                             return "debian"
-                        elif re.search(r'debian-installer', string, re.I) and isolinux_bin_exist(iso_link):
+                        elif re.search(r'debian-installer', string, re.I) and not any("casper" in s.lower() for s in iso_file_list):
                             return "debian-install"
                         elif re.search(r'solydx', string, re.I):
                             return "solydx"
