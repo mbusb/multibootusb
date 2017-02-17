@@ -64,6 +64,12 @@ def extract_iso(src, dst, pattern=None, suppress_out=True):
 
 
 def list_iso(iso_link, suppress_out=True):
+    """
+    List the content of ISO files. It does'nt work with non 'utf' characters (simply ignores them).
+    :param iso_link:Path to ISO link
+    :param suppress_out: Option to suppress output to stdout. Default True.
+    :return: Path to files as a list
+    """
     if platform.system() == 'Windows':
         if suppress_out is True:
             suppress_out = ' 2> nul'
@@ -76,13 +82,17 @@ def list_iso(iso_link, suppress_out=True):
     else:
         file_list = []
         _cmd = _7zip + ' l ' + gen.quote(iso_link) + suppress_out
-        # gen.log('Executing', _cmd)
-        _cmd_out = subprocess.check_output(_cmd, universal_newlines=True, stderr=subprocess.PIPE, shell=True).splitlines()
+        _cmd_out = subprocess.check_output(_cmd, stderr=subprocess.PIPE, shell=True).decode('utf-8', 'ignore').splitlines()
         for line in _cmd_out:
             line = line.split()
             if '.....' in line:
-                file_list.append(line[-1])
-
+                if gen.has_digit(line[2]) or gen.has_digit(line[4]):
+                    if len(line) > 6:
+                        f_path = " ".join(line[5:len(line)])
+                        file_list.append(f_path)
+                    else:
+                        f_path = line[-1]
+                        file_list.append(f_path)
         return file_list
 
 

@@ -66,13 +66,19 @@ def delete_frm_file_list():
             else:
                 f = f.replace('\n', '').strip("/")
             if os.path.exists(os.path.join(usb_mount, "ldlinux.sys")):
-                os.chmod(os.path.join(usb_mount, "ldlinux.sys"), 0o777)
-                os.unlink(os.path.join(usb_mount, "ldlinux.sys"))
+                try:
+                    os.chmod(os.path.join(usb_mount, "ldlinux.sys"), 0o777)
+                    os.unlink(os.path.join(usb_mount, "ldlinux.sys"))
+                except:
+                    gen.log('Could not remove ldlinux.sys')
 
             if os.path.exists(os.path.join(usb_mount, f)):
                 gen.log("Removing " + (os.path.join(usb_mount, f)))
                 if os.path.isfile(os.path.join(usb_mount, f)):
-                    os.remove(os.path.join(usb_mount, f))
+                    try:
+                        os.remove(os.path.join(usb_mount, f))
+                    except:
+                        gen.log('Could not remove ' + f)
                 elif os.path.isdir(os.path.join(usb_mount, f)):
                     shutil.rmtree(os.path.join(usb_mount, f))
         if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "generic.cfg")):
@@ -84,7 +90,7 @@ def delete_frm_file_list():
                 if os.path.exists(os.path.join(usb_mount, generic.strip("/"))):
                     os.remove(os.path.join(usb_mount, generic.strip("/")))
     if platform.system() == 'Linux':
-        gen.log('Removed files from' + config.uninstall_distro_dir_name)
+        gen.log('Removed files from ' + config.uninstall_distro_dir_name)
         gen.log('Syncing....')
         os.system('sync')
 
