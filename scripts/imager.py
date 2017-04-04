@@ -115,33 +115,32 @@ class Imager(QtWidgets.QDialog, Ui_Dialog):
         :return:
         """
         log("Testing ISO...")
+        self.ui.imager_bootable.setVisible(True)
         if iso.is_bootable(config.imager_iso_link) is True:
-            self.ui.imager_bootable.setText("Bootable ISO :: Yes")
+            self.ui.imager_bootable.setText("Bootable ISO: Yes")
             log("ISO is bootable.")
         else:
-            self.ui.imager_bootable.setText("Bootable ISO :: No")
+            self.ui.imager_bootable.setText("Bootable ISO: No")
             log("ISO is not bootable.")
 
         if os.path.exists(config.imager_iso_link):
-            log("Path " + config.imager_iso_link + " is exist...")
+            log("Path " + config.imager_iso_link + " exists...")
             self.iso_size = str(round(os.path.getsize(config.imager_iso_link) / 1024 / 1024))
-            self.ui.imager_iso_size.setText("ISO Size :: " + self.iso_size + " MB")
+            self.ui.imager_iso_size.setVisible(True)
+            self.ui.imager_iso_size.setText("ISO Size: " + self.iso_size + " MB")
             log("ISO Size is " + self.iso_size + " MB")
 
     def onImagerComboChange(self):
         config.imager_usb_disk = str(self.ui.comboBox_2.currentText())
         if bool(config.imager_usb_disk):
-            self.ui.imager_disk_label.setText("Disk Type :: " + self.imager_usb_detail(config.imager_usb_disk,
-                                                                                       partition=0).usb_type)
-            self.ui.imager_total_size.setText("Disk Size :: " + usb.bytes2human(int(self.imager_usb_detail
-                                                                                         (config.imager_usb_disk,
-                                                                                          partition=0).total_size)))
+            self.ui.imager_disk_label.setText(self.imager_usb_detail(config.imager_usb_disk, partition=0).usb_type)
+            self.ui.imager_total_size.setText(usb.bytes2human(int(self.imager_usb_detail(config.imager_usb_disk, partition=0).total_size)))
+
             if platform.system() == "Linux":
-                self.ui.imager_uuid.setText("Disk Model :: " + str(self.imager_usb_detail(config.imager_usb_disk,
-                                                                                      partition=0).model))
+                self.ui.label_imager_uuid.setText("Disk Model:")
+                self.ui.imager_uuid.setText(str(self.imager_usb_detail(config.imager_usb_disk, partition=0).model))
             else:
-                self.ui.imager_uuid.setText("Disk Label :: " + self.imager_usb_detail(config.imager_usb_disk,
-                                                                                      partition=0).model)
+                self.ui.imager_uuid.setText(self.imager_usb_detail(config.imager_usb_disk, partition=0).model)
 
     def imager_list_usb(self, partition=1):
         """
@@ -190,7 +189,7 @@ class Imager(QtWidgets.QDialog, Ui_Dialog):
                         if not total_size:
                             total_size = "Unknown"
                         usb_type = "Removable"
-                        model = subprocess.check_output("lsblk -in -f -o MODEL " + usb_disk, shell=True).decode()
+                        model = subprocess.check_output("lsblk -in -f -o MODEL " + usb_disk, shell=True).decode().strip()
                         if not model:
                             model = "Unknown"
         else:
