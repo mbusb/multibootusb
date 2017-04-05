@@ -32,12 +32,12 @@ def dd_linux():
     in_file_size = float(os.path.getsize(config.imager_iso_link))
     output = "of=" + config.imager_usb_disk
     os.system("umount " + config.imager_usb_disk + "1")
-    command = ['dd', input, output, "bs=1M"]
+    command = ['dd', input, output, "bs=1M", "oflag=sync"]
     log("Executing ==> " + " ".join(command))
     dd_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
     pbar = progressbar.ProgressBar(maxval=100).start()  # bar = progressbar.ProgressBar(redirect_stdout=True)
     while dd_process.poll() is None:
-        time.sleep(.1)  # If this time delay is not given, the Popen does not execute the actual command
+        time.sleep(1)  # If this time delay is not given, the Popen does not execute the actual command
         dd_process.send_signal(signal.SIGUSR1)
         dd_process.stderr.flush()
         while True:
