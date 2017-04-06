@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>644</width>
+    <width>717</width>
     <height>516</height>
    </rect>
   </property>
@@ -16,92 +16,229 @@
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
     <widget class="QTabWidget" name="tabWidget">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
      <widget class="QWidget" name="tab_3">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <attribute name="title">
        <string>MultiBootUSB</string>
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="5" column="2">
-          <widget class="QLabel" name="label_persistence_value">
-           <property name="text">
-            <string>0 MB</string>
+         <property name="leftMargin">
+          <number>5</number>
+         </property>
+         <property name="topMargin">
+          <number>5</number>
+         </property>
+         <property name="rightMargin">
+          <number>5</number>
+         </property>
+         <property name="bottomMargin">
+          <number>5</number>
+         </property>
+         <item row="2" column="0" colspan="5">
+          <widget class="QGroupBox" name="groupBox_6">
+           <property name="title">
+            <string>USB Details</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing</set>
+           </property>
+           <property name="flat">
+            <bool>false</bool>
+           </property>
+           <property name="checkable">
+            <bool>false</bool>
+           </property>
+           <layout class="QFormLayout" name="formLayout">
+            <property name="labelAlignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_usb_dev">
+              <property name="text">
+               <string>Drive:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="usb_dev">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_usb_vendor">
+              <property name="text">
+               <string>Vendor:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLabel" name="usb_vendor">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_usb_model">
+              <property name="text">
+               <string>Model:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_usb_size">
+              <property name="frameShape">
+               <enum>QFrame::NoFrame</enum>
+              </property>
+              <property name="text">
+               <string>Size:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_usb_mount">
+              <property name="text">
+               <string>Mount:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLabel" name="usb_model">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLabel" name="usb_size">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QLabel" name="usb_mount">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
-         <item row="1" column="3" colspan="2">
-          <layout class="QVBoxLayout" name="verticalLayout_11">
-           <item>
-            <widget class="QGroupBox" name="groupBox_11">
-             <property name="title">
-              <string>Detect</string>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_8">
-              <item>
-               <widget class="QPushButton" name="detect_usb">
-                <property name="text">
-                 <string>Detect Drives</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item row="0" column="0" rowspan="4" colspan="3">
-          <widget class="QListWidget" name="listWidget"/>
-         </item>
-         <item row="7" column="0" colspan="6">
-          <widget class="QProgressBar" name="progressBar">
-           <property name="value">
-            <number>0</number>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="4">
-          <widget class="QPushButton" name="create">
-           <property name="text">
-            <string>Create</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="3">
-          <widget class="QComboBox" name="comboBox"/>
-         </item>
-         <item row="0" column="5">
-          <widget class="QLabel" name="labelstep1">
-           <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Step 1&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="5">
-          <widget class="QLabel" name="labelstep2">
-           <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Step 2&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="3">
+         <item row="9" column="6">
           <widget class="QPushButton" name="close">
            <property name="text">
-            <string>Close</string>
+            <string>Quit</string>
            </property>
           </widget>
          </item>
-         <item row="5" column="5">
-          <widget class="QLabel" name="labelstep3">
+         <item row="8" column="0">
+          <spacer name="verticalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="4" column="4">
+          <widget class="QPushButton" name="browse_iso">
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Step 3&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Browse ISO</string>
+           </property>
+           <property name="checkable">
+            <bool>false</bool>
+           </property>
+           <property name="flat">
+            <bool>false</bool>
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
+         <item row="1" column="5" rowspan="8" colspan="2">
+          <widget class="QListWidget" name="listWidget">
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Sunken</enum>
+           </property>
+           <property name="resizeMode">
+            <enum>QListView::Fixed</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="label_persistence">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="mouseTracking">
+            <bool>true</bool>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">font-weight: 600</string>
+           </property>
+           <property name="text">
+            <string>Persistence</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0" colspan="4">
+          <widget class="QLineEdit" name="lineEdit"/>
+         </item>
+         <item row="1" column="2" colspan="2">
+          <widget class="QPushButton" name="detect_usb">
+           <property name="text">
+            <string>Detect Drives</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="5" colspan="2">
+          <widget class="QPushButton" name="uninstall">
+           <property name="text">
+            <string>Uninstall Distro</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="2">
+          <widget class="QComboBox" name="comboBox"/>
+         </item>
+         <item row="6" column="1" colspan="3">
           <widget class="QSlider" name="slider_persistence">
            <property name="enabled">
             <bool>false</bool>
@@ -118,100 +255,69 @@
            <property name="tickPosition">
             <enum>QSlider::TicksBothSides</enum>
            </property>
-           <property name="tickInterval">
-            <number>0</number>
-           </property>
           </widget>
          </item>
-         <item row="3" column="3" colspan="2">
-          <widget class="QGroupBox" name="groupBox">
-           <property name="title">
-            <string>Uninstall (Optional)</string>
+         <item row="8" column="2" colspan="2">
+          <spacer name="horizontalSpacer_11">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout">
-            <item>
-             <layout class="QGridLayout" name="gridLayout_5">
-              <item row="0" column="0">
-               <widget class="QPushButton" name="uninstall">
-                <property name="text">
-                 <string>Uninstall Distro</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item row="4" column="0" colspan="4">
-          <widget class="QLineEdit" name="lineEdit"/>
-         </item>
-         <item row="2" column="3" colspan="3">
-          <widget class="QGroupBox" name="groupBox_6">
-           <property name="title">
-            <string>USB Details</string>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_5">
-            <item>
-             <widget class="QLabel" name="usb_dev">
-              <property name="text">
-               <string>Drive ::</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="usb_vendor">
-              <property name="text">
-               <string>Vendor ::</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="usb_model">
-              <property name="text">
-               <string>Model::</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="usb_size">
-              <property name="text">
-               <string>Size ::</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="usb_mount">
-              <property name="text">
-               <string>Mount ::</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
+          </spacer>
          </item>
-         <item row="4" column="4">
-          <widget class="QPushButton" name="browse_iso">
-           <property name="text">
-            <string>Browse ISO</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_persistence">
-           <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Persistence&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="4">
+         <item row="1" column="4">
           <widget class="QCheckBox" name="checkBox_all_drives">
            <property name="text">
             <string>All Drives</string>
            </property>
           </widget>
          </item>
-         <item row="6" column="0" colspan="6">
+         <item row="6" column="4">
+          <widget class="QLabel" name="label_persistence_value">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>0 MB</string>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="1">
+          <spacer name="horizontalSpacer_10">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="7" column="4">
+          <widget class="QPushButton" name="create">
+           <property name="text">
+            <string>Install</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0" colspan="4">
+          <widget class="QProgressBar" name="progressBar">
+           <property name="value">
+            <number>0</number>
+           </property>
+           <property name="invertedAppearance">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="0" colspan="6">
           <widget class="QLabel" name="status">
            <property name="minimumSize">
             <size>
@@ -229,7 +335,7 @@
             <enum>QFrame::Plain</enum>
            </property>
            <property name="text">
-            <string/>
+            <string>Status: Idle</string>
            </property>
            <property name="textFormat">
             <enum>Qt::AutoText</enum>
@@ -239,75 +345,104 @@
            </property>
           </widget>
          </item>
+         <item row="0" column="0" colspan="5">
+          <widget class="QLabel" name="labelstep1">
+           <property name="styleSheet">
+            <string notr="true">font-weight: 600; margin-top:15</string>
+           </property>
+           <property name="text">
+            <string>Step 1 :: Select drive</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="5">
+          <widget class="QLabel" name="labelstep2">
+           <property name="styleSheet">
+            <string notr="true">font-weight: 600; margin-top:15</string>
+           </property>
+           <property name="text">
+            <string>Step 2 :: Select ISO</string>
+           </property>
+           <property name="margin">
+            <number>0</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0" colspan="5">
+          <widget class="QLabel" name="labelstep3">
+           <property name="styleSheet">
+            <string notr="true">font-weight: 600; margin-top:15</string>
+           </property>
+           <property name="text">
+            <string>Step 3 :: Install distro</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
      </widget>
      <widget class="QWidget" name="imager">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <attribute name="title">
-       <string>ISO Imager</string>
+       <string>Write Image to USB</string>
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_7">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
         <layout class="QGridLayout" name="gridLayout_9">
-         <item row="1" column="0">
-          <widget class="QGroupBox" name="groupBox_7">
-           <property name="title">
-            <string>Imager</string>
-           </property>
+         <property name="leftMargin">
+          <number>5</number>
+         </property>
+         <property name="topMargin">
+          <number>5</number>
+         </property>
+         <property name="rightMargin">
+          <number>5</number>
+         </property>
+         <property name="bottomMargin">
+          <number>5</number>
+         </property>
+         <item row="0" column="0" colspan="2">
+          <widget class="QWidget" name="widget_7" native="true">
            <layout class="QVBoxLayout" name="verticalLayout_6">
+            <property name="leftMargin">
+             <number>5</number>
+            </property>
+            <property name="topMargin">
+             <number>5</number>
+            </property>
+            <property name="rightMargin">
+             <number>5</number>
+            </property>
+            <property name="bottomMargin">
+             <number>5</number>
+            </property>
             <item>
              <layout class="QGridLayout" name="gridLayout_11">
-              <item row="0" column="0">
-               <widget class="QGroupBox" name="groupBox_9">
-                <property name="title">
-                 <string>--------------  USB details  -------------------</string>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_8">
-                 <item>
-                  <widget class="QComboBox" name="comboBox_2"/>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="pushbtn_imager_refreshusb">
-                   <property name="text">
-                    <string>Refresh USB</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="imager_disk_label">
-                   <property name="text">
-                    <string>Disk Label ::</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="imager_total_size">
-                   <property name="text">
-                    <string>Disk Size</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="imager_uuid">
-                   <property name="text">
-                    <string>Disk Label ::</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
               <item row="0" column="1">
                <widget class="QGroupBox" name="groupBox_10">
                 <property name="title">
-                 <string>------------------------------  ISO details  ----------------------------------</string>
+                 <string>Select image</string>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_9">
                  <item>
                   <widget class="QPushButton" name="pushButton">
                    <property name="text">
-                    <string>Browse ISO</string>
+                    <string>Browse image...</string>
                    </property>
                   </widget>
                  </item>
@@ -324,24 +459,125 @@
                  <item>
                   <widget class="QLabel" name="imager_iso_size">
                    <property name="text">
-                    <string>ISO Size</string>
+                    <string>Image Size</string>
                    </property>
                   </widget>
+                 </item>
+                 <item>
+                  <spacer name="verticalSpacer_10">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <spacer name="horizontalSpacer_7">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="0" column="0">
+               <widget class="QGroupBox" name="groupBox_9">
+                <property name="styleSheet">
+                 <string notr="true"/>
+                </property>
+                <property name="title">
+                 <string>Select USB Drive</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_8">
+                 <item>
+                  <widget class="QComboBox" name="comboBox_2"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="pushbtn_imager_refreshusb">
+                   <property name="text">
+                    <string>Refresh USB</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QFormLayout" name="formLayout_3">
+                   <property name="labelAlignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="label_imager_disk_label">
+                     <property name="text">
+                      <string>Disk Type:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="label_imager_total_size">
+                     <property name="text">
+                      <string>Disk Size:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="label_imager_uuid">
+                     <property name="text">
+                      <string>Disk Label:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QLabel" name="imager_disk_label">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="1">
+                    <widget class="QLabel" name="imager_total_size">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="1">
+                    <widget class="QLabel" name="imager_uuid">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <spacer name="verticalSpacer_8">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
                  </item>
                 </layout>
                </widget>
               </item>
              </layout>
             </item>
-           </layout>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QGroupBox" name="groupBox_8">
-           <property name="title">
-            <string>Imager Progress</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_7">
             <item>
              <widget class="QLabel" name="imager_label_status">
               <property name="sizePolicy">
@@ -351,26 +587,12 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string/>
+               <string>Status: Idle</string>
               </property>
              </widget>
             </item>
             <item>
              <layout class="QGridLayout" name="gridLayout_12">
-              <item row="2" column="2">
-               <widget class="QPushButton" name="imager_write">
-                <property name="text">
-                 <string>Write/Create</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QPushButton" name="imager_close">
-                <property name="text">
-                 <string>Close</string>
-                </property>
-               </widget>
-              </item>
               <item row="1" column="0" colspan="3">
                <widget class="QLabel" name="label_10">
                 <property name="text">
@@ -385,10 +607,37 @@
                 </property>
                </widget>
               </item>
+              <item row="2" column="2">
+               <widget class="QPushButton" name="imager_write">
+                <property name="text">
+                 <string>Write Image</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </item>
            </layout>
           </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QPushButton" name="imager_close">
+           <property name="text">
+            <string>Quit</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <spacer name="horizontalSpacer_8">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </item>
@@ -396,7 +645,7 @@
      </widget>
      <widget class="QWidget" name="syslinux_ab">
       <attribute name="title">
-       <string>Syslinux</string>
+       <string>Install Syslinux</string>
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
@@ -412,14 +661,28 @@
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
              <layout class="QGridLayout" name="gridLayout_3">
-              <item row="2" column="1">
+              <item row="0" column="0">
+               <widget class="QRadioButton" name="install_sys_only">
+                <property name="text">
+                 <string>Install only syslinu&amp;x (existing configurations will not be altered).</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QRadioButton" name="install_sys_all">
+                <property name="text">
+                 <string>Install syslinux and copy all re&amp;quired files.</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2" rowspan="2">
                <widget class="QPushButton" name="install_syslinux">
                 <property name="text">
                  <string>Install</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
+              <item row="0" column="1" rowspan="2">
                <spacer name="horizontalSpacer_2">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -432,26 +695,25 @@
                 </property>
                </spacer>
               </item>
-              <item row="1" column="0" colspan="2">
-               <widget class="QRadioButton" name="install_sys_all">
-                <property name="text">
-                 <string>Install syslinux and copy all required files.</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="0" colspan="2">
-               <widget class="QRadioButton" name="install_sys_only">
-                <property name="text">
-                 <string>Install only syslinux (existing configurations will not be altred).</string>
-                </property>
-               </widget>
-              </item>
              </layout>
             </item>
            </layout>
           </widget>
          </item>
-         <item row="1" column="0">
+         <item row="3" column="0">
+          <spacer name="verticalSpacer_13">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="2" column="0">
           <widget class="QGroupBox" name="groupBox_3">
            <property name="title">
             <string>Edit syslinux.cfg</string>
@@ -459,14 +721,21 @@
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <item>
              <layout class="QGridLayout" name="gridLayout_4">
-              <item row="1" column="1">
+              <item row="0" column="2">
                <widget class="QPushButton" name="edit_syslinux">
                 <property name="text">
                  <string>Edit</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="0">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;Edit syslinux.cfg file directly using the default editor of your system. &lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;Be &lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;CAREFUL&lt;/span&gt; while editing syslinux.cfg!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
                <spacer name="horizontalSpacer_3">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -479,17 +748,26 @@
                 </property>
                </spacer>
               </item>
-              <item row="0" column="0" colspan="2">
-               <widget class="QLabel" name="label_2">
-                <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;Using this option user can edit syslinux.cfg file directly. It directly uses &lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;default editor of host system. Be careful while editing syslinux.cfg file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-               </widget>
-              </item>
              </layout>
             </item>
            </layout>
           </widget>
+         </item>
+         <item row="1" column="0">
+          <spacer name="verticalSpacer_14">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </item>
@@ -497,97 +775,18 @@
      </widget>
      <widget class="QWidget" name="tab">
       <attribute name="title">
-       <string>QEMU</string>
+       <string>Boot ISO/USB</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <widget class="QGroupBox" name="groupBox_5">
          <property name="title">
-          <string>Boot ISO</string>
+          <string>Boot ISO :: Test bootable ISOs without reboot</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
            <layout class="QGridLayout" name="gridLayout_7">
-            <item row="4" column="4">
-             <widget class="QRadioButton" name="ram_iso_2048">
-              <property name="text">
-               <string>2048 MB</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="3">
-             <widget class="QRadioButton" name="ram_iso_1024">
-              <property name="text">
-               <string>1024 MB</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="0">
-             <widget class="QRadioButton" name="ram_iso_256">
-              <property name="text">
-               <string>256 MB</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="4">
-             <widget class="QPushButton" name="browse_iso_qemu">
-              <property name="text">
-               <string>Browse ISO</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0" colspan="5">
-             <widget class="QLabel" name="label_7">
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Best way to test your downloaded ISOs. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
-             <widget class="QRadioButton" name="ram_iso_512">
-              <property name="text">
-               <string>512 MB</string>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="4">
-             <widget class="QPushButton" name="boot_iso_qemu">
-              <property name="text">
-               <string>Boot ISO</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="2">
-             <widget class="QRadioButton" name="ram_iso_768">
-              <property name="text">
-               <string>768 MB</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0" colspan="4">
-             <widget class="QLineEdit" name="lineEdit_2"/>
-            </item>
-            <item row="3" column="1">
-             <spacer name="verticalSpacer_8">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="6" column="0" colspan="4">
-             <widget class="QLabel" name="label_3">
-              <property name="text">
-               <string>Choose desired RAM and click on Boot ISO button.</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="0">
+            <item row="3" column="0">
              <spacer name="verticalSpacer_7">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -600,8 +799,38 @@
               </property>
              </spacer>
             </item>
-            <item row="1" column="0">
-             <spacer name="verticalSpacer_9">
+            <item row="1" column="6">
+             <spacer name="horizontalSpacer_6">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="3" column="6">
+             <widget class="QPushButton" name="boot_iso_qemu">
+              <property name="text">
+               <string>Boot ISO</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="6">
+             <widget class="QPushButton" name="browse_iso_qemu">
+              <property name="text">
+               <string>Browse ISO</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0" colspan="6">
+             <widget class="QLineEdit" name="lineEdit_2"/>
+            </item>
+            <item row="2" column="6">
+             <spacer name="verticalSpacer_2">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
@@ -613,10 +842,147 @@
               </property>
              </spacer>
             </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>Choose RAM size:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QRadioButton" name="ram_iso_256">
+              <property name="text">
+               <string>&amp;256 MB</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="2">
+             <widget class="QRadioButton" name="ram_iso_512">
+              <property name="text">
+               <string>&amp;512 MB</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="3">
+             <widget class="QRadioButton" name="ram_iso_768">
+              <property name="text">
+               <string>&amp;768 MB</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="4">
+             <widget class="QRadioButton" name="ram_iso_1024">
+              <property name="text">
+               <string>&amp;1024 MB</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="5">
+             <widget class="QRadioButton" name="ram_iso_2048">
+              <property name="text">
+               <string>204&amp;8 MB</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout_6">
+         <item row="0" column="0">
+          <widget class="QGroupBox" name="groupBox_4">
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
+           <property name="title">
+            <string>Boot USB :: Test bootable USB drive without reboot</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <layout class="QGridLayout" name="gridLayout_8">
+              <item row="0" column="5">
+               <widget class="QRadioButton" name="ram_usb_2048">
+                <property name="text">
+                 <string>20&amp;48 MB</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="6">
+               <spacer name="horizontalSpacer_9">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="1" column="0">
+               <spacer name="verticalSpacer_6">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="1" column="6">
+               <widget class="QPushButton" name="boot_usb_qemu">
+                <property name="text">
+                 <string>Boot USB</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QRadioButton" name="ram_usb_256">
+                <property name="text">
+                 <string>25&amp;6 MB</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QRadioButton" name="ram_usb_768">
+                <property name="text">
+                 <string>7&amp;68 MB</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Choose RAM size:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QRadioButton" name="ram_usb_512">
+                <property name="text">
+                 <string>5&amp;12 MB</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="4">
+               <widget class="QRadioButton" name="ram_usb_1024">
+                <property name="text">
+                 <string>1&amp;024 MB</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <spacer name="verticalSpacer">
@@ -630,118 +996,6 @@
           </size>
          </property>
         </spacer>
-       </item>
-       <item>
-        <layout class="QGridLayout" name="gridLayout_6">
-         <item row="0" column="0">
-          <widget class="QGroupBox" name="groupBox_4">
-           <property name="title">
-            <string>Boot USB</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_4">
-            <item>
-             <layout class="QGridLayout" name="gridLayout_8">
-              <item row="2" column="2">
-               <widget class="QRadioButton" name="ram_usb_768">
-                <property name="text">
-                 <string>768 MB</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QRadioButton" name="ram_usb_256">
-                <property name="text">
-                 <string>256 MB</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="0" colspan="5">
-               <widget class="QLabel" name="label_6">
-                <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;Use this option if you want to check USB installation without reboot.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="3">
-               <widget class="QRadioButton" name="ram_usb_1024">
-                <property name="text">
-                 <string>1024 MB</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0" colspan="4">
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>Choose desired RAM and click on Boot USB button.</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QRadioButton" name="ram_usb_512">
-                <property name="text">
-                 <string>512 MB</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="4">
-               <widget class="QPushButton" name="boot_usb_qemu">
-                <property name="text">
-                 <string>Boot USB</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="4">
-               <widget class="QRadioButton" name="ram_usb_2048">
-                <property name="text">
-                 <string>2048 MB</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <spacer name="verticalSpacer_2">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="3" column="2">
-               <spacer name="verticalSpacer_3">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="5" column="0">
-               <spacer name="verticalSpacer_6">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
        </item>
       </layout>
      </widget>
@@ -800,7 +1054,7 @@
          <item row="1" column="1">
           <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;An advanced bootable usb creator with option to install/uninstall &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;multiple distros. This software is written in python and pyqt. &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Copyright 2010-2016 Sundar&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Author(s)&lt;/span&gt;: Sundar, Ian Bruce, Lee&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Licence:&lt;/span&gt; GPL version 2 or later&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Home page&lt;/span&gt;: &lt;a href=&quot; http://multibootusb.org&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://multibootusb.org&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Help/Email:&lt;/span&gt;  feedback.multibootusb@gmail.com&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Source Code:&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;/&gt;&lt;a href=&quot;https://github.com/mbusb/multibootusb&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/mbusb/multibootusb&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;An advanced bootable usb creator with option to install/uninstall multiple distros.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;This software is written in python and pyqt. &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Copyright 2010-2016 Sundar&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Author(s)&lt;/span&gt;: Sundar, Ian Bruce, Lee&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Licence&lt;/span&gt;: GPL version 2 or later&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Home page&lt;/span&gt;: &lt;a href=&quot; http://multibootusb.org&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://multibootusb.org&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Help/Email&lt;/span&gt;: feedback.multibootusb@gmail.com&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Source Code&lt;/span&gt;: &lt;a href=&quot;https://github.com/mbusb/multibootusb&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/mbusb/multibootusb&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -825,6 +1079,40 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>comboBox</tabstop>
+  <tabstop>detect_usb</tabstop>
+  <tabstop>lineEdit</tabstop>
+  <tabstop>slider_persistence</tabstop>
+  <tabstop>uninstall</tabstop>
+  <tabstop>listWidget</tabstop>
+  <tabstop>close</tabstop>
+  <tabstop>comboBox_2</tabstop>
+  <tabstop>pushButton</tabstop>
+  <tabstop>pushbtn_imager_refreshusb</tabstop>
+  <tabstop>lineEdit_3</tabstop>
+  <tabstop>imager_write</tabstop>
+  <tabstop>imager_close</tabstop>
+  <tabstop>install_sys_only</tabstop>
+  <tabstop>install_sys_all</tabstop>
+  <tabstop>install_syslinux</tabstop>
+  <tabstop>edit_syslinux</tabstop>
+  <tabstop>lineEdit_2</tabstop>
+  <tabstop>browse_iso_qemu</tabstop>
+  <tabstop>ram_iso_256</tabstop>
+  <tabstop>ram_iso_512</tabstop>
+  <tabstop>ram_iso_768</tabstop>
+  <tabstop>ram_iso_1024</tabstop>
+  <tabstop>ram_iso_2048</tabstop>
+  <tabstop>boot_iso_qemu</tabstop>
+  <tabstop>ram_usb_256</tabstop>
+  <tabstop>ram_usb_512</tabstop>
+  <tabstop>ram_usb_768</tabstop>
+  <tabstop>ram_usb_1024</tabstop>
+  <tabstop>ram_usb_2048</tabstop>
+  <tabstop>boot_usb_qemu</tabstop>
+  <tabstop>tabWidget</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

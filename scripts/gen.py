@@ -84,7 +84,7 @@ def print_version():
     Simple log the version number of the multibootusb application
     :return:
     """
-    log('multibootusb version : ', mbusb_version())
+    log('multibootusb version: ', mbusb_version())
 
 
 def quote(text):
@@ -203,7 +203,7 @@ def copy_mbusb_dir_usb(usb_disk):
         except:
             return False
     else:
-        log('multibootus directory already exist. Not copying.')
+        log('multibootusb directory already exists. Not copying.')
 
 
 def read_input_yes():
