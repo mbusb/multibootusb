@@ -50,7 +50,7 @@ def dd_linux():
                     break
 
     if dd_process.poll() is not None:
-        log("Executing ==> sync")
+        log("\nExecuting ==> sync")
         os.system("sync")
         log("ISO has been written to USB disk...")
         return

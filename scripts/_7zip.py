@@ -51,14 +51,14 @@ def extract_iso(src, dst, pattern=None, suppress_out=True):
     # gen.log('Executing', _cmd)
     _7zip_process = subprocess.Popen(_cmd, universal_newlines=True, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
                                      stdout=subprocess.PIPE, shell=True)
-    config.status_text = 'Extracting ' + os.path.basename(src)
+    config.status_text = 'Status: Extracting ' + os.path.basename(src).strip()
     while True:
         line = _7zip_process.stdout.readline()
         # gen.log(line)
         if line.startswith('- '):
-            config.status_text = 'Extracting ' + line[2:]
+            config.status_text = 'Status: Extracting ' + line[2:].strip()
         elif platform.system() == 'Linux': # line.startswith('Extracting'):  # Under Linux it prints directly all the process (may be due to version diff).
-            config.status_text = line
+            config.status_text = 'Status: ' + line.strip()
         if line == '' and _7zip_process.poll() != None:
             break
 
