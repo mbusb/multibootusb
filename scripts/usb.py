@@ -92,9 +92,8 @@ def list(partition=1, fixed=None):
     """
     devices = []
     if platform.system() == "Linux":
-        from . import pyudev
+        import pyudev
         import dbus
-
 
         try:
             # pyudev is good enough to detect USB devices on modern Linux machines.
@@ -189,7 +188,7 @@ def details_udev(usb_disk_part):
     Get details of USB partition using udev
     """
     if platform.system() == "Linux":
-        from . import pyudev
+        import pyudev
         """
         Try with PyUdev to get the details of USB disks.
         This is the easiest and reliable method to find USB details.
