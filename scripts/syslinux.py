@@ -168,7 +168,7 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
                 distro_syslinux_install_dir = os.path.join(install_dir, iso_linux_bin_dir.strip("/"))
                 syslinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "extlinux") + config.syslinux_version
                 ext_cmd = syslinux_path + " --install " + distro_syslinux_install_dir
-                dd_cmd = 'dd if=' + usb_disk + ' ' + 'of=' + usb_mount + quote(distro_sys_install_bs) + ' count=1'
+                dd_cmd = 'dd if=' + usb_disk + ' ' + 'of=' + quote(distro_sys_install_bs) + ' count=1'
                 if os.access(syslinux_path, os.X_OK) is False:
                     subprocess.call('chmod +x ' + syslinux_path, shell=True) == 0
                 log ("Executing ==> " + ext_cmd)
