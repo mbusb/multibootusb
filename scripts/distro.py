@@ -66,7 +66,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "solydx"
                         elif re.search(r'knoppix', string, re.I):
                             return "knoppix"
-                        elif re.search(r'root=live:CDLABEL=', string, re.I):
+                        elif re.search(r'root=live:CDLABEL=', string, re.I) or re.search(r'root=live:LABEL=', string, re.I):
                             return "fedora"
                         elif re.search(r'redhat', string, re.I):
                             return "redhat"
@@ -76,7 +76,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "opensuse"
                         elif re.search(
                                 r'slitaz|dban |ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|android-x86.png|'
-                                r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/|AVG Rescue CD', string, re.I):
+                                r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/|AVG Rescue CD|ipxe.lkrn|SLACK_KERNEL=huge.s', string, re.I):
                             return "slitaz"
                         elif re.search(r'boot=casper', string, re.I):
                             return "ubuntu"
@@ -84,7 +84,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "wifislax"
                         elif re.search(r'slax', string, re.I):
                             return "slax"
-                        elif re.search(r'sms|vector|autoexec', string, re.I) and isolinux_bin_exist(iso_link):
+                        elif re.search(r'sms |vector|autoexec', string, re.I) and isolinux_bin_exist(iso_link):
                             return "sms"
                         elif re.search(r'antix', string, re.I):
                             return "antix"
@@ -162,6 +162,8 @@ def detect_iso_from_file_list(iso_link):
             return "slitaz"
         elif any("memtest.img" in s.lower() for s in iso_file_list):
             return "mentest"
+        elif any("mt86.png" in s.lower() for s in iso_file_list) and any("isolinux" in s.lower() for s in iso_file_list):
+            return 'raw_iso'
         elif any("menu.lst" in s.lower() for s in iso_file_list):
             return "grub4dos"
         elif any("bootwiz.cfg" in s.lower() for s in iso_file_list) and any("bootmenu_logo.png" in s.lower() for s in iso_file_list):

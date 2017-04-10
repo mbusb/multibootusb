@@ -73,14 +73,23 @@ def delete_frm_file_list():
                     gen.log('Could not remove ldlinux.sys')
 
             if os.path.exists(os.path.join(usb_mount, f)):
-                gen.log("Removing " + (os.path.join(usb_mount, f)))
                 if os.path.isfile(os.path.join(usb_mount, f)):
-                    try:
-                        os.remove(os.path.join(usb_mount, f))
-                    except:
-                        gen.log('Could not remove ' + f)
+                    gen.log("Removing " + (os.path.join(usb_mount, f)))
+                    os.remove(os.path.join(usb_mount, f))
+                    '''
+                    if 'bootx64.efi' in os.path.join(usb_mount, f) or 'grub.cfg' in os.path.join(usb_mount, f):
+                        try:
+                            gen.log("Removing " + (os.path.join(usb_mount, f)))
+                            os.remove(os.path.join(usb_mount, f))
+                        except:
+                            gen.log('Could not remove ' + f)
+                    else:
+                        gen.log('Not removing ' + f)
+                    '''
                 elif os.path.isdir(os.path.join(usb_mount, f)):
-                    shutil.rmtree(os.path.join(usb_mount, f))
+                    #if 'bootx64.efi' not in os.path.join(usb_mount, f) or 'grub.cfg' not in os.path.join(usb_mount, f):
+                     shutil.rmtree(os.path.join(usb_mount, f))
+
         if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "generic.cfg")):
             with open(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "generic.cfg"), "r") as generic_cfg:
                 if platform.system() == "Windows":
@@ -144,6 +153,7 @@ def uninstall_distro():
     delete_frm_file_list()
 
     update_sys_cfg_file()
+    update_grub_cfg_file()
 
 
 def update_sys_cfg_file():
@@ -162,6 +172,26 @@ def update_sys_cfg_file():
         string = open(sys_cfg_file).read()
         string = re.sub(r'#start ' + config.uninstall_distro_dir_name + '.*?' + '#end ' + config.uninstall_distro_dir_name + '\s*', '', string, flags=re.DOTALL)
         config_file = open(sys_cfg_file, "w")
+        config_file.write(string)
+        config_file.close()
+
+
+def update_grub_cfg_file():
+    """
+    Main function to remove uninstall distro name from the grub.cfg file.
+    :return:
+    """
+    if platform.system() == 'Linux':
+        os.system('sync')
+
+    grub_cfg_file = os.path.join(config.usb_mount, "multibootusb", "grub", "grub.cfg")
+    if not os.path.exists(grub_cfg_file):
+        gen.log("grub.cfg file not found for updating changes.")
+    else:
+        gen.log("Updating grub.cfg file...")
+        string = open(grub_cfg_file).read()
+        string = re.sub(r'#start ' + config.uninstall_distro_dir_name + '.*?' + '#end ' + config.uninstall_distro_dir_name + '\s*', '', string, flags=re.DOTALL)
+        config_file = open(grub_cfg_file, "w")
         config_file.write(string)
         config_file.close()
 

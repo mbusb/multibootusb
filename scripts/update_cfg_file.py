@@ -13,6 +13,7 @@ from .usb import *
 from .gen import *
 from .iso import *
 from . import config
+from . import grub
 
 
 def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
@@ -33,7 +34,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
     log('Updating distro specific config files...')
     for dirpath, dirnames, filenames in os.walk(install_dir):
         for f in filenames:
-            if f.endswith(".cfg") or f.endswith('.CFG') or f.endswith('.lst'):
+            if f.endswith(".cfg") or f.endswith('.CFG') or f.endswith('.lst') or f.endswith('.conf'):
                 cfg_file = os.path.join(dirpath, f)
                 try:
                     string = open(cfg_file, errors='ignore').read()
@@ -43,6 +44,8 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                     if not distro == "generic":
                         replace_text = r'\1/multibootusb/' + iso_basename(iso_link) + '/'
                         string = re.sub(r'([ \t =,])/', replace_text, string)
+                        string = re.sub(r'linuxefi', 'linux', string)
+                        string = re.sub(r'initrdefi', 'initrd', string)
                 if distro == "ubuntu":
                     string = re.sub(r'boot=casper',
                                     'boot=casper cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid '
@@ -116,9 +119,6 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     r'from=/multibootusb/' + iso_basename(iso_link) + '/slax fromusb initrd=', string)
                 elif distro == "knoppix":
                     string = re.sub(r'initrd=', 'knoppix_dir=/multibootusb/' + iso_basename(iso_link) + '/KNOPPIX initrd=', string)
-                    #string = re.sub(r'(append)',
-                    #                r'\1  knoppix_dir=/multibootusb/' + iso_basename(iso_link) + '/KNOPPIX',
-                    #                string)
                 elif distro == "gentoo":
                     string = re.sub(r'append ',
                                     'append real_root=' + usb_disk + ' slowusb subdir=/multibootusb/' +
@@ -202,7 +202,8 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                 elif distro == "salix-live":
                     string = re.sub(r'iso_path', '/multibootusb/' + iso_basename(iso_link) + '/' + iso_name(iso_link),
                                     string)
-                    #string = re.sub(r'initrd', 'from=/multibootusb/' + iso_basename(iso_link) + '/' + ' initrd', string)
+                    string = re.sub(r'initrd', 'fromiso=/multibootusb/' + iso_basename(iso_link) + '/' +
+                                    iso_name(iso_link) + ' initrd', string)
                 elif distro == 'alt-linux':
                     string = re.sub(r':cdrom', ':disk', string)
                 elif distro == 'fsecure':
@@ -214,6 +215,34 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                 config_file.close()
 
     update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro)
+    grub.mbusb_update_grub_cfg()
+
+    # Ensure that isolinux.cfg file is copied as syslinux.cfg to boot correctly.
+    for dirpath, dirnames, filenames in os.walk(install_dir):
+        for f in filenames:
+            if f.endswith("isolinux.cfg") or f.endswith("ISOLINUX.CFG"):
+                if not os.path.exists(os.path.join(dirpath, "syslinux.cfg")) or not os.path.exists(os.path.join(dirpath, "SYSLINUX.CFG")):
+                    shutil.copy2(os.path.join(dirpath, f), os.path.join(dirpath, "syslinux.cfg"))
+
+    # Assertain if the entry is made..
+    sys_cfg_file = os.path.join(config.usb_mount, "multibootusb", "syslinux.cfg")
+    if gen.check_text_in_file(sys_cfg_file, iso_basename(config.iso_link)):
+        log('Updated entry in syslinux.cfg...')
+    else:
+        log('Unable to update entry in syslinux.cfg...')
+
+    # Check if bootx64.efi is replaced by distro
+    efi_grub_img = os.path.join(config.usb_mount, 'EFI', 'BOOT', 'bootx64.efi')
+    if not os.path.exists(efi_grub_img):
+        gen.log('EFI image does not exist. Copying now...')
+        shutil.copy2(resource_path(os.path.join("data", "EFI", "BOOT", "bootx64.efi")),
+                                   os.path.join(config.usb_mount, 'EFI', 'BOOT'))
+    elif not gen.grub_efi_exist(efi_grub_img) is True:
+        gen.log('EFI image overwritten by distro install. Replacing it now...')
+        shutil.copy2(resource_path(os.path.join("data", "EFI", "BOOT", "bootx64.efi")),
+                     os.path.join(config.usb_mount, 'EFI', 'BOOT'))
+    else:
+        gen.log('multibootusb EFI image already exist. No copying...')
 
 
 def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
@@ -292,16 +321,18 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
             elif distro == "mentest":
                 config_file.write("kernel " + '/multibootusb/' + iso_basename(iso_link) + '/BOOT/MEMTEST.IMG\n')
 
-            elif distro == "sgrubd2":
+            elif distro == "sgrubd2" or config.distro == 'raw_iso':
                 config_file.write("LINUX memdisk\n")
                 config_file.write("INITRD " + "/multibootusb/" + iso_basename(iso_link) + '/' + iso_name(iso_link) + '\n')
                 config_file.write("APPEND iso\n")
+
             elif distro == 'ReactOS':
                 config_file.write("COM32 mboot.c32" + '\n')
                 config_file.write("APPEND /loader/setupldr.sys" + '\n')
             elif distro == 'pc-unlocker':
                 config_file.write("kernel ../ldntldr" + '\n')
                 config_file.write("append initrd=../ntldr" + '\n')
+
             else:
                 if isolinux_bin_exist(config.iso_link) is True:
                     if distro == "generic":
@@ -325,12 +356,6 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
 
             config_file.write("#end " + iso_basename(iso_link) + "\n")
             config_file.close()
-
-    for dirpath, dirnames, filenames in os.walk(install_dir):
-        for f in filenames:
-            if f.endswith("isolinux.cfg") or f.endswith("ISOLINUX.CFG"):
-                if not os.path.exists(os.path.join(dirpath, "syslinux.cfg")) or not os.path.exists(os.path.join(dirpath, "SYSLINUX.CFG")):
-                    shutil.copy2(os.path.join(dirpath, f), os.path.join(dirpath, "syslinux.cfg"))
 
 
 def kaspersky_config(distro):
@@ -360,6 +385,7 @@ def update_menu_lst():
         f.write("KERNEL grub.exe" + "\n")
         f.write('APPEND --config-file=/' + menu_lst + "\n")
         f.write("#end " + iso_basename(config.iso_link) + "\n")
+
 
 def update_grub4dos_iso_menu():
         sys_cfg_file = os.path.join(config.usb_mount, "multibootusb", "syslinux.cfg")

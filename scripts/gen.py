@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*
-# Name:     log.py
+# Name:     gen.py
 # Purpose:  This 'general' module contain many functions required to be called at many places
 # Authors:  Sundar
 # Licence:  This file is a part of multibootusb package. You can redistribute it or modify
@@ -14,6 +14,7 @@ import shutil
 import string
 import zipfile
 import tempfile
+import re
 
 
 def scripts_dir_path():
@@ -195,15 +196,31 @@ def copy_mbusb_dir_usb(usb_disk):
 
     usb_details = details(usb_disk)
     usb_mount_path = usb_details['mount_point']
+    result = ''
     if not os.path.exists(os.path.join(usb_mount_path, "multibootusb")):
         try:
             log('Copying multibootusb directory to ' + usb_mount_path)
             shutil.copytree(resource_path(os.path.join("data", "multibootusb")), os.path.join(usb_mount_path, "multibootusb"))
-            return True
+
+            result = True
         except:
-            return False
+            log('multibootusb directory could not be copied to ' + usb_mount_path)
+            result = False
     else:
         log('multibootus directory already exist. Not copying.')
+
+    if not os.path.exists(os.path.join(usb_mount_path, 'EFI', 'BOOT', 'multibootusb_grub2.txt')):
+        try:
+            log('Copying EFI directory to ' + usb_mount_path)
+            shutil.copytree(resource_path(os.path.join("data", "EFI")), os.path.join(usb_mount_path, "EFI"))
+            result = True
+        except:
+            log('multibootusb directory could not be copied to ' + usb_mount_path)
+            result = False
+    else:
+        log('EFI directory already exist. Not copying.')
+
+    return result
 
 
 def read_input_yes():
@@ -249,6 +266,20 @@ def size_not_enough(iso_link, usb_disk):
 def mbusb_version():
     version = open(resource_path(os.path.join("data", "version.txt")), 'r').read().strip()
     return version
+
+
+def check_text_in_file(file_path, text):
+    """
+    Helper function to check if a text exist in a file.
+    :param file_path: Path to file
+    :param text: Text to be searched
+    :return: True if found else False
+    """
+    if not os.path.exists(file_path):
+        return False
+    else:
+        with open(file_path) as data_file:
+            return any(text in line for line in data_file)
 
 
 def prepare_mbusb_host_dir():
@@ -309,6 +340,21 @@ def prepare_mbusb_host_dir():
                     os.remove(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
                 except OSError:
                     log("Can't remove the file. Skipping it.")
+
+
+def grub_efi_exist(grub_efi_path):
+    """
+    Detect efi present in USB disk is copied by multibootusb.
+    :param isolinux_path: Path to "grub efi image"
+    :return: True if yes else False
+    """
+    from . import iso
+    if grub_efi_path is not None:
+        sl = list(iso.strings(grub_efi_path))
+        for strin in sl:
+            if re.search(r'multibootusb', strin, re.I):
+                return True
+        return False
 
 if __name__ == '__main__':
     log(quote("""Test-string"""))

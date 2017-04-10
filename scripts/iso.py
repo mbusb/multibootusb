@@ -193,6 +193,22 @@ def iso_extract_full(iso_link, dest_dir):
     _7zip.extract_iso(iso_link, dest_dir)
 
 
+def iso_file_path(iso_link, file_name):
+    """
+    Function to check if file name exist in the ISO
+    :param iso_link:Path to ISO file
+    :param file_name: file name to be checked
+    :return: Path to file as string
+    """
+    file_path = False
+    iso_file_list = _7zip.list_iso(iso_link)
+    for f in iso_file_list:
+        if file_name in f.lower():
+            file_path = f
+            break
+
+    return file_path
+
 if __name__ == '__main__':
     #iso_path = '../../../DISTROS/2016/debian-live-8.3.0-amd64-lxde-desktop.iso'
     iso_path = '../../../DISTROS/2015/super_grub2_disk_hybrid_2.02s3.iso'

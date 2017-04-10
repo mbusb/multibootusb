@@ -31,6 +31,7 @@ iso_link = None
 usb_disk = None
 uninstall = False
 
+
 def usage():
     print('\nAn advanced multi boot live usb creator using command line.')
     print('\nUsage: python3 multibootusb -c -i /path/to/iso [option(s)] -t /path/to/device\n')

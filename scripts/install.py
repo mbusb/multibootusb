@@ -76,8 +76,8 @@ def install_distro():
         iso.iso_extract_file(config.iso_link, usb_mount, '*optional')
         iso.iso_extract_file(config.iso_link, usb_mount, '*liveboot')
         #iso.iso_extract_full(config.iso_link, usb_mount)
-        # config.status_text = "Copying ISO..."
-        # copy_iso(config.iso_link, install_dir)
+        config.status_text = "Copying ISO..."
+        copy_iso(config.iso_link, install_dir)
     elif config.distro == 'sgrubd2':
         copy_iso(config.iso_link, install_dir)
     elif config.distro == 'alt-linux':
@@ -91,7 +91,7 @@ def install_distro():
         iso_extract_full(config.iso_link, usb_mount)
     elif config.distro == 'ReactOS':
         iso_extract_full(config.iso_link, usb_mount)
-    elif config.distro == 'grub4dos_iso':
+    elif config.distro == 'grub4dos_iso' or config.distro == 'raw_iso':
         copy_iso(config.iso_link, install_dir)
     else:
         iso.iso_extract_full(config.iso_link, install_dir)

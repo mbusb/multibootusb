@@ -32,12 +32,23 @@ def dd_linux():
     in_file_size = float(os.path.getsize(config.imager_iso_link))
     output = "of=" + config.imager_usb_disk
     os.system("umount " + config.imager_usb_disk + "1")
-    command = ['dd', input, output, "bs=1M"]
+    command = ['dd', input, output, "bs=1M", "oflag=sync"]
     log("Executing ==> " + " ".join(command))
     dd_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-    pbar = progressbar.ProgressBar(maxval=100).start()  # bar = progressbar.ProgressBar(redirect_stdout=True)
+
+    # bar = progressbar.ProgressBar(redirect_stdout=True)
+    pbar = progressbar.ProgressBar(
+            maxval=100,
+            widgets=[
+                ' ',
+                progressbar.widgets.Bar(marker='=', left='[', right=']'),
+                ' ',
+                progressbar.widgets.Percentage()
+            ]
+    ).start()
+
     while dd_process.poll() is None:
-        time.sleep(.1)  # If this time delay is not given, the Popen does not execute the actual command
+        time.sleep(1)  # If this time delay is not given, the Popen does not execute the actual command
         dd_process.send_signal(signal.SIGUSR1)
         dd_process.stderr.flush()
         while True:
@@ -50,7 +61,7 @@ def dd_linux():
                     break
 
     if dd_process.poll() is not None:
-        log("Executing ==> sync")
+        log("\nExecuting ==> sync")
         os.system("sync")
         log("ISO has been written to USB disk...")
         return
@@ -115,33 +126,32 @@ class Imager(QtWidgets.QDialog, Ui_Dialog):
         :return:
         """
         log("Testing ISO...")
+        self.ui.imager_bootable.setVisible(True)
         if iso.is_bootable(config.imager_iso_link) is True:
-            self.ui.imager_bootable.setText("Bootable ISO :: Yes")
+            self.ui.imager_bootable.setText("Bootable ISO: Yes")
             log("ISO is bootable.")
         else:
-            self.ui.imager_bootable.setText("Bootable ISO :: No")
+            self.ui.imager_bootable.setText("Bootable ISO: No")
             log("ISO is not bootable.")
 
         if os.path.exists(config.imager_iso_link):
-            log("Path " + config.imager_iso_link + " is exist...")
+            log("Path " + config.imager_iso_link + " exists...")
             self.iso_size = str(round(os.path.getsize(config.imager_iso_link) / 1024 / 1024))
-            self.ui.imager_iso_size.setText("ISO Size :: " + self.iso_size + " MB")
+            self.ui.imager_iso_size.setVisible(True)
+            self.ui.imager_iso_size.setText("ISO Size: " + self.iso_size + " MB")
             log("ISO Size is " + self.iso_size + " MB")
 
     def onImagerComboChange(self):
         config.imager_usb_disk = str(self.ui.comboBox_2.currentText())
         if bool(config.imager_usb_disk):
-            self.ui.imager_disk_label.setText("Disk Type :: " + self.imager_usb_detail(config.imager_usb_disk,
-                                                                                       partition=0).usb_type)
-            self.ui.imager_total_size.setText("Disk Size :: " + usb.bytes2human(int(self.imager_usb_detail
-                                                                                         (config.imager_usb_disk,
-                                                                                          partition=0).total_size)))
+            self.ui.imager_disk_label.setText(self.imager_usb_detail(config.imager_usb_disk, partition=0).usb_type)
+            self.ui.imager_total_size.setText(usb.bytes2human(int(self.imager_usb_detail(config.imager_usb_disk, partition=0).total_size)))
+
             if platform.system() == "Linux":
-                self.ui.imager_uuid.setText("Disk Model :: " + str(self.imager_usb_detail(config.imager_usb_disk,
-                                                                                      partition=0).model))
+                self.ui.label_imager_uuid.setText("Disk Model:")
+                self.ui.imager_uuid.setText(str(self.imager_usb_detail(config.imager_usb_disk, partition=0).model))
             else:
-                self.ui.imager_uuid.setText("Disk Label :: " + self.imager_usb_detail(config.imager_usb_disk,
-                                                                                      partition=0).model)
+                self.ui.imager_uuid.setText(self.imager_usb_detail(config.imager_usb_disk, partition=0).model)
 
     def imager_list_usb(self, partition=1):
         """
@@ -190,7 +200,7 @@ class Imager(QtWidgets.QDialog, Ui_Dialog):
                         if not total_size:
                             total_size = "Unknown"
                         usb_type = "Removable"
-                        model = subprocess.check_output("lsblk -in -f -o MODEL " + usb_disk, shell=True).decode()
+                        model = subprocess.check_output("lsblk -in -f -o MODEL " + usb_disk, shell=True).decode().strip()
                         if not model:
                             model = "Unknown"
         else:
