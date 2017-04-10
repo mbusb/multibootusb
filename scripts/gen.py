@@ -85,7 +85,7 @@ def print_version():
     Simple log the version number of the multibootusb application
     :return:
     """
-    log('multibootusb version : ', mbusb_version())
+    log('multibootusb version: ', mbusb_version())
 
 
 def quote(text):
@@ -207,7 +207,7 @@ def copy_mbusb_dir_usb(usb_disk):
             log('multibootusb directory could not be copied to ' + usb_mount_path)
             result = False
     else:
-        log('multibootus directory already exist. Not copying.')
+        log('multibootusb directory already exists. Not copying.')
 
     if not os.path.exists(os.path.join(usb_mount_path, 'EFI', 'BOOT', 'multibootusb_grub2.txt')):
         try:
