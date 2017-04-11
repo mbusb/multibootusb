@@ -111,6 +111,9 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
         isolinux_path = os.path.join(_iso_cfg_ext_dir, isolinux_bin_path(iso_link))
         iso_linux_bin_dir = isolinux_bin_dir(iso_link)
         config.syslinux_version = isolinux_version(isolinux_path)
+        if int(config.syslinux_version) < 3:
+            log('Distro uses really old isolinux. Installing version 3 instead of 2.')
+            config.syslinux_version = '3'
 
         if distro == "generic" or distro == "alpine":
             install_dir = usb_mount
@@ -158,7 +161,7 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
                 distro_sys_install_bs = distro_sys_install_bs.replace("/", "\\")
                 sys_cmd = syslinux_path + option + distro_syslinux_install_dir + ' ' + usb_disk + ' ' + \
                           distro_sys_install_bs
-                log ("\nExecuting ==> " + sys_cmd, '\n')
+                log("\nExecuting ==> " + sys_cmd, '\n')
                 if subprocess.call(sys_cmd, shell=True) == 0:
                     log ("\nSyslinux install was successful on distro directory...\n")
                 else:

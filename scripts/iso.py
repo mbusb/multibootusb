@@ -151,7 +151,7 @@ def isolinux_version(isolinux_bin_path):
     :param isolinux_path: Path to "isolinux.bin"
     :return: Version number as string.
     """
-    version = ["3", "4", "5", "6"]
+    version = ["2", "3", "4", "5", "6"]
     if isolinux_bin_path is not None:
         sl = list(strings(isolinux_bin_path))
         for strin in sl:
