@@ -98,3 +98,6 @@ multibootusb*.tar.gz
 # Setup file
 
 multibootusb*.exe
+
+# VIM temp files
+*.swp
