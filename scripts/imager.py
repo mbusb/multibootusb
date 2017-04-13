@@ -15,7 +15,7 @@ import signal
 from PyQt5 import QtGui
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore
-from .gui.ui_multibootusb import Ui_Dialog
+from .gui.ui_multibootusb import Ui_MainWindow
 from .gen import *
 from . import iso
 from . import usb
@@ -28,10 +28,10 @@ if platform.system() == "Windows":
 
 def dd_linux():
     import time
-    input = "if=" + config.imager_iso_link
-    in_file_size = float(os.path.getsize(config.imager_iso_link))
-    output = "of=" + config.imager_usb_disk
-    os.system("umount " + config.imager_usb_disk + "1")
+    input = "if=" + config.image_path
+    in_file_size = float(os.path.getsize(config.image_path))
+    output = "of=" + config.usb_disk
+    os.system("umount " + config.usb_disk + "1")
     command = ['dd', input, output, "bs=1M", "oflag=sync"]
     log("Executing ==> " + " ".join(command))
     dd_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
@@ -72,9 +72,9 @@ def dd_win():
     windd = resource_path(os.path.join("data", "tools", "dd", "dd.exe"))
     if os.path.exists(resource_path(os.path.join("data", "tools", "dd", "dd.exe"))):
         log("dd exist")
-    input = "if=" + config.imager_iso_link
-    in_file_size = float(os.path.getsize(config.imager_iso_link) / 1024 / 1024)
-    output = "of=\\\.\\" + config.imager_usb_disk
+    input = "if=" + config.image_path
+    in_file_size = float(os.path.getsize(config.image_path) / 1024 / 1024)
+    output = "of=\\\.\\" + config.usb_disk
     command = [windd, input, output, "bs=1M", "--progress"]
     log("Executing ==> " + " ".join(command))
     dd_process = subprocess.Popen(command, universal_newlines=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -94,31 +94,31 @@ def dd_win():
         return
 
 
-class Imager(QtWidgets.QDialog, Ui_Dialog):
+class Imager(QtWidgets.QMainWindow, Ui_MainWindow):
     """
     Raw write to USB disk using dd.
     """
 
     def __init__(self):
-        QtWidgets.QDialog.__init__(self)
-        self.ui = Ui_Dialog()
+        QtWidgets.QMainWindow.__init__(self)
+        self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-    def on_Imager_Browse_iso_Click(self):
-        """
-        Browse and choose an ISO.
-        :return:
-        """
-        self.ui.lineEdit_3.clear()
-        config.imager_iso_link = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', "",  "ISO Files (*.iso)")[0]
-        if config.imager_iso_link:
-            if platform.system() == "Windows":
-                if "/" in config.imager_iso_link:
-                    config.imager_iso_link = config.imager_iso_link.strip().replace("/", "\\")
-            self.ui.lineEdit_3.insert(str(config.imager_iso_link))
-            self.add_iso_gui_label_text()
-        else:
-            log("File not selected...")
+#     def on_Imager_Browse_iso_Click(self):
+#         """
+#         Browse and choose an ISO.
+#         :return:
+#         """
+#         self.ui.lineEdit_3.clear()
+#         config.imager_iso_link = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', "",  "ISO Files (*.iso)")[0]
+#         if config.imager_iso_link:
+#             if platform.system() == "Windows":
+#                 if "/" in config.imager_iso_link:
+#                     config.imager_iso_link = config.imager_iso_link.strip().replace("/", "\\")
+#             self.ui.lineEdit_3.insert(str(config.imager_iso_link))
+#             self.add_iso_gui_label_text()
+#         else:
+#             log("File not selected...")
 
     def add_iso_gui_label_text(self):
         """
@@ -127,31 +127,31 @@ class Imager(QtWidgets.QDialog, Ui_Dialog):
         """
         log("Testing ISO...")
         self.ui.imager_bootable.setVisible(True)
-        if iso.is_bootable(config.imager_iso_link) is True:
+        if iso.is_bootable(config.image_path) is True:
             self.ui.imager_bootable.setText("Bootable ISO: Yes")
             log("ISO is bootable.")
         else:
             self.ui.imager_bootable.setText("Bootable ISO: No")
             log("ISO is not bootable.")
 
-        if os.path.exists(config.imager_iso_link):
-            log("Path " + config.imager_iso_link + " exists...")
-            self.iso_size = str(round(os.path.getsize(config.imager_iso_link) / 1024 / 1024))
+        if os.path.exists(config.image_path):
+            log("Path " + config.image_path + " exists...")
+            self.iso_size = str(round(os.path.getsize(config.image_path) / 1024 / 1024))
             self.ui.imager_iso_size.setVisible(True)
             self.ui.imager_iso_size.setText("ISO Size: " + self.iso_size + " MB")
             log("ISO Size is " + self.iso_size + " MB")
 
-    def onImagerComboChange(self):
-        config.imager_usb_disk = str(self.ui.comboBox_2.currentText())
-        if bool(config.imager_usb_disk):
-            self.ui.imager_disk_label.setText(self.imager_usb_detail(config.imager_usb_disk, partition=0).usb_type)
-            self.ui.imager_total_size.setText(usb.bytes2human(int(self.imager_usb_detail(config.imager_usb_disk, partition=0).total_size)))
-
-            if platform.system() == "Linux":
-                self.ui.label_imager_uuid.setText("Disk Model:")
-                self.ui.imager_uuid.setText(str(self.imager_usb_detail(config.imager_usb_disk, partition=0).model))
-            else:
-                self.ui.imager_uuid.setText(self.imager_usb_detail(config.imager_usb_disk, partition=0).model)
+#     def onImagerComboChange(self):
+#         config.imager_usb_disk = str(self.ui.comboBox_2.currentText())
+#         if bool(config.imager_usb_disk):
+#             self.ui.imager_disk_label.setText(self.imager_usb_detail(config.imager_usb_disk, partition=0).usb_type)
+#             self.ui.imager_total_size.setText(usb.bytes2human(int(self.imager_usb_detail(config.imager_usb_disk, partition=0).total_size)))
+# 
+#             if platform.system() == "Linux":
+#                 self.ui.label_imager_uuid.setText("Disk Model:")
+#                 self.ui.imager_uuid.setText(str(self.imager_usb_detail(config.imager_usb_disk, partition=0).model))
+#             else:
+#                 self.ui.imager_uuid.setText(self.imager_usb_detail(config.imager_usb_disk, partition=0).model)
 
     def imager_list_usb(self, partition=1):
         """

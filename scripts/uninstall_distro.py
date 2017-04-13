@@ -119,6 +119,9 @@ def uninstall_distro():
 
     if platform.system() == 'Linux':
         os.system('sync')
+        # remove 'immutable' from files on ext2/3/4 fs
+        if usb_mount:
+            subprocess.call("chattr -i -R %s/* 2>/dev/null" % usb_mount, shell=True)
 
     if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "iso_file_list.cfg")):
         with open(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "iso_file_list.cfg"), "r") as f:

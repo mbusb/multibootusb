@@ -123,8 +123,8 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
             install_dir = os.path.join(usb_mount, "multibootusb", iso_basename(iso_link))
             distro_syslinux_install_dir = os.path.join(install_dir, iso_linux_bin_dir.strip("/")).replace(usb_mount, "")
             distro_sys_install_bs = os.path.join(install_dir, iso_linux_bin_dir.strip("/"), distro + '.bs')
-            log (distro_sys_install_bs)
-            #log (distro_syslinux_install_dir)
+#             log (distro_sys_install_bs)
+#             log (distro_syslinux_install_dir)
 
         if usb_fs in syslinux_fs:
             if config.syslinux_version == str(3):

@@ -19,7 +19,7 @@ def mbusb_update_grub_cfg():
     :return:
     """
     # Lets convert syslinux config file to grub2 accepted file format.
-    _iso_dir = os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.iso_link))
+    _iso_dir = os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path))
     try:
         gen.log('Trying to create loopback.cfg')
         iso2_grub2_cfg = iso2grub2(_iso_dir)
@@ -34,21 +34,21 @@ def mbusb_update_grub_cfg():
     sys_cfg_path = None
     loopback_cfg_path = None
     mbus_grub_cfg_path = os.path.join(config.usb_mount, 'multibootusb', 'grub', 'grub.cfg')
-    iso_grub_cfg = iso.iso_file_path(config.iso_link, 'grub.cfg')
-    if iso.isolinux_bin_dir(config.iso_link) is not False:
-        iso_sys_cfg_path = os.path.join(iso.isolinux_bin_dir(config.iso_link), 'syslinux.cfg')
-        iso_iso_cfg_path = os.path.join(iso.isolinux_bin_dir(config.iso_link), 'isolinux.cfg')
+    iso_grub_cfg = iso.iso_file_path(config.image_path, 'grub.cfg')
+    if iso.isolinux_bin_dir(config.image_path) is not False:
+        iso_sys_cfg_path = os.path.join(iso.isolinux_bin_dir(config.image_path), 'syslinux.cfg')
+        iso_iso_cfg_path = os.path.join(iso.isolinux_bin_dir(config.image_path), 'isolinux.cfg')
 
-        if os.path.exists(os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.iso_link),
+        if os.path.exists(os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path),
                                        iso_sys_cfg_path)):
             syslinux_menu = iso_sys_cfg_path.replace('\\', '/')
-        elif os.path.exists(os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.iso_link),
+        elif os.path.exists(os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path),
                                          iso_iso_cfg_path)):
             syslinux_menu = iso_iso_cfg_path.replace('\\', '/')
 
-    efi_grub_cfg = get_grub_cfg(config.iso_link)
-    loopback_cfg_path = iso.iso_file_path(config.iso_link, 'loopback.cfg')
-    boot_grub_cfg = get_grub_cfg(config.iso_link, efi=False)
+    efi_grub_cfg = get_grub_cfg(config.image_path)
+    loopback_cfg_path = iso.iso_file_path(config.image_path, 'loopback.cfg')
+    boot_grub_cfg = get_grub_cfg(config.image_path, efi=False)
 
     if loopback_cfg_path is not False:
         grub_cfg_path = loopback_cfg_path.replace('\\', '/')
@@ -65,30 +65,30 @@ def mbusb_update_grub_cfg():
         gen.log('Updating grub.cfg file...')
         if grub_custom_menu(mbus_grub_cfg_path, config.distro) is False:
             with open(mbus_grub_cfg_path, 'a') as f:
-                f.write("#start " + iso.iso_basename(config.iso_link) + "\n")
+                f.write("#start " + iso.iso_basename(config.image_path) + "\n")
                 if grub_cfg_path is not None:
-                    f.write('     menuentry ' + iso.iso_basename(config.iso_link) + ' {configfile '
-                            + '/multibootusb/' + iso.iso_basename(config.iso_link) + '/' + grub_cfg_path + '}' + "\n")
+                    f.write('     menuentry ' + iso.iso_basename(config.image_path) + ' {configfile '
+                            + '/multibootusb/' + iso.iso_basename(config.image_path) + '/' + grub_cfg_path + '}' + "\n")
                 elif config.distro == 'f4ubcd':
-                    f.write('     menuentry ' + iso.iso_basename(config.iso_link) +
+                    f.write('     menuentry ' + iso.iso_basename(config.image_path) +
                             ' {linux /multibootusb/grub.exe --config-file=/multibootusb' +
-                            iso.iso_basename(config.iso_link) + '/menu.lst}'"\n")
+                            iso.iso_basename(config.image_path) + '/menu.lst}'"\n")
                 elif config.distro == 'pc-unlocker':
-                    f.write('     menuentry ' + iso.iso_basename(config.iso_link) +
+                    f.write('     menuentry ' + iso.iso_basename(config.image_path) +
                             ' {\n    linux /ldntldr\n    ntldr /ntldr }' + "\n")
                 elif config.distro == 'ReactOS':
-                    f.write('     menuentry ' + iso.iso_basename(config.iso_link) +
+                    f.write('     menuentry ' + iso.iso_basename(config.image_path) +
                             ' {multiboot /loader/setupldr.sys}' + "\n")
                 elif config.distro == 'mentest':
-                    f.write('     menuentry ' + iso.iso_basename(config.iso_link) +
-                            ' {linux16 ' + '/multibootusb/' + iso.iso_basename(config.iso_link) + '/BISOLINUX/MEMTEST}' + "\n")
+                    f.write('     menuentry ' + iso.iso_basename(config.image_path) +
+                            ' {linux16 ' + '/multibootusb/' + iso.iso_basename(config.image_path) + '/BISOLINUX/MEMTEST}' + "\n")
                 elif syslinux_menu is not None:
-                    f.write('     menuentry ' + iso.iso_basename(config.iso_link) + ' {syslinux_configfile '
-                            + '/multibootusb/' + iso.iso_basename(config.iso_link) + '/' + syslinux_menu + '}' + "\n")
-                f.write("#end " + iso.iso_basename(config.iso_link) + "\n")
+                    f.write('     menuentry ' + iso.iso_basename(config.image_path) + ' {syslinux_configfile '
+                            + '/multibootusb/' + iso.iso_basename(config.image_path) + '/' + syslinux_menu + '}' + "\n")
+                f.write("#end " + iso.iso_basename(config.image_path) + "\n")
 
     # Ascertain if the entry is made..
-    if gen.check_text_in_file(mbus_grub_cfg_path, iso.iso_basename(config.iso_link)):
+    if gen.check_text_in_file(mbus_grub_cfg_path, iso.iso_basename(config.image_path)):
         gen.log('Updated entry in grub.cfg...')
     else:
         gen.log('Unable to update entry in grub.cfg...')
@@ -119,7 +119,7 @@ def get_grub_cfg(iso_link, efi=True):
 
 
 def grub_custom_menu(mbus_grub_cfg_path, distro):
-    iso_size_mb = iso.iso_size(config.iso_link) / (1024.0 * 1024.0)
+    iso_size_mb = iso.iso_size(config.image_path) / (1024.0 * 1024.0)
     gen.log('size of the ISO is ' + str(iso_size_mb))
     if distro == 'sgrubd2' or distro == 'raw_iso':
         grub_raw_iso(mbus_grub_cfg_path)
@@ -127,9 +127,9 @@ def grub_custom_menu(mbus_grub_cfg_path, distro):
 
         '''
         with open(mbus_grub_cfg_path, 'a') as f:
-            f.write("#start " + iso.iso_basename(config.iso_link) + "\n")
+            f.write("#start " + iso.iso_basename(config.image_path) + "\n")
             f.write(grub_raw_iso())
-            f.write("#end " + iso.iso_basename(config.iso_link) + "\n")
+            f.write("#end " + iso.iso_basename(config.image_path) + "\n")
         
     
     elif iso_size_mb < 750.0:
@@ -146,15 +146,15 @@ def grub_raw_iso(mbus_grub_cfg_path):
     Generic menu entry for booting ISO files directly using memdisk. Should have enough memory to load to RAM
     :return:
     """
-    menu_entry = '    search --set -f /multibootusb/' + iso.iso_basename(config.iso_link) + '/' + iso.iso_name(config.iso_link) + '\n' \
-                 '    menuentry ' + iso.iso_basename(config.iso_link) + ' {\n' \
+    menu_entry = '    search --set -f /multibootusb/' + iso.iso_basename(config.image_path) + '/' + iso.iso_name(config.image_path) + '\n' \
+                 '    menuentry ' + iso.iso_basename(config.image_path) + ' {\n' \
                  '    linux16 /multibootusb/memdisk iso raw vmalloc=750M\n' \
-                 '    initrd16 /multibootusb/' + iso.iso_basename(config.iso_link) + '/' + iso.iso_name(config.iso_link) + '\n' \
+                 '    initrd16 /multibootusb/' + iso.iso_basename(config.image_path) + '/' + iso.iso_name(config.image_path) + '\n' \
                  '}\n'
     with open(mbus_grub_cfg_path, 'a') as f:
-        f.write("#start " + iso.iso_basename(config.iso_link) + "\n")
+        f.write("#start " + iso.iso_basename(config.image_path) + "\n")
         f.write(menu_entry)
-        f.write("#end " + iso.iso_basename(config.iso_link) + "\n")
+        f.write("#end " + iso.iso_basename(config.image_path) + "\n")
     return menu_entry
 
 
@@ -190,7 +190,7 @@ def iso2grub2(iso_dir):
     :param file_out: Path to 'loopback.cfg' file. By default it is set to root of distro install directory.
     :return:
     """
-    grub_file_path = os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.iso_link), 'loopback.cfg')
+    grub_file_path = os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), 'loopback.cfg')
     gen.log('loopback.cfg file is set to ' + grub_file_path)
     # Loop though the distro installed directory for finding config files
     for dirpath, dirnames, filenames in os.walk(iso_dir):
@@ -242,12 +242,12 @@ def iso2grub2(iso_dir):
 
                                         elif 'linux=' in kernel.lower():
                                             kernel = kernel.strip().replace('linux=', 'linux /multibootusb/' +
-                                                                                    iso.iso_basename(config.iso_link) + '/'
-                                                                                    + iso.isolinux_bin_dir(config.iso_link).replace('\\', '/') + '/')
+                                                                                    iso.iso_basename(config.image_path) + '/'
+                                                                                    + iso.isolinux_bin_dir(config.image_path).replace('\\', '/') + '/')
                                         elif 'linux /' not in kernel:
                                             kernel = kernel.strip().replace('linux ', 'linux /multibootusb/' +
-                                                                                    iso.iso_basename(config.iso_link) + '/'
-                                                                                    + iso.isolinux_bin_dir(config.iso_link).replace('\\', '/') + '/')
+                                                                                    iso.iso_basename(config.image_path) + '/'
+                                                                                    + iso.isolinux_bin_dir(config.image_path).replace('\\', '/') + '/')
 
                                         # Ensure that we do not have linux parameter in caps
                                         kernel = kernel.replace('LINUX ', 'linux ')
@@ -268,16 +268,16 @@ def iso2grub2(iso_dir):
                                                 # standard
                                                 initrd = initrd.replace(',/', ' /')
                                                 initrd = initrd.replace('z,', 'z /multibootusb/' +
-                                                                        iso.iso_basename(config.iso_link) + '/'
-                                                                        + iso.isolinux_bin_dir(config.iso_link).replace('\\', '/')  + '/')
+                                                                        iso.iso_basename(config.image_path) + '/'
+                                                                        + iso.isolinux_bin_dir(config.image_path).replace('\\', '/')  + '/')
                                                 #print('initrd')
                                         else:
                                             # Extract initrd parameter from within the line
                                             initrd = re.findall('(initrd[= ].*?[ ])', m.group(), re.I|re.DOTALL)[0]
                                             initrd = initrd.replace(',/', ' /')
                                             initrd = initrd.replace('z,', 'z /multibootusb/' +
-                                                                    iso.iso_basename(config.iso_link) + '/'
-                                                                    + iso.isolinux_bin_dir(config.iso_link).replace('\\', '/')  + '/')
+                                                                    iso.iso_basename(config.image_path) + '/'
+                                                                    + iso.isolinux_bin_dir(config.image_path).replace('\\', '/')  + '/')
                                             #print(initrd)
 
                                         # Ensure that we change the relative path to absolute path
@@ -287,8 +287,8 @@ def iso2grub2(iso_dir):
 
                                         elif 'initrd=' in initrd.lower():
                                             initrd = initrd.strip().replace('initrd=', 'initrd /multibootusb/' +
-                                                                          iso.iso_basename(config.iso_link) + '/'
-                                                                          + iso.isolinux_bin_dir(config.iso_link).replace('\\', '/') + '/')
+                                                                          iso.iso_basename(config.image_path) + '/'
+                                                                          + iso.isolinux_bin_dir(config.image_path).replace('\\', '/') + '/')
 
                                         # Ensure that there is no caps which is not accepted by grub2
                                         initrd = initrd.replace('INITRD', 'initrd')

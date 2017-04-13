@@ -160,7 +160,7 @@ class ISO9660:
             self.rripOffset = rripNode.offset
             #gen.log ("RRIP: rrip_offset %d"%(self.rripOffset))
         else:
-            gen.log (" This disc don't support RRIP")
+            gen.log ("This ISO doesn't support RRIP")
         self.rootDir = root_dir
 
     #  Rrip extension

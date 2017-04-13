@@ -85,32 +85,39 @@ def disk_usage(mount_path):
         raise NotImplementedError("Platform not supported.")
 
 
-def list(partition=1, fixed=None):
+def list_devices(partition=1, fixed=None):
     """
     List inserted USB devices.
     :return: USB devices as list.
     """
     devices = []
     if platform.system() == "Linux":
-        import pyudev
-        import dbus
-
         try:
             # pyudev is good enough to detect USB devices on modern Linux machines.
             gen.log("Using pyudev for detecting USB drives...")
+            import pyudev
             context = pyudev.Context()
-            if fixed is None:
-                for device in context.list_devices(subsystem='block', DEVTYPE='partition',
-                                                   ID_FS_USAGE="filesystem", ID_TYPE="disk",
-                                                   ID_BUS="usb"):
-                    # if device['ID_BUS'] == "usb" and device['DEVTYPE'] == "partition":
-                    if device.get('ID_BUS') in ("usb", "scsi") and device.get('DEVTYPE') == "partition":
-                        # gen.log(device['DEVNAME'])
-                        devices.append(str(device['DEVNAME']))
-            else:
-                for device in context.list_devices(subsystem='block', DEVTYPE='partition'):
-                    devices.append(str(device['DEVNAME']))
+#            if fixed is None:
+#                for device in context.list_devices(subsystem='block', DEVTYPE='partition',
+#                                                   ID_FS_USAGE="filesystem", ID_TYPE="disk",
+#                                                   ID_BUS="usb"):
+#                    # if device['ID_BUS'] == "usb" and device['DEVTYPE'] == "partition":
+#                    if device.get('ID_BUS') in ("usb", "scsi") and device.get('DEVTYPE') == "partition":
+#                        # gen.log(device['DEVNAME'])
+#                        devices.append(str(device['DEVNAME']))
+#            else:
+#                for device in context.list_devices(subsystem='block', DEVTYPE='partition'):
+#                    devices.append(str(device['DEVNAME']))
+            for device in context.list_devices(subsystem='block', 
+                                                ID_FS_USAGE="filesystem",
+                                                ID_TYPE="disk",
+                                                ID_BUS="usb"):
+                if device.get('ID_BUS') in ("usb", "scsi"):
+                    gen.log("\t" + device['DEVNAME'])
+#                     devices.append(str(device['DEVNAME']))
+                    devices.append(device)
         except:
+            import dbus
             bus = dbus.SystemBus()
             try:
                 # You should come here only if your system does'nt have udev installed.
@@ -187,6 +194,8 @@ def details_udev(usb_disk_part):
     """
     Get details of USB partition using udev
     """
+    assert usb_disk_part is not None
+
     if platform.system() == "Linux":
         import pyudev
         """
@@ -227,8 +236,24 @@ def details_udev(usb_disk_part):
                         model = str(device['ID_MODEL'])
                     except:
                         model = str('No_Model')
+            elif device.get('ID_BUS') in ("usb", "scsi") and device.get('DEVTYPE') == "disk":
+                mount_point = ''
+                uuid = 'No_UUID'
+                file_system = 'No_FS'
+                try:
+                    label = str(device['ID_FS_LABEL'])
+                except:
+                    label = "No_Label"
+                try:
+                    vendor = str(device['ID_VENDOR'])
+                except:
+                    vendor = str('No_Vendor')
+                try:
+                    model = str(device['ID_MODEL'])
+                except:
+                    model = str('No_Model')
 
-        if not mount_point == '':
+        if mount_point:
             size_total = shutil.disk_usage(mount_point)[0]
             size_used = shutil.disk_usage(mount_point)[1]
             size_free = shutil.disk_usage(mount_point)[2]
@@ -370,6 +395,9 @@ def details(usb_disk_part):
                 vendor      == > returns the name of the manufacturer.
                 model       == > returns the model name of the USB.
     """
+
+    assert usb_disk_part is not None
+
     if platform.system() == 'Linux':
         try:
             udev = details_udev(usb_disk_part)
@@ -410,7 +438,7 @@ def details(usb_disk_part):
             'vendor': vendor, 'model': model}
 
 if __name__ == '__main__':
-    usb_devices = list()
+    usb_devices = list_devices()
     if usb_devices is not None:
         for dev in usb_devices:
             gen.log(details(dev))
