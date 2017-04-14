@@ -44,10 +44,9 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.tabWidget.setCurrentIndex(0)
  #       self.qemu = Qemu()
 
-# FIXME
-#        self.ui.label_persistence_value.setVisible(False)
-#        self.ui.label_persistence.setVisible(False)
-#        self.ui.slider_persistence.setVisible(False)
+        self.ui.label_persistence_value.setVisible(False)
+        self.ui.label_persistence.setVisible(False)
+        self.ui.slider_persistence.setVisible(False)
 
         config.usb_disk = None
         config.image_path = None
@@ -64,6 +63,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.button_install_distro.clicked.connect(self.onCreateClick)
         self.ui.button_uninstall_distro.clicked.connect(self.OnUninstallClick)
         self.ui.slider_persistence.valueChanged.connect(self.update_slider_text)
+#         self.ui.slider_persistence.sliderReleased.connect(self.ui_update_persistence)
 
         # ISO Imager Tab
         self.ui.button_write_image_to_disk.clicked.connect(self.dd_write)
@@ -145,6 +145,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 
         if config.usb_disk:
             log("Selected device " + config.usb_disk)
+            config.persistence_max_size = persistence.max_disk_persistence(config.usb_disk)
 
             self.usb_details = usb.details(config.usb_disk)
             config.usb_mount = self.usb_details['mount_point']
@@ -164,6 +165,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
             self.ui.usb_mount.setText(self.usb_details['mount_point'])
 
             self.update_list_box(config.usb_disk)
+            self.ui_update_persistence()
         else:
             self.ui.usb_dev.clear()
             self.ui.usb_vendor.clear()
@@ -258,31 +260,45 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
                 self.ui.label_image_type_value.setText(str(config.distro))
                 self.ui.label_image_type_value.setVisible(True)
                 if config.distro:
-                    per_availability = persistence.persistence_distro(config.distro, config.usb_disk, config.image_path)[0]
-                    per_max_size = persistence.persistence_distro(config.distro, config.usb_disk, config.image_path)[1]
+                    per_availability = persistence.persistence_distro(config.distro, config.image_path)
                     if per_availability is not None:
-                        self.ui.label_persistence_value.setVisible(True)
-                        self.ui.label_persistence.setVisible(True)
-                        self.ui.slider_persistence.setVisible(True)
-                        self.ui.label_persistence_value.setEnabled(True)
-                        self.ui.label_persistence.setEnabled(True)
-                        self.ui.slider_persistence.setEnabled(True)
-                        self.ui.slider_persistence.setTickInterval(10)
-                        self.ui.slider_persistence.setSingleStep(10)
-                        ui_per_max_size = per_max_size / 1024 / 1024
-                        # config.persistence = per_max_size
-                        self.ui.slider_persistence.setMaximum(ui_per_max_size)
-                        log('Persistence Max Size: ' + str(bytes2human(per_max_size)))
+                        config.persistence_available = True
+                        if config.usb_disk:
+                            per_max_size = persistence.max_disk_persistence(config.usb_disk)
+                            config.persistence_max_size = per_max_size
+                            log('Persistence Max Size: ' + str(bytes2human(per_max_size)))
                     else:
-                        self.ui.label_persistence_value.setEnabled(False)
-                        self.ui.label_persistence.setEnabled(False)
-                        self.ui.slider_persistence.setEnabled(False)
-                        self.ui.label_persistence_value.setVisible(False)
-                        self.ui.label_persistence.setVisible(False)
-                        self.ui.slider_persistence.setVisible(False)
+                        config.persistence_available = False
                         log('Persistence is not available for ' + iso_name(config.image_path))
+
+                    self.ui_update_persistence()
         else:
             log("File not selected...")
+
+    def ui_update_persistence(self):
+        log("===== config.persistence_available = " + str(config.persistence_available))
+        log("===== config.persistence_max_size = " + str(config.persistence_max_size))
+        log("===== config.persistence = " + str(config.persistence))
+        if config.persistence_available and config.persistence_max_size:
+            self.ui.label_persistence_value.setVisible(True)
+            self.ui.label_persistence.setVisible(True)
+            self.ui.slider_persistence.setVisible(True)
+            self.ui.label_persistence_value.setEnabled(True)
+            self.ui.label_persistence.setEnabled(True)
+            self.ui.slider_persistence.setEnabled(True)
+            self.ui.slider_persistence.setTickInterval(10)
+            self.ui.slider_persistence.setSingleStep(10)
+            self.ui.slider_persistence.setMaximum(config.persistence_max_size / 1024 / 1024)
+#             log("===== getMaximum = " + self.ui.slider_persistence.getMaximum()
+        else:
+            self.ui.label_persistence_value.setEnabled(False)
+            self.ui.label_persistence.setEnabled(False)
+            self.ui.slider_persistence.setEnabled(False)
+            self.ui.label_persistence_value.setVisible(False)
+            self.ui.label_persistence.setVisible(False)
+            self.ui.slider_persistence.setVisible(False)
+
+
 
     def update_slider_text(self):
         slide_value = self.ui.slider_persistence.value() * 1024 * 1024
@@ -450,7 +466,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
                     copy_mbusb_dir_usb(config.usb_disk)
                     if not os.path.exists(os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path))):
                         config.persistence = self.ui.slider_persistence.value() * 1024 * 1024
-                        log("Persistence chosen is " + str(config.persistence) + " MB")
+                        log("Persistence chosen is " + str(bytes2human(config.persistence)) + " MB")
                         install_size = iso_size(config.image_path) + config.persistence
                         if install_size >= disk_usage(config.usb_mount).free:
                             log("ERROR: Not enough space available on " + config.usb_disk)
