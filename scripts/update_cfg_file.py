@@ -27,7 +27,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
     usb_label = usb_details['label']
     patch = None
     iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
-    if isolinux_bin_exist(config.iso_link):
+    if isolinux_bin_exist(config.image_path):
         isolinux_path = os.path.join(iso_cfg_ext_dir, isolinux_bin_path(iso_link)[1:])
     config.status_text = "Updating config files..."
     install_dir = os.path.join(usb_mount, "multibootusb", iso_basename(iso_link))
@@ -234,7 +234,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
 
     # Assertain if the entry is made..
     sys_cfg_file = os.path.join(config.usb_mount, "multibootusb", "syslinux.cfg")
-    if gen.check_text_in_file(sys_cfg_file, iso_basename(config.iso_link)):
+    if gen.check_text_in_file(sys_cfg_file, iso_basename(config.image_path)):
         log('Updated entry in syslinux.cfg...')
     else:
         log('Unable to update entry in syslinux.cfg...')
@@ -271,11 +271,11 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 config_file.write(string)
                 config_file.close()
             with open(sys_cfg_file, "a") as f:
-                f.write("#start " + iso_basename(config.iso_link) + "\n")
-                f.write("LABEL " + iso_basename(config.iso_link) + "\n")
-                f.write("MENU LABEL " + iso_basename(config.iso_link) + "\n")
+                f.write("#start " + iso_basename(config.image_path) + "\n")
+                f.write("LABEL " + iso_basename(config.image_path) + "\n")
+                f.write("MENU LABEL " + iso_basename(config.image_path) + "\n")
                 f.write("BOOT " + '/multibootusb/' + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '/' + distro + '.bs' + "\n")
-                f.write("#end " + iso_basename(config.iso_link) + "\n")
+                f.write("#end " + iso_basename(config.image_path) + "\n")
         elif distro == "Windows":
             if os.path.exists(sys_cfg_file):
                 config_file = open(sys_cfg_file, "a")
@@ -292,7 +292,7 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 config_file.write("LABEL " + iso_basename(iso_link) + "\n")
                 config_file.write("MENU LABEL " + iso_basename(iso_link) + "\n")
                 config_file.write("KERNEL grub.exe" + "\n")
-                config_file.write('APPEND --config-file=/multibootusb/' + iso_basename(config.iso_link) + '/menu.lst' + "\n")
+                config_file.write('APPEND --config-file=/multibootusb/' + iso_basename(config.image_path) + '/menu.lst' + "\n")
                 config_file.write("#end " + iso_basename(iso_link) + "\n")
                 config_file.close()
         elif distro == 'kaspersky':
@@ -301,7 +301,7 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 config_file.write("#start " + iso_basename(iso_link) + "\n")
                 config_file.write("LABEL " + iso_basename(iso_link) + "\n")
                 config_file.write("MENU LABEL " + iso_basename(iso_link) + "\n")
-                config_file.write("CONFIG " + '/multibootusb/' + iso_basename(config.iso_link) + '/kaspersky.cfg' + "\n")
+                config_file.write("CONFIG " + '/multibootusb/' + iso_basename(config.image_path) + '/kaspersky.cfg' + "\n")
                 config_file.write("#end " + iso_basename(iso_link) + "\n")
                 config_file.close()
         elif distro == 'grub4dos':
@@ -342,7 +342,7 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 config_file.write("append initrd=../ntldr" + '\n')
 
             else:
-                if isolinux_bin_exist(config.iso_link) is True:
+                if isolinux_bin_exist(config.image_path) is True:
                     if distro == "generic":
                         distro_syslinux_install_dir = isolinux_bin_dir(iso_link)
                         if not isolinux_bin_dir(iso_link) == "/":
@@ -384,34 +384,34 @@ label hwinfo
 
 def update_menu_lst():
     sys_cfg_file = os.path.join(config.usb_mount, "multibootusb", "syslinux.cfg")
-    install_dir = os.path.join(config.usb_mount, "multibootusb", iso_basename(config.iso_link))
-    menu_lst = iso_menu_lst_path(config.iso_link).replace("\\", "/")
+    install_dir = os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path))
+    menu_lst = iso_menu_lst_path(config.image_path).replace("\\", "/")
     with open(sys_cfg_file, "a") as f:
-        f.write("#start " + iso_basename(config.iso_link) + "\n")
-        f.write("LABEL " + iso_basename(config.iso_link) + "\n")
-        f.write("MENU LABEL " + iso_basename(config.iso_link) + "\n")
+        f.write("#start " + iso_basename(config.image_path) + "\n")
+        f.write("LABEL " + iso_basename(config.image_path) + "\n")
+        f.write("MENU LABEL " + iso_basename(config.image_path) + "\n")
         f.write("KERNEL grub.exe" + "\n")
         f.write('APPEND --config-file=/' + menu_lst + "\n")
-        f.write("#end " + iso_basename(config.iso_link) + "\n")
+        f.write("#end " + iso_basename(config.image_path) + "\n")
 
 
 def update_grub4dos_iso_menu():
         sys_cfg_file = os.path.join(config.usb_mount, "multibootusb", "syslinux.cfg")
-        install_dir = os.path.join(config.usb_mount, "multibootusb", iso_basename(config.iso_link))
+        install_dir = os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path))
         menu_lst_file = os.path.join(install_dir, 'menu.lst')
         with open(menu_lst_file, "w") as f:
-            f.write("title Boot " + iso_name(config.iso_link) + "\n")
-            f.write("find --set-root --ignore-floppies --ignore-cd /multibootusb/" + iso_basename(config.iso_link) + '/'
-                    + iso_name(config.iso_link) + "\n")
-            f.write("map --heads=0 --sectors-per-track=0 /multibootusb/" + iso_basename(config.iso_link)
-                    + '/' + iso_name(config.iso_link) + ' (hd32)' + "\n")
+            f.write("title Boot " + iso_name(config.image_path) + "\n")
+            f.write("find --set-root --ignore-floppies --ignore-cd /multibootusb/" + iso_basename(config.image_path) + '/'
+                    + iso_name(config.image_path) + "\n")
+            f.write("map --heads=0 --sectors-per-track=0 /multibootusb/" + iso_basename(config.image_path)
+                    + '/' + iso_name(config.image_path) + ' (hd32)' + "\n")
             f.write("map --hook" + "\n")
             f.write("chainloader (hd32)")
 
         with open(sys_cfg_file, "a") as f:
-            f.write("#start " + iso_basename(config.iso_link) + "\n")
-            f.write("LABEL " + iso_basename(config.iso_link) + "\n")
-            f.write("MENU LABEL " + iso_basename(config.iso_link) + "\n")
+            f.write("#start " + iso_basename(config.image_path) + "\n")
+            f.write("LABEL " + iso_basename(config.image_path) + "\n")
+            f.write("MENU LABEL " + iso_basename(config.image_path) + "\n")
             f.write("KERNEL grub.exe" + "\n")
-            f.write('APPEND --config-file=/multibootusb/' + iso_basename(config.iso_link) + '/' + iso_name(config.iso_link) + "\n")
-            f.write("#end " + iso_basename(config.iso_link) + "\n")
+            f.write('APPEND --config-file=/multibootusb/' + iso_basename(config.image_path) + '/' + iso_name(config.image_path) + "\n")
+            f.write("#end " + iso_basename(config.image_path) + "\n")

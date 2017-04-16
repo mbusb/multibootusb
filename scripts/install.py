@@ -27,8 +27,8 @@ def install_distro():
     :return:
     """
     usb_mount = config.usb_mount
-    install_dir = os.path.join(usb_mount, "multibootusb", iso_basename(config.iso_link))
-    _iso_file_list = iso.iso_file_list(config.iso_link)
+    install_dir = os.path.join(usb_mount, "multibootusb", iso_basename(config.image_path))
+    _iso_file_list = iso.iso_file_list(config.image_path)
 
     if not os.path.exists(os.path.join(usb_mount, "multibootusb")):
         log("Copying multibootusb directory to " + usb_mount)
@@ -42,59 +42,59 @@ def install_distro():
         with open(os.path.join(install_dir, "iso_file_list.cfg"), 'w') as f:
             for file_path in _iso_file_list:
                 f.write(file_path + "\n")
-    log("Installing " + iso_name(config.iso_link) + " on " + install_dir)
+    log("Installing " + iso_name(config.image_path) + " on " + install_dir)
 
     if config.distro == "opensuse":
-        iso.iso_extract_file(config.iso_link, install_dir, 'boot')
+        iso.iso_extract_file(config.image_path, install_dir, 'boot')
         status_text = "Copying ISO..."
         if platform.system() == "Windows":
-            subprocess.call(["xcopy", config.iso_link, usb_mount], shell=True)  # Have to use xcopy as python file copy is dead slow.
+            subprocess.call(["xcopy", config.image_path, usb_mount], shell=True)  # Have to use xcopy as python file copy is dead slow.
         elif platform.system() == "Linux":
-            log("Copying " + config.iso_link + " to " + usb_mount)
-            shutil.copy(config.iso_link, usb_mount)
+            log("Copying " + config.image_path + " to " + usb_mount)
+            shutil.copy(config.image_path, usb_mount)
     elif config.distro == "Windows" or config.distro == "alpine" or config.distro == 'pc-unlocker':
         log("Extracting iso to " + usb_mount)
-        iso_extract_full(config.iso_link, usb_mount)
+        iso_extract_full(config.image_path, usb_mount)
     elif config.distro == "trinity-rescue":
-        iso.iso_extract_file(config.iso_link, usb_mount, '*trk3')
+        iso.iso_extract_file(config.image_path, usb_mount, '*trk3')
     elif config.distro == "ipfire":
-        iso.iso_extract_file(config.iso_link, usb_mount, '*.tlz')
-        iso.iso_extract_file(config.iso_link, usb_mount, 'distro.img')
-        iso.iso_extract_file(config.iso_link, install_dir, 'boot')
+        iso.iso_extract_file(config.image_path, usb_mount, '*.tlz')
+        iso.iso_extract_file(config.image_path, usb_mount, 'distro.img')
+        iso.iso_extract_file(config.image_path, install_dir, 'boot')
     elif config.distro == "zenwalk":
         config.status_text = "Copying ISO..."
-        iso.iso_extract_file(config.iso_link, install_dir, "kernel")
-        copy_iso(config.iso_link, install_dir)
+        iso.iso_extract_file(config.image_path, install_dir, "kernel")
+        copy_iso(config.image_path, install_dir)
     elif config.distro == "salix-live":
-        # iso.iso_extract_file(config.iso_link, install_dir, "boot")
-        iso.iso_extract_file(config.iso_link, install_dir, '*syslinux')
-        iso.iso_extract_file(config.iso_link, install_dir, '*menus')
-        iso.iso_extract_file(config.iso_link, install_dir, '*vmlinuz')
-        iso.iso_extract_file(config.iso_link, install_dir, '*initrd*')
-        iso.iso_extract_file(config.iso_link, usb_mount, '*modules')
-        iso.iso_extract_file(config.iso_link, usb_mount, '*packages')
-        iso.iso_extract_file(config.iso_link, usb_mount, '*optional')
-        iso.iso_extract_file(config.iso_link, usb_mount, '*liveboot')
-        #iso.iso_extract_full(config.iso_link, usb_mount)
+        # iso.iso_extract_file(config.image_path, install_dir, "boot")
+        iso.iso_extract_file(config.image_path, install_dir, '*syslinux')
+        iso.iso_extract_file(config.image_path, install_dir, '*menus')
+        iso.iso_extract_file(config.image_path, install_dir, '*vmlinuz')
+        iso.iso_extract_file(config.image_path, install_dir, '*initrd*')
+        iso.iso_extract_file(config.image_path, usb_mount, '*modules')
+        iso.iso_extract_file(config.image_path, usb_mount, '*packages')
+        iso.iso_extract_file(config.image_path, usb_mount, '*optional')
+        iso.iso_extract_file(config.image_path, usb_mount, '*liveboot')
+        #iso.iso_extract_full(config.image_path, usb_mount)
         config.status_text = "Copying ISO..."
-        copy_iso(config.iso_link, install_dir)
+        copy_iso(config.image_path, install_dir)
     elif config.distro == 'sgrubd2':
-        copy_iso(config.iso_link, install_dir)
+        copy_iso(config.image_path, install_dir)
     elif config.distro == 'alt-linux':
-        iso.iso_extract_file(config.iso_link, install_dir, '-xr!*rescue')
-        iso.iso_extract_file(config.iso_link, config.usb_mount, 'rescue')
+        iso.iso_extract_file(config.image_path, install_dir, '-xr!*rescue')
+        iso.iso_extract_file(config.image_path, config.usb_mount, 'rescue')
     elif config.distro == "generic":
         #with open(os.path.join(install_dir, "generic.cfg"), "w") as f:
-        #    f.write(os.path.join(isolinux_bin_dir(config.iso_link), "generic") + ".bs")
-        iso_extract_full(config.iso_link, usb_mount)
+        #    f.write(os.path.join(isolinux_bin_dir(config.image_path), "generic") + ".bs")
+        iso_extract_full(config.image_path, usb_mount)
     elif config.distro == 'grub4dos':
-        iso_extract_full(config.iso_link, usb_mount)
+        iso_extract_full(config.image_path, usb_mount)
     elif config.distro == 'ReactOS':
-        iso_extract_full(config.iso_link, usb_mount)
+        iso_extract_full(config.image_path, usb_mount)
     elif config.distro == 'grub4dos_iso' or config.distro == 'raw_iso':
-        copy_iso(config.iso_link, install_dir)
+        copy_iso(config.image_path, install_dir)
     else:
-        iso.iso_extract_full(config.iso_link, install_dir)
+        iso.iso_extract_full(config.image_path, install_dir)
 
     if platform.system() == 'Linux':
         log('ISO extracted successfully. Sync is in progress...')
@@ -134,13 +134,14 @@ def install_progress():
     thrd = threading.Thread(target=install_distro, name="install_progress")
     # thrd.daemon()
     # install_size = usb_size_used / 1024
-    install_size = iso_size(config.iso_link) / 1024
-    final_size = (usb_size_used + iso_size(config.iso_link)) + config.persistence
+    install_size = iso_size(config.image_path) / 1024
+    final_size = (usb_size_used + iso_size(config.image_path)) + config.persistence
     thrd.start()
     pbar = progressbar.ProgressBar(maxval=100).start()  # bar = progressbar.ProgressBar(redirect_stdout=True)
     while thrd.is_alive():
         current_size = details(config.usb_disk)['size_used']
         percentage = int((current_size / final_size) * 100)
+#         log("Install at " + str(percentage) + "%")
         if percentage > 100:
             percentage = 100
         config.percentage = percentage
@@ -157,29 +158,29 @@ def install_patch():
         if platform.system() == 'Linux':  # Need to syn under Linux. Otherwise, USB disk becomes random read only.
             os.system('sync')
         iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
-        isolinux_path = os.path.join(iso_cfg_ext_dir, isolinux_bin_path(config.iso_link))
-        iso_linux_bin_dir = isolinux_bin_dir(config.iso_link)
+        isolinux_path = os.path.join(iso_cfg_ext_dir, isolinux_bin_path(config.image_path))
+        iso_linux_bin_dir = isolinux_bin_dir(config.image_path)
         config.syslinux_version = isolinux_version(isolinux_path)
-        iso_file_list = iso.iso_file_list(config.iso_link)
-        os.path.join(config.usb_mount, "multibootusb", iso_basename(config.iso_link), isolinux_bin_dir(config.iso_link))
+        iso_file_list = iso.iso_file_list(config.image_path)
+        os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path), isolinux_bin_dir(config.image_path))
         if any("makeboot.sh" in s.lower() for s in iso_file_list):
-            for module in os.listdir(os.path.join(config.usb_mount, "multibootusb", iso_basename(config.iso_link),
-                                                  isolinux_bin_dir(config.iso_link))):
+            for module in os.listdir(os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path),
+                                                  isolinux_bin_dir(config.image_path))):
                 if module.endswith(".c32"):
-                    if os.path.exists(os.path.join(config.usb_mount, "multibootusb", iso_basename(config.iso_link),
-                                                   isolinux_bin_dir(config.iso_link), module)):
+                    if os.path.exists(os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path),
+                                                   isolinux_bin_dir(config.image_path), module)):
                         try:
                             os.remove(os.path.join(config.usb_mount, "multibootusb",
-                                                   iso_basename(config.iso_link), isolinux_bin_dir(config.iso_link), module))
+                                                   iso_basename(config.image_path), isolinux_bin_dir(config.image_path), module))
                             log("Copying " +  module)
                             log((resource_path(
                                 os.path.join(multibootusb_host_dir(), "syslinux", "modules", config.syslinux_version, module)),
-                                        os.path.join(config.usb_mount, "multibootusb", iso_basename(config.iso_link),
-                                                     isolinux_bin_dir(config.iso_link), module)))
+                                        os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path),
+                                                     isolinux_bin_dir(config.image_path), module)))
                             shutil.copy(resource_path(
                                 os.path.join(multibootusb_host_dir(), "syslinux", "modules", config.syslinux_version, module)),
-                                        os.path.join(config.usb_mount, "multibootusb", iso_basename(config.iso_link),
-                                                     isolinux_bin_dir(config.iso_link), module))
+                                        os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path),
+                                                     isolinux_bin_dir(config.image_path), module))
                         except Exception as err:
                             log(err)
                             log("Could not copy " + module)
@@ -188,5 +189,5 @@ def install_patch():
 
 
 if __name__ == '__main__':
-    config.iso_link = '../../../DISTROS/2016/slitaz-4.0.iso'
+    config.image_path = '../../../DISTROS/2016/slitaz-4.0.iso'
     install_distro()

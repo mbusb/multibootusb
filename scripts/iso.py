@@ -158,7 +158,7 @@ def isolinux_version(isolinux_bin_path):
             if re.search(r'isolinux ', strin, re.I):
                 for number in version:
                     if re.search(r'isolinux ' + number, strin, re.I):
-                        log("\n\nFound syslinux version " + number + "\n\n")
+                        log("\nFound syslinux version " + number + "\n")
                         return str(number)
 
 
@@ -200,6 +200,9 @@ def iso_file_path(iso_link, file_name):
     :param file_name: file name to be checked
     :return: Path to file as string
     """
+    assert iso_link
+    assert file_name
+
     file_path = False
     iso_file_list = _7zip.list_iso(iso_link)
     for f in iso_file_list:
