@@ -96,9 +96,11 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
         self.progress_thread_dd.finished.connect(self.dd_finished)
         self.progress_thread_dd.status.connect(self.ui.statusbar.showMessage)
 
+
 # FIXME
 #        self.add_device()
         prepare_mbusb_host_dir()
+        self.onRefreshClick()
 
 #     def add_device(self):
 #         """
@@ -133,7 +135,6 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
         about.ui.button_close.clicked.connect(about.close)
 
         about.exec_()
-
 
     def onComboChange(self):
         """
@@ -175,7 +176,6 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
             self.ui.usb_mount.clear()
 
             log("No USB disk found...")
-
 
 
     def onRefreshClick(self):
@@ -245,8 +245,17 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
     def browse_iso(self):
         if str(self.ui.image_path.text()):
             self.ui.image_path.clear()
-        config.image_path = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', '', 'ISO Files (*.iso)')[0]
+        preference_file_path = os.path.join(multibootusb_host_dir(), "preference", "iso_dir.txt")
+        dir_path = ''
+        if os.path.exists(preference_file_path):
+            dir_path = open(preference_file_path, 'r').read()
+
+        config.image_path = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', dir_path, 'ISO Files (*.iso)')[0]
+
         if config.image_path:
+            default_dir_path = os.path.dirname(config.image_path)
+            gen.write_to_file(preference_file_path, default_dir_path)
+
             if platform.system() == "Windows":
                 if "/" in config.image_path:
                     config.image_path = config.image_path.strip().replace("/", "\\")
@@ -563,6 +572,11 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
             if self.iso_size >= usb_disk_size:
                 QtWidgets.QMessageBox.information(self, "No enough space on disk.", os.path.basename(config.image_path) +
                                               " size is larger than the size of " + config.usb_disk)
+            elif gen.process_exist('explorer.exe') is not False:
+                # Check if windows explorer is running and inform user to close it.
+                QtWidgets.QMessageBox.information(self, "Windows Explorer", "Windows Explorer is running\n"
+                                                                            "You need to close it before writing ISO "
+                                                                            "image to disk...")
             else:
                 reply = QtWidgets.QMessageBox.question \
                     (self, 'Review selection',

@@ -171,6 +171,7 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
                 else:
                     config.status_text = 'Failed to install syslinux on distro directory...'
                     log ("\nFailed to install syslinux on distro directory...\n")
+
             elif platform.system() == "Windows":
                 syslinux_path = resource_path(os.path.join(multibootusb_host_dir(), "syslinux", "bin")) + \
                                 "\syslinux" + config.syslinux_version + ".exe"
@@ -178,7 +179,7 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
                 distro_sys_install_bs = distro_sys_install_bs.replace("/", "\\")
                 sys_cmd = syslinux_path + option + distro_syslinux_install_dir + ' ' + usb_disk + ' ' + \
                           distro_sys_install_bs
-                log("\nExecuting ==> " + sys_cmd, '\n')
+                log("\nExecuting ==> " + sys_cmd + '\n')
                 config.status_text = 'Installing distro specific syslinux...'
                 if subprocess.call(sys_cmd, shell=True) == 0:
                     config.status_text = 'Syslinux install on distro directory is success...'

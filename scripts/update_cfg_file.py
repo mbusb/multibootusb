@@ -62,7 +62,8 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                     if not persistence == 0:
                         string = re.sub(r'boot=live', 'boot=live persistent persistent-path=/multibootusb/' +
                                         iso_basename(iso_link) + "/", string)
-
+                elif distro == 'grml':
+                    string = re.sub(r'live-media-path=', 'ignore_bootid live-media-path=', string)
                 elif distro == "ubuntu-server":
                     string = re.sub(r'file',
                                     'cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid ignore_bootid root=UUID=' +

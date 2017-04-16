@@ -292,8 +292,9 @@ def prepare_mbusb_host_dir():
         os.makedirs(home)
     else:
         log("Cleaning old multibootusb directory...")
-        shutil.rmtree(home)
-        os.makedirs(home)
+        clean_iso_cfg_ext_dir(os.path.join(home, "iso_cfg_ext_dir"))
+        #shutil.rmtree(home)
+        #os.makedirs(home)
 
     if not os.path.exists(os.path.join(home, "preference")):
         os.makedirs(os.path.join(home, "preference"))
@@ -355,6 +356,37 @@ def grub_efi_exist(grub_efi_path):
             if re.search(r'multibootusb', strin, re.I):
                 return True
         return False
+
+
+def process_exist(process_name):
+    """
+    Detect if process exist/ running and kill it.
+    :param process_name: process name to check
+    :return: True if processis killed else False
+    """
+    if platform.system() == 'Windows':
+        import signal
+        import wmi
+        c = wmi.WMI()
+        for process in c.Win32_Process():
+            if process_name in process.Name:
+                log(process_name + ' exist...')
+                log(process.ProcessId + ' ' + process.Name)
+                log("Having Windows explorer won't allow dd.exe to write ISO image properly."
+                      "\nKilling the process..")
+                try:
+                    os.kill(process.ProcessId, signal.SIGTERM)
+                    return True
+                except:
+                    log('Unable to kill process ' + process.ProcessId)
+
+    return False
+
+
+def write_to_file(filepath, text):
+    if not os.path.exists(filepath):
+        with open(filepath, 'w') as f:
+            f.write(text.strip())
 
 if __name__ == '__main__':
     log(quote("""Test-string"""))
