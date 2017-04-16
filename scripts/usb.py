@@ -85,7 +85,7 @@ def disk_usage(mount_path):
         raise NotImplementedError("Platform not supported.")
 
 
-def list_devices(partition=1, fixed=None):
+def list_devices(partition=1, fixed=False):
     """
     List inserted USB devices.
     :return: USB devices as list.
@@ -97,25 +97,17 @@ def list_devices(partition=1, fixed=None):
             gen.log("Using pyudev for detecting USB drives...")
             import pyudev
             context = pyudev.Context()
-#            if fixed is None:
-#                for device in context.list_devices(subsystem='block', DEVTYPE='partition',
-#                                                   ID_FS_USAGE="filesystem", ID_TYPE="disk",
-#                                                   ID_BUS="usb"):
-#                    # if device['ID_BUS'] == "usb" and device['DEVTYPE'] == "partition":
-#                    if device.get('ID_BUS') in ("usb", "scsi") and device.get('DEVTYPE') == "partition":
-#                        # gen.log(device['DEVNAME'])
-#                        devices.append(str(device['DEVNAME']))
-#            else:
-#                for device in context.list_devices(subsystem='block', DEVTYPE='partition'):
-#                    devices.append(str(device['DEVNAME']))
-            for device in context.list_devices(subsystem='block', 
-                                                ID_FS_USAGE="filesystem",
-                                                ID_TYPE="disk",
-                                                ID_BUS="usb"):
-                if device.get('ID_BUS') in ("usb", "scsi"):
+
+            if fixed is True:
+                for device in context.list_devices(subsystem='block'):
+                    if device.get('ID_BUS') in ("usb", "scsi", "ata") and device['DEVTYPE'] in ['disk', 'partition']:
+                        devices.append(str(device['DEVNAME']))
+                        gen.log("\t" + device['DEVNAME'])
+            else:
+                for device in context.list_devices(subsystem='block', ID_BUS="usb"):
+                    devices.append(str(device['DEVNAME']))
                     gen.log("\t" + device['DEVNAME'])
-#                     devices.append(str(device['DEVNAME']))
-                    devices.append(device)
+
         except:
             import dbus
             bus = dbus.SystemBus()
@@ -159,8 +151,10 @@ def list_devices(partition=1, fixed=None):
                 except:
                     gen.log("No USB device found...")
 
+        devices.sort()
+
     elif platform.system() == "Windows":
-        if fixed is not None:
+        if fixed is True:
             for drive in psutil.disk_partitions():
                 if 'cdrom' in drive.opts or drive.fstype == '':
                     # Skip cdrom drives or the disk with no filesystem

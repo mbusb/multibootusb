@@ -52,8 +52,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
         config.image_path = None
 
         #  Main Tab
-        self.ui.checkbox_all_drives.setVisible(False)
-# FIXME        self.ui.checkbox_all_drives.clicked.connect(self.add_device)
+        self.ui.checkbox_all_drives.clicked.connect(self.onAllDrivesClicked)
         self.ui.button_detect_drives.clicked.connect(self.onRefreshClick)
         self.ui.action_Quit.triggered.connect(self.on_close_Click)
         self.ui.action_About.triggered.connect(self.onAboutClick)
@@ -96,34 +95,27 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
         self.progress_thread_dd.finished.connect(self.dd_finished)
         self.progress_thread_dd.status.connect(self.ui.statusbar.showMessage)
 
-
-# FIXME
-#        self.add_device()
         prepare_mbusb_host_dir()
         self.onRefreshClick()
 
-#     def add_device(self):
-#         """
-#         Adds list of available USB devices to GUI combobox.
-#         :return:
-#         """
-#         self.ui.combo_drives.clear()
-#         if self.ui.checkbox_all_drives.isChecked():
-#             detected_device = usb.list_devices(partition=1, fixed=True)
-#         else:
-#             detected_device = usb.list_devices()
-#         if bool(detected_device):
-#             for device in detected_device:
-#                 self.ui.combo_drives.addItem(str(device))
-# #                if self.ui.combo_drives.currentText():
-# #                    self.onComboChange()
-# 
-# # FIXME
-# #        imager_detected_device = Imager.imager_list_usb(partition=0)
-# #        if bool(imager_detected_device):
-# #            for disk in imager_detected_device:
-# #                self.ui.comboBox_2.addItem(str(disk))
-# #                self.onImagerComboChange()
+    def onAllDrivesClicked(self):
+        """
+        Include fixed drives to available USB devices.
+        :return:
+        """
+        if self.ui.checkbox_all_drives.isChecked() is False: 
+            return
+
+        reply = QtWidgets.QMessageBox.warning(self, "WARNING!",
+"This option enables working with fixed drives\n\
+and is potentially VERY DANGEROUS\n\n\
+Are you SURE you want to enable it?",
+                           QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+
+        if reply == QtWidgets.QMessageBox.No:
+            self.ui.checkbox_all_drives.setChecked(False)
+        elif reply == QtWidgets.QMessageBox.Yes:
+            self.ui.checkbox_all_drives.setChecked(True)
 
     def onAboutClick(self):
         about = QtWidgets.QDialog()
@@ -177,7 +169,6 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 
             log("No USB disk found...")
 
-
     def onRefreshClick(self):
         """
         Calls function to detect USB devices.
@@ -201,28 +192,16 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 #        self.ui.usb_mount.clear()
 #        self.ui.label_usb_mount.setVisible(False)
 
-#        self.add_device()
         self.ui.combo_drives.clear()
         if self.ui.checkbox_all_drives.isChecked():
             detected_devices = usb.list_devices(partition=1, fixed=True)
         else:
             detected_devices = usb.list_devices()
+
         if detected_devices:
             for device in detected_devices:
-                if platform.system() == 'Windows':
                     self.ui.combo_drives.addItem(str(device))
-                else:
-                    self.ui.combo_drives.addItem(str(device["DEVNAME"]))
-#                if self.ui.combo_drives.currentText():
-#                    self.onComboChange()
             self.ui.combo_drives.setCurrentIndex(0)
-
-# FIXME
-#        imager_detected_device = Imager.imager_list_usb(partition=0)
-#        if bool(imager_detected_device):
-#            for disk in imager_detected_device:
-#                self.ui.comboBox_2.addItem(str(disk))
-#                self.onImagerComboChange()
 
     def update_list_box(self, usb_disk):
         """
