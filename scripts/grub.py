@@ -47,8 +47,8 @@ def mbusb_update_grub_cfg():
             syslinux_menu = iso_iso_cfg_path.replace('\\', '/')
 
     efi_grub_cfg = get_grub_cfg(config.iso_link)
-    loopback_cfg_path = iso.iso_file_path(config.iso_link, 'loopback.cfg')
     boot_grub_cfg = get_grub_cfg(config.iso_link, efi=False)
+    loopback_cfg_path = iso.iso_file_path(config.iso_link, 'loopback.cfg')
 
     if loopback_cfg_path is not False:
         grub_cfg_path = loopback_cfg_path.replace('\\', '/')
@@ -102,9 +102,11 @@ def get_grub_cfg(iso_link, efi=True):
     if os.path.exists(iso_link):
         grub_path = False
         iso_file_list = _7zip.list_iso(iso_link)
-        if any("grub.cfg" in s.lower() for s in iso_file_list):
+        if any("grub" in s.lower() for s in iso_file_list):
             for f in iso_file_list:
-                if 'grub.cfg' in f.lower():
+                f_basename = os.path.basename(f).lower()
+                if f_basename.startswith('grub') and f_basename.endswith('.cfg'):
+                #if 'grub.cfg' in f.lower():
                     if efi is True:
                         if 'efi' in f.lower():
                             grub_path = f.replace('\\', '/')
@@ -114,7 +116,10 @@ def get_grub_cfg(iso_link, efi=True):
                             grub_path = f.replace('\\', '/')
                             gen.log('Found ' + grub_path)
                             break
-
+                        else:
+                            grub_path = f.replace('\\', '/')
+                            gen.log('Found ' + grub_path)
+                            break
         return grub_path
 
 
@@ -319,6 +324,7 @@ def iso2grub2(iso_dir):
                                         write_to_file(grub_file_path, '}\n')
 
     if os.path.exists(grub_file_path):
+        gen.log('loopback.cfg file successfully created.\nYou must send this file for debugging if something goes wrong.')
         return 'loopback.cfg'
     else:
         gen.log('Could not convert syslinux config to loopback.cfg')

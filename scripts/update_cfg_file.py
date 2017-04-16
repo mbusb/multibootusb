@@ -111,12 +111,20 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                 elif distro == "ipcop":
                     string = re.sub(r'ipcopboot=cdrom\S*', 'ipcopboot=usb', string)
                 elif distro == "puppy":
-                    string = re.sub(r'pmedia=cd\S*',
-                                    'pmedia=usbflash psubok=TRUE psubdir=/multibootusb/' + iso_basename(iso_link) + '/',
-                                    string)
+                    if 'pmedia=cd' in string:
+                        string = re.sub(r'pmedia=cd\S*',
+                                        'pmedia=usbflash psubok=TRUE psubdir=/multibootusb/' + iso_basename(iso_link) + '/',
+                                        string)
+                    elif 'rootfstype' in string:
+                        string = re.sub(r'rootfstype',
+                                        'pmedia=usbflash psubok=TRUE psubdir=/multibootusb/' + iso_basename(iso_link) + '/ rootfstype',
+                                        string)
                 elif distro == "slax":
                     string = re.sub(r'initrd=',
                                     r'from=/multibootusb/' + iso_basename(iso_link) + '/slax fromusb initrd=', string)
+                elif distro == "finnix":
+                    string = re.sub(r'initrd=',
+                                    r'finnixdir=/multibootusb/' + iso_basename(iso_link) + '/finnix initrd=', string)
                 elif distro == "knoppix":
                     string = re.sub(r'initrd=', 'knoppix_dir=/multibootusb/' + iso_basename(iso_link) + '/KNOPPIX initrd=', string)
                 elif distro == "gentoo":
@@ -242,7 +250,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
         shutil.copy2(resource_path(os.path.join("data", "EFI", "BOOT", "bootx64.efi")),
                      os.path.join(config.usb_mount, 'EFI', 'BOOT'))
     else:
-        gen.log('multibootusb EFI image already exist. No copying...')
+        gen.log('multibootusb EFI image already exist. Not copying...')
 
 
 def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):

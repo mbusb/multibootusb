@@ -155,6 +155,19 @@ def uninstall_distro():
     update_sys_cfg_file()
     update_grub_cfg_file()
 
+    # Check if bootx64.efi is replaced by distro
+    efi_grub_img = os.path.join(config.usb_mount, 'EFI', 'BOOT', 'bootx64.efi')
+    if not os.path.exists(efi_grub_img):
+        gen.log('EFI image does not exist. Copying now...')
+        shutil.copy2(gen.resource_path(os.path.join("data", "EFI", "BOOT", "bootx64.efi")),
+                     os.path.join(config.usb_mount, 'EFI', 'BOOT'))
+    elif not gen.grub_efi_exist(efi_grub_img) is True:
+        gen.log('EFI image overwritten by distro install. Replacing it now...')
+        shutil.copy2(gen.resource_path(os.path.join("data", "EFI", "BOOT", "bootx64.efi")),
+                     os.path.join(config.usb_mount, 'EFI', 'BOOT'))
+    else:
+        gen.log('multibootusb EFI image already exist. Not copying...')
+
 
 def update_sys_cfg_file():
     """

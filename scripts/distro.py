@@ -84,7 +84,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "wifislax"
                         elif re.search(r'slax', string, re.I):
                             return "slax"
-                        elif re.search(r'sms |vector|autoexec', string, re.I) and isolinux_bin_exist(iso_link):
+                        elif re.search(r'sms.jpg|vector|autoexec', string, re.I) and isolinux_bin_exist(iso_link):
                             return "sms"
                         elif re.search(r'antix', string, re.I):
                             return "antix"
@@ -98,7 +98,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "finnix"
                         elif re.search(r'wifiway', string, re.I):
                             return "wifiway"
-                        elif re.search(r'puppy|quirky', string, re.I):
+                        elif re.search(r'puppy|quirky|fatdog', string, re.I):
                             return "puppy"
                         elif re.search(r'ipcop', string, re.I):
                             return "ipcop"
