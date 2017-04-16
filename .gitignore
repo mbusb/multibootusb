@@ -101,3 +101,6 @@ multibootusb*.exe
 
 # VIM temp files
 *.swp
+
+# Test file which I work on to test logic before committing to main file.
+mbusb*py

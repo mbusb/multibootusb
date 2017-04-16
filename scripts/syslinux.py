@@ -56,11 +56,15 @@ def syslinux_default(usb_disk, version=4):
         if os.access(extlinux_path, os.X_OK) is False:
             subprocess.call('chmod +x ' + extlinux_path, shell=True)
         log ("\nExecuting ==> " + extlinu_cmd)
+        config.status_text = 'Installing default extlinux version 4...'
         if subprocess.call(extlinu_cmd, shell=True) == 0:
             log ("\nDefault Extlinux install is success...\n")
+            config.status_text = 'Default extlinux install is success...'
+            config.status_text = 'Installing mbr...'
             log ('\nExecuting ==> ' + mbr_install_cmd)
             if subprocess.call(mbr_install_cmd, shell=True) == 0:
-                log ("\nmbr install is success...\n")
+                config.status_text = 'mbr install is success...'
+                log("\nmbr install is success...\n")
                 if set_boot_flag(usb_disk) is True:
                     return True
 
@@ -71,24 +75,31 @@ def syslinux_default(usb_disk, version=4):
             if os.access(syslinux_path, os.X_OK) is False:
                 subprocess.call('chmod +x ' + syslinux_path, shell=True)
             log ("\nExecuting ==> " + syslinux_cmd + "\n")
+            config.status_text = 'Installing default syslinux version 4...'
             if subprocess.call(syslinux_cmd, shell=True) == 0:
                 log ("\nDefault syslinux install is success...\n")
+                config.status_text = 'Default syslinux successfully installed...'
                 if subprocess.call(mbr_install_cmd, shell=True) == 0:
+                    config.status_text = 'mbr install is success...'
                     log ("\nmbr install is success...\n")
                     if set_boot_flag(usb_disk) is True:
                         return True
                     else:
                         log ("\nFailed to install default syslinux...\n")
+                        config.status_text = 'Failed to install default syslinux...'
                         return False
 
         elif platform.system() == "Windows":
             syslinux = resource_path(os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux4.exe"))
             log ('Executing ==>' + syslinux + ' -maf -d multibootusb ' + usb_disk)
+            config.status_text = 'Installing default syslinux version 4...'
             if subprocess.call(syslinux + ' -maf -d multibootusb ' + usb_disk, shell=True) == 0:
+                config.status_text = 'Default syslinux successfully installed...'
                 log ("\nDefault syslinux install is success...\n")
                 return True
             else:
                 log ("\nFailed to install default syslinux...\n")
+                config.status_text = 'Failed to install default syslinux...'
                 return False
 
 
@@ -145,14 +156,20 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
                 sys_cmd = syslinux_path + option + quote(distro_syslinux_install_dir) + ' ' + usb_disk
                 dd_cmd = 'dd if=' + usb_disk + ' ' + 'of=' + quote(distro_sys_install_bs) + ' count=1'
                 log ("Executing ==> " + sys_cmd)
+                config.status_text = 'Installing distro specific syslinux...'
                 if subprocess.call(sys_cmd, shell=True) == 0:
+                    config.status_text = 'Syslinux install on distro directory is success...'
                     log ("\nSyslinux install on distro directory is success...\n")
                     log ('Executing ==> ' + dd_cmd + '\n')
+                    config.status_text = 'Copying boot sector...'
                     if subprocess.call(dd_cmd, shell=True) == 0:
+                        config.status_text = 'Bootsector copy is success...'
                         log ("\nBootsector copy is success...\n")
                     else:
+                        config.status_text = 'Failed to copy boot sector...'
                         log ("\nFailed to copy boot sector...\n")
                 else:
+                    config.status_text = 'Failed to install syslinux on distro directory...'
                     log ("\nFailed to install syslinux on distro directory...\n")
             elif platform.system() == "Windows":
                 syslinux_path = resource_path(os.path.join(multibootusb_host_dir(), "syslinux", "bin")) + \
@@ -162,9 +179,12 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
                 sys_cmd = syslinux_path + option + distro_syslinux_install_dir + ' ' + usb_disk + ' ' + \
                           distro_sys_install_bs
                 log("\nExecuting ==> " + sys_cmd, '\n')
+                config.status_text = 'Installing distro specific syslinux...'
                 if subprocess.call(sys_cmd, shell=True) == 0:
+                    config.status_text = 'Syslinux install on distro directory is success...'
                     log ("\nSyslinux install was successful on distro directory...\n")
                 else:
+                    config.status_text = 'Failed to install syslinux on distro directory...'
                     log ("\nFailed to install syslinux on distro directory...\n")
         elif usb_fs in extlinux_fs:
             if platform.system() == "Linux":

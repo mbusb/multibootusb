@@ -107,7 +107,7 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
                     disk_number = self.get_physical_disk_number(qemu_usb_disk)
                     parent_dir = os.getcwd()
                     os.chdir(resource_path(os.path.join("data", "tools", "qemu")))
-                    cmd = qemu + ' -L . -boot c' + ram + ' -hda //./PhysicalDrive ' + disk_number
+                    cmd = qemu + ' -L . -boot c' + ram + ' -hda //./PhysicalDrive' + disk_number
 
                     try:
                         log("Executing ==>  " + cmd)

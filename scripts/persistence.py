@@ -94,6 +94,7 @@ def create_persistence():
 
     if not config.distro == 'fedora':
         gen.log('Applying filesystem to persistence file...')
+        config.status_text = 'Applying filesystem to persistence file. Please wait...'
         gen.log('Executing ==> ' + persistence_mkfs_cmd)
         config.status_text = 'Applying filesystem to persistence file...'
         if subprocess.call(persistence_mkfs_cmd, shell=True) == 0:

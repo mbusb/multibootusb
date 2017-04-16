@@ -302,6 +302,13 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
             self.ui.label_persistence.setVisible(False)
             self.ui.slider_persistence.setVisible(False)
 
+    def ui_disable_persistence(self):
+        self.ui.label_persistence_value.setEnabled(False)
+        self.ui.label_persistence.setEnabled(False)
+        self.ui.slider_persistence.setEnabled(False)
+        self.ui.label_persistence_value.setVisible(False)
+        self.ui.label_persistence.setVisible(False)
+        self.ui.slider_persistence.setVisible(False)
 
 
     def update_slider_text(self):
@@ -323,6 +330,8 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
             self.ui.statusbar.showMessage("Status: Sync is in progress...")
             os.system('sync')
         self.ui.statusbar.showMessage("Status: Idle")
+        self.ui_disable_persistence()
+        log(iso_name(config.image_path) + ' has been successfully installed.')
         QtWidgets.QMessageBox.information(self, 'Finished...', iso_name(config.image_path) + ' has been successfully installed.')
         config.process_exist = None
 
