@@ -43,18 +43,18 @@ def cli_install_distro():
     if usb.is_block(config.usb_disk) is False:
         log(config.usb_disk, 'is not a valid device partition...')
         exit(1)
-    elif integrity(config.iso_link) is not True:
-        log(config.iso_link, ' failed to pass integrity check...')
+    elif integrity(config.image_path) is not True:
+        log(config.image_path, ' failed to pass integrity check...')
         exit(1)
-    elif size_not_enough(config.iso_link, config.usb_disk) is True:
+    elif size_not_enough(config.image_path, config.usb_disk) is True:
         log(config.usb_disk, 'does not have enough space...')
     else:
         prepare_mbusb_host_dir()
-        extract_cfg_file(config.iso_link)
-        _distro = distro(iso_cfg_ext_dir(), config.iso_link)
+        extract_cfg_file(config.image_path)
+        _distro = distro(iso_cfg_ext_dir(), config.image_path)
         log('Detected distro type is', _distro)
         if _distro is not None:
-            log('\nSelected ISO is          :', quote(iso_name(config.iso_link)))
+            log('\nSelected ISO is          :', quote(iso_name(config.image_path)))
             log('Selected target device is:', quote(config.usb_disk), '\n')
             log('Please confirm the option.')
             log('Y/y/Yes/yes/YES or N/n/No/no/NO')
@@ -62,11 +62,11 @@ def cli_install_distro():
                 config.distro = _distro
                 copy_mbusb_dir_usb(config.usb_disk)
                 install_progress()
-                syslinux_distro_dir(config.usb_disk, config.iso_link, _distro)
+                syslinux_distro_dir(config.usb_disk, config.image_path, _distro)
                 syslinux_default(config.usb_disk)
-                update_distro_cfg_files(config.iso_link, config.usb_disk, _distro)
+                update_distro_cfg_files(config.image_path, config.usb_disk, _distro)
         else:
-            log('Sorry', iso_name(config.iso_link), 'is not supported at the moment\n'
+            log('Sorry', iso_name(config.image_path), 'is not supported at the moment\n'
                                                 'Please report tissue at https://github.com/mbusb/multibootusb/issues')
 
 

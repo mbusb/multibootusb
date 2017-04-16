@@ -16,40 +16,42 @@ from . import iso
 from . import gen
 from . import config
 
+def max_disk_persistence(usb_disk):
+    """
+    Detect max persistence value for filesystem on usb_disk
+    :param usb_disk: Disk filesystem to check
+    :return: Max persistence supported (bytes)
+    """
+    assert usb_disk is not None
 
-def persistence_distro(distro, usb_disk, iso_link):
+    fat_max_size = (4096 * 1024 * 1024)
+    usb_details = usb.details(usb_disk)
+    config.usb_uuid = usb_details['uuid']
+    config.usb_label = usb_details['label']
+
+    if usb_details['file_system'] in ['vfat', 'FAT32'] and usb_details['size_free'] > fat_max_size:
+        _max_size = fat_max_size
+    else:
+        _max_size = usb_details['size_free']
+
+    return _max_size
+
+def persistence_distro(distro, iso_link):
     """
     Function to detect if distro can have persistence option.
     :param distro: Detected distro name.
     :return: Distro name as string or None otherwise.
     """
+    assert distro is not None
+    assert iso_link is not None
+
     iso_size = iso.iso_size(iso_link)
-    fat_max_size = (4096 * 1024 * 1024)
-    usb_details = usb.details(usb_disk)
-    usb_sf = usb_details['file_system']
-    usb_free_size = usb_details['size_free']
-    config.usb_uuid = usb_details['uuid']
-    config.usb_label = usb_details['label']
-    if usb_sf == 'vfat' or 'FAT32':
-        if usb_free_size > fat_max_size:
-            _max_size = fat_max_size
-        else:
-            _max_size = usb_free_size
+
+    if distro in ["ubuntu", "debian", "debian-install", "fedora"]:
+        gen.log("Persistence option is available.")
+        return distro
     else:
-        _max_size = usb_free_size
-    if distro == "ubuntu":
-        gen.log("Persistence option is available.")
-        return "ubuntu", _max_size
-    # FIXME to get debian persistence workable...
-    #  Able to add successfully but unable to keep persistence data.
-    elif distro == "debian" or distro == "debian-install":
-        gen.log("Persistence option is available.")
-        return "debian", _max_size
-    elif distro == "fedora":
-        gen.log("Persistence option is available.")
-        return "fedora", _max_size
-    else:
-        return None, None
+        return None
 
 
 def create_persistence():
@@ -66,22 +68,22 @@ def create_persistence():
         mkfs = 'mkfs.ext3'
         dd = 'dd'
         persistence_mkfs_cmd = mkfs + ' -F ' + os.path.join(config.usb_mount, 'multibootusb',
-                                                            iso.iso_basename(config.iso_link),
+                                                            iso.iso_basename(config.image_path),
                                                             fs_name)
     elif platform.system() == 'Windows':
         mkfs = gen.quote(gen.resource_path(os.path.join("data", "tools", "mkfs", "mke2fs.exe")))
         dd = gen.quote(gen.resource_path(os.path.join("data", "tools", "dd", "dd.exe")))
         persistence_mkfs_cmd = 'echo y|' + mkfs + ' -b 1024 -L ' + fs_name + ' ' + os.path.join(config.usb_mount, 'multibootusb',
-                                                            iso.iso_basename(config.iso_link), fs_name)
+                                                            iso.iso_basename(config.image_path), fs_name)
 
     if config.distro == 'fedora':
         persistence_dd_cmd = dd + ' if=/dev/zero ' \
                                   'of=' + os.path.join(config.usb_mount, 'multibootusb',
-                                                       iso.iso_basename(config.iso_link), 'LiveOS', fs_name) + \
+                                                       iso.iso_basename(config.image_path), 'LiveOS', fs_name) + \
                              ' bs=1M count=' + str(int(persistence))
     else:
         persistence_dd_cmd = dd + ' if=/dev/zero of=' + os.path.join(config.usb_mount, 'multibootusb',
-                                                   iso.iso_basename(config.iso_link), fs_name) +\
+                                                   iso.iso_basename(config.image_path), fs_name) +\
                                 ' bs=1M count=' + str(int(persistence))
 
     gen.log('Executing ==>' + persistence_dd_cmd)

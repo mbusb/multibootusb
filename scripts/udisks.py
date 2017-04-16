@@ -133,20 +133,32 @@ class UDisks2(object):
 
     def mount(self, device_node_path):
         d = self.device(device_node_path)
-        mount_options = ['rw', 'noexec', 'nosuid',
-                'nodev', 'uid=%d'%os.geteuid(), 'gid=%d'%os.getegid()]
+ 
+#         euid = os.environ['SUDO_UID']
+#         egid = os.environ['SUDO_GID']
+# 
+#         if euid and egid:
+#             user, group = int(euid), int(egid)
+#         else:
+#             user, group = os.getuid(), os.getgid()
+# 
+#         mount_options = ['rw', 'noexec', 'nosuid', 'nodev', 'uid=%d' % user, 'gid=%d' % group]
+        mount_options = ['rw', 'noexec', 'nosuid', 'nodev']
+
         try:
-            return str(d.Mount(
+            mp = str(d.Mount(
                 {
                     'auth.no_user_interaction':True,
                     'options':','.join(mount_options)
                 },
                 dbus_interface=self.FILESYSTEM))
+            print(mp)
         except:
             # May be already mounted, check
             mp = node_mountpoint(str(device_node_path))
             if mp is None:
                 raise
+        finally:
             return mp
 
     def unmount(self, device_node_path):

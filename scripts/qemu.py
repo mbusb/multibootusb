@@ -13,72 +13,73 @@ import subprocess
 import platform
 from .admin import adminCmd
 from PyQt5 import QtWidgets
-from .gui.ui_multibootusb import Ui_Dialog
+from .gui.ui_multibootusb import Ui_MainWindow
 from .gen import *
+from . import config
 
 
-class Qemu(QtWidgets.QDialog, Ui_Dialog):
+class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
     """
     ISO and USB booting using QEMU.
     """
-    def on_Qemu_Browse_iso_Click(self):
-        """
-        Browse and choose an ISO.
-        :return:
-        """
-        self.ui.lineEdit_2.clear()
 
-        qemu = self.check_qemu_exist()
+    def __init__(self):
+        QtWidgets.QMainWindow.__init__(self)
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
 
-        if not qemu is None:
-        
-            qemu_iso_link = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', "",  "ISO Files (*.iso)")[0]
-        else:
-            log("QEMU does not exist.\nPlease install qemu package to avail this feature.")
-            QtWidgets.QMessageBox.information(self, 'No QEMU...', 'Please install qemu package to avail this feature.')
-            qemu_iso_link = None
-
-        if not qemu_iso_link is None:
-            self.ui.lineEdit_2.insert(qemu_iso_link)
-        else:
-            log ("File not selected.")
+#     def on_Qemu_Browse_iso_Click(self):
+#         """
+#         Browse and choose an ISO.
+#         :return:
+#         """
+#         self.ui.lineEdit_2.clear()
+# 
+#         qemu = self.check_qemu_exist()
+# 
+#         if not qemu is None:
+#             qemu_iso_link = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', "",  "ISO Files (*.iso)")[0]
+#         else:
+#             log("QEMU does not exist.\nPlease install qemu package to avail this feature.")
+#             QtWidgets.QMessageBox.information(self, 'No QEMU...', 'Please install qemu package to avail this feature.')
+#             qemu_iso_link = None
+# 
+#         if not qemu_iso_link is None:
+#             self.ui.lineEdit_2.insert(qemu_iso_link)
+#         else:
+#             log ("File not selected.")
             
     def on_Qemu_Boot_iso_Click(self):
         """
         Main function to boot a selected ISO.
         :return:
         """
-        if not self.ui.lineEdit_2.text():
-            QtWidgets.QMessageBox.information(self, 'No ISO...', 'No ISO selected.\n\nPlease choose an iso and click Boot ISO.')
+#         if not self.ui.lineEdit_2.text():
+        if not config.image_path:
+            QtWidgets.QMessageBox.information(self, 'No ISO...', 'No ISO selected.\n\nPlease choose an ISO first.')
         else:
             qemu = self.check_qemu_exist()
-            qemu_iso_link = str(self.ui.lineEdit_2.text())
-            if qemu is None:
-                log("QEMU does not exist.\nPlease install qemu package to avail this feature.")
-                QtWidgets.QMessageBox.information(self, 'No QEMU...', 'Please install qemu to avail this feature.')
+            qemu_iso_link = config.image_path
+            if not qemu:
+                log("ERROR: ISO Boot: qemu not found!")
+                QtWidgets.QMessageBox.information(self, 'No QEMU...', 'Please install qemu to use this feature.')
             else:
                 ram = self.qemu_iso_ram()
-                if not ram is None:
-                    self.ui.lineEdit_2.clear()
-                    if platform.system() == "Windows":
-                        try:
-                            log("Executing ==>  " + qemu + " -cdrom " + str(qemu_iso_link) + " -boot d -m " + ram)
-                            subprocess.Popen(qemu + " -cdrom " + str(qemu_iso_link) + " -boot d -m " + ram, shell=True)
-                        except:
-                            QtWidgets.QMessageBox.information(self, 'Error...', 'Unable to start QEMU.')
-                    else:
-                        log(qemu + ' -m ' + ram + ' -cdrom ' + str(qemu_iso_link) + ' -boot d')
-                        try:
-                            log("Executing ==>  " + qemu + " -cdrom " + str(qemu_iso_link) + " -boot d -m " + ram)
-                            subprocess.Popen(qemu + " -cdrom " + str(qemu_iso_link) + " -boot d -m " + ram, shell=True)
-                        except:
-                            QtWidgets.QMessageBox.information(self, 'Error...', 'Error booting ISO\n'
-                                                                            'Unable to start QEMU.')
+                if ram:
+                    ram = " -m " + ram
                 else:
-                    QtWidgets.QMessageBox.information(self, 'No ram...', 'No ram selected.\n\nPlease choose any ram value and click Boot ISO.')
+                    ram = ""
+
+                cmd = qemu + ram + ' -boot d' + ' -cdrom ' + str(qemu_iso_link)
+                try:
+                    log("Executing ==> " + cmd)
+                    subprocess.Popen(cmd, shell=True)
+                except:
+                    QtWidgets.QMessageBox.information(self, 'Error...', 'Error booting ISO\n'
+                                                                    'Unable to start QEMU.')
 
 
-    def on_Qemu_Boot_usb_Click(self, usb_disk):
+    def on_Qemu_Boot_usb_Click(self):
         """
         Main function to boot a selected USB disk.
         :param usb_disk: Path to usb disk.
@@ -86,31 +87,41 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
         """
         qemu = self.check_qemu_exist()
 
-        if qemu is None:
-            log("QEMU does not exist.\nPlease install qemu package to avail this feature.")
-            QtWidgets.QMessageBox.information(self, 'No QEMU...', 'Please install qemu to avail this feature.')
+        if not config.usb_disk:
+            QtWidgets.QMessageBox.information(self, 'No disk...', 'No USB disk selected.\n\nPlease choose a disk first.')
         else:
-            ram = self.qemu_usb_ram()
-            if ram is None:
-                QtWidgets.QMessageBox.information(self, 'No ram...', 'No ram selected.\n\nPlease choose any ram value and click Boot USB.')
+            qemu = self.check_qemu_exist()
+            qemu_usb_disk = config.usb_disk
+
+            if qemu is None:
+                log("ERROR: USB Boot: qemu not found!")
+                QtWidgets.QMessageBox.information(self, 'No QEMU...', 'Please install qemu to use this feature.')
             else:
+                ram = self.qemu_usb_ram()
+                if ram:
+                    ram = " -m " + ram
+                else:
+                    ram = ""
+
                 if platform.system() == "Windows":
-                    disk_number = self.get_physical_disk_number(usb_disk)
+                    disk_number = self.get_physical_disk_number(qemu_usb_disk)
                     parent_dir = os.getcwd()
                     os.chdir(resource_path(os.path.join("data", "tools", "qemu")))
+                    cmd = qemu + ' -L . -boot c' + ram + ' -hda //./PhysicalDrive ' + disk_number
+
                     try:
-                        log("Executing ==>  " + qemu + " -L . -boot c -m " + ram + " -hda //./PhysicalDrive" + disk_number)
-                        subprocess.Popen("qemu-system-x86_64.exe -L . -boot c -m "  + ram + " -hda //./PhysicalDrive" + disk_number, shell=True)
+                        log("Executing ==>  " + cmd)
+                        subprocess.Popen(cmd, shell=True)
                     except:
-                        QtWidgets.QMessageBox.information(self, 'Error...', 'Error booting USB\n'
-                                                                            'Unable to start QEMU.')
+                        QtWidgets.QMessageBox.information(self, 'Error...', 'Error booting USB\nUnable to start QEMU.')
                     os.chdir(parent_dir)
+
                 elif platform.system() == "Linux":
+                    cmd = qemu + ' -hda ' + qemu_usb_disk + ram + ' -vga std'
                     try:
-                        qemu_cmd = qemu + ' -hda ' + usb_disk[:-1] + ' -m ' + ram + ' -vga std'
-                        log('Executing ==> ' + qemu_cmd)
+                        log('Executing ==> ' + cmd)
                         # adminCmd([qemu, '-hda', usb_disk[:-1], '-m', ram, '-vga std'], gui=True)
-                        subprocess.Popen(qemu_cmd, shell=True)
+                        subprocess.Popen(cmd, shell=True)
                         # adminCmd(qemu_cmd, gui=True)
                     except:
                         QtWidgets.QMessageBox.information(self, 'Error...', 'Error booting USB\n\nUnable to start QEMU.')
@@ -120,36 +131,26 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
         Choose a ram size for ISO booting.
         :return: Ram size as string.
         """
-        if self.ui.ram_iso_256.isChecked():
-            return str(256)
-        elif self.ui.ram_iso_512.isChecked():
-            return str(512)
-        elif self.ui.ram_iso_768.isChecked():
-            return str(768)
-        elif self.ui.ram_iso_1024.isChecked():
-            return str(1024)
-        elif self.ui.ram_iso_2048.isChecked():
-            return str(2047)
-        else:
+        selected_ram = self.ui.combo_iso_boot_ram.currentText()
+        log("QEMU: ISO RAM = " + selected_ram)
+
+        if selected_ram == "Default":
             return None
+        else:
+            return selected_ram
 
     def qemu_usb_ram(self):
         """
         Choose a ram size for USB booting.
         :return: Ram size as string.
         """
-        if self.ui.ram_usb_256.isChecked():
-            return str(256)
-        if self.ui.ram_usb_512.isChecked():
-            return str(512)
-        if self.ui.ram_usb_768.isChecked():
-            return str(768)
-        if self.ui.ram_usb_1024.isChecked():
-            return str(1024)
-        if self.ui.ram_usb_2048.isChecked():
-            return str(2047)
-        else:
+        selected_ram = self.ui.combo_usb_boot_ram.currentText()
+        log("QEMU: USB RAM = " + selected_ram)
+
+        if selected_ram == "Default":
             return None
+        else:
+            return selected_ram
             
     def check_qemu_exist(self):
         """
@@ -158,21 +159,22 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
         """
         if platform.system() == "Linux":
             if subprocess.call('which qemu-system-x86_64', shell=True) == 0:
-                log("qemu-system-x86_64 exists...")
                 qemu = "qemu-system-x86_64"
             elif subprocess.call('which qemu', shell=True) == 0:
-                log("qemu exists")
                 qemu = "qemu"
             else:
-                qemu = None
+                qemu = ""
 
-            if qemu:
-                return qemu
-            else:
-                return None
         elif platform.system() == "Windows":
-            log(resource_path(os.path.join("data", "tools", "qemu", "qemu-system-x86_64.exe")))
-            return resource_path(os.path.join("data", "tools", "qemu", "qemu-system-x86_64.exe"))
+            qemu = resource_path(os.path.join("data", "tools", "qemu", "qemu-system-x86_64.exe"))
+            log(qemu)
+        
+        if qemu:
+            log("QEMU: using " + qemu)
+        else:
+            log("QEMU: ERROR: not found!")
+
+        return qemu
 
 
     def get_physical_disk_number(self, usb_disk):
@@ -194,3 +196,4 @@ class Qemu(QtWidgets.QDialog, Ui_Dialog):
                         """
                         log("Physical Device Number is " + partition.Caption[6:-14])
                         return str(partition.Caption[6:-14])
+
