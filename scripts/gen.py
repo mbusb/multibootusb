@@ -384,9 +384,14 @@ def process_exist(process_name):
 
 
 def write_to_file(filepath, text):
-    if not os.path.exists(filepath):
-        with open(filepath, 'w') as f:
-            f.write(text.strip())
+    """
+    Simple function to write a text file
+    :param filepath: Path to file
+    :param text: Text to be written on to file
+    :return: 
+    """
+    with open(filepath, 'w') as f:
+        f.write(text.strip())
 
 if __name__ == '__main__':
     log(quote("""Test-string"""))

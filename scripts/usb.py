@@ -330,6 +330,7 @@ def win_disk_details(disk_drive):
     pythoncom.CoInitialize()
     vendor = 'Not_Found'
     model = 'Not_Found'
+    devtype = 'Patition'
     selected_usb_part = str(disk_drive)
     oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
     d = oFS.GetDrive(oFS.GetDriveName(oFS.GetAbsolutePathName(selected_usb_part)))
@@ -359,7 +360,7 @@ def win_disk_details(disk_drive):
 
     return {'uuid': uuid, 'file_system': file_system, 'label': label, 'mount_point': mount_point,
             'size_total': size_total, 'size_used': size_used, 'size_free': size_free,
-            'vendor': vendor, 'model': model}
+            'vendor': vendor, 'model': model, 'devtype': devtype}
 
 
 def details(usb_disk_part):
