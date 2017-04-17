@@ -103,7 +103,8 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
         Include fixed drives to available USB devices.
         :return:
         """
-        if self.ui.checkbox_all_drives.isChecked() is False: 
+        if self.ui.checkbox_all_drives.isChecked() is False:
+            self.onRefreshClick()
             return
 
         reply = QtWidgets.QMessageBox.warning(self, "WARNING!",
@@ -116,6 +117,8 @@ Are you SURE you want to enable it?",
             self.ui.checkbox_all_drives.setChecked(False)
         elif reply == QtWidgets.QMessageBox.Yes:
             self.ui.checkbox_all_drives.setChecked(True)
+            self.onRefreshClick()
+
 
     def onAboutClick(self):
         about = QtWidgets.QDialog()
