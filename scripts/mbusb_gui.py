@@ -142,21 +142,25 @@ Are you SURE you want to enable it?",
             config.persistence_max_size = persistence.max_disk_persistence(config.usb_disk)
 
             self.usb_details = usb.details(config.usb_disk)
+#             print(self.usb_details)
             config.usb_mount = self.usb_details['mount_point']
             self.ui.usb_dev.setText(config.usb_disk)
 
-            # self.label.setFont(QtGui.QFont("Times",weight=QtGui.QFont.Bold))
-            if platform.system() == 'Windows':
-                self.ui.label_usb_vendor.setText("FileSystem:")
-                self.ui.usb_vendor.setText(self.usb_details['file_system'])
-                self.ui.label_usb_model.setText("Label: ")
-                self.ui.usb_model.setText(self.usb_details['label'])
-            else:
-                self.ui.usb_vendor.setText(self.usb_details['vendor'])
-                self.ui.usb_model.setText(self.usb_details['model'])
+#             if platform.system() == 'Windows':
+#                 self.ui.label_usb_vendor.setText("FileSystem:")
+#                 self.ui.usb_vendor.setText(self.usb_details['file_system'])
+#                 self.ui.label_usb_model.setText("Label: ")
+#                 self.ui.usb_model.setText(self.usb_details['label'])
+#             else:
+#                 self.ui.usb_vendor.setText(self.usb_details['vendor'])
+#                 self.ui.usb_model.setText(self.usb_details['model'])
 
+            self.ui.usb_vendor.setText(self.usb_details['vendor'])
+            self.ui.usb_model.setText(self.usb_details['model'])
             self.ui.usb_size.setText(str(usb.bytes2human(self.usb_details['size_total'])))
             self.ui.usb_mount.setText(self.usb_details['mount_point'])
+            self.ui.usb_type.setText(self.usb_details['devtype'])
+            self.ui.usb_fs.setText(self.usb_details['file_system'])
 
             self.update_list_box(config.usb_disk)
             self.ui_update_persistence()
@@ -166,6 +170,8 @@ Are you SURE you want to enable it?",
             self.ui.usb_model.clear()
             self.ui.usb_size.clear()
             self.ui.usb_mount.clear()
+            self.ui.usb_type.clear()
+            self.ui.usb_fs.clear()
 
             log("No USB disk found...")
 

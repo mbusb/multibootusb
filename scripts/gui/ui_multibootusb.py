@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'gui/test.ui'
+# Form implementation generated from reading ui file 'gui/multibootusb.ui'
 #
 # Created by: PyQt5 UI code generator 5.5.1
 #
@@ -88,11 +88,25 @@ class Ui_MainWindow(object):
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.usb_size)
         self.label_usb_mount = QtWidgets.QLabel(self.group_usb_details)
         self.label_usb_mount.setObjectName("label_usb_mount")
-        self.formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.label_usb_mount)
+        self.formLayout.setWidget(6, QtWidgets.QFormLayout.LabelRole, self.label_usb_mount)
         self.usb_mount = QtWidgets.QLabel(self.group_usb_details)
         self.usb_mount.setText("")
         self.usb_mount.setObjectName("usb_mount")
-        self.formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.usb_mount)
+        self.formLayout.setWidget(6, QtWidgets.QFormLayout.FieldRole, self.usb_mount)
+        self.label_usb_type = QtWidgets.QLabel(self.group_usb_details)
+        self.label_usb_type.setObjectName("label_usb_type")
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.label_usb_type)
+        self.usb_type = QtWidgets.QLabel(self.group_usb_details)
+        self.usb_type.setText("")
+        self.usb_type.setObjectName("usb_type")
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.usb_type)
+        self.label_usb_fs = QtWidgets.QLabel(self.group_usb_details)
+        self.label_usb_fs.setObjectName("label_usb_fs")
+        self.formLayout.setWidget(5, QtWidgets.QFormLayout.LabelRole, self.label_usb_fs)
+        self.usb_fs = QtWidgets.QLabel(self.group_usb_details)
+        self.usb_fs.setText("")
+        self.usb_fs.setObjectName("usb_fs")
+        self.formLayout.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.usb_fs)
         self.gridLayout_disk.addWidget(self.group_usb_details, 3, 0, 1, 4)
         self.horizontalLayout.addLayout(self.gridLayout_disk)
         self.gridLayout_image = QtWidgets.QGridLayout()
@@ -377,6 +391,8 @@ class Ui_MainWindow(object):
         self.label_usb_model.setText(_translate("MainWindow", "Model:"))
         self.label_usb_size.setText(_translate("MainWindow", "Size:"))
         self.label_usb_mount.setText(_translate("MainWindow", "Mount:"))
+        self.label_usb_type.setText(_translate("MainWindow", "Type:"))
+        self.label_usb_fs.setText(_translate("MainWindow", "Filesystem:"))
         self.image_details_group.setTitle(_translate("MainWindow", "Image Details"))
         self.label_image_type.setText(_translate("MainWindow", "Type:"))
         self.label_image_size.setText(_translate("MainWindow", "Size:"))
