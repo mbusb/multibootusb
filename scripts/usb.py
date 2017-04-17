@@ -189,78 +189,66 @@ def details_udev(usb_disk_part):
     Get details of USB partition using udev
     """
     assert usb_disk_part is not None
+    assert platform.system() == "Linux"
 
-    if platform.system() == "Linux":
-        import pyudev
-        """
-        Try with PyUdev to get the details of USB disks.
-        This is the easiest and reliable method to find USB details.
-        Also, it is a standalone package and no dependencies are required.
-        """
-        # gen.log "Using PyUdev for detecting USB details..."
-        context = pyudev.Context()
-        for device in context.list_devices(subsystem='block', DEVTYPE='partition',
-                                           ID_FS_USAGE="filesystem", ID_TYPE="disk",
-                                           ID_BUS="usb"):
-            fdisk_cmd_out = subprocess.check_output('fdisk -l ' + usb_disk_part, shell=True)
-            if b'Extended' in fdisk_cmd_out:
-                mount_point = ''
-                uuid = 'No_UUID'
-                file_system = 'No_FS'
-                vendor = 'No_Vendor'
-                model = 'No_Model'
-                label = 'No_Label'
-            elif device.get('ID_BUS') in ("usb", "scsi") and device.get('DEVTYPE') == "partition":
-                if (device['DEVNAME']) == usb_disk_part:
-                    uuid = str(device['ID_FS_UUID'])
-                    file_system = str(device['ID_FS_TYPE'])
-                    try:
-                        label = str(device['ID_FS_LABEL'])
-                    except:
-                        label = "No_Label"
-                    mount_point = u.mount(usb_disk_part)
-                    # mount_point = os.popen('findmnt -nr -o target -S %s' % usb_disk_part).read().strip()
-                    # Convert the hex string of space to empty space.
-                    mount_point = mount_point.replace('\\x20', ' ')
-                    try:
-                        vendor = str(device['ID_VENDOR'])
-                    except:
-                        vendor = str('No_Vendor')
-                    try:
-                        model = str(device['ID_MODEL'])
-                    except:
-                        model = str('No_Model')
-            elif device.get('ID_BUS') in ("usb", "scsi") and device.get('DEVTYPE') == "disk":
-                mount_point = ''
-                uuid = 'No_UUID'
-                file_system = 'No_FS'
-                try:
-                    label = str(device['ID_FS_LABEL'])
-                except:
-                    label = "No_Label"
-                try:
-                    vendor = str(device['ID_VENDOR'])
-                except:
-                    vendor = str('No_Vendor')
-                try:
-                    model = str(device['ID_MODEL'])
-                except:
-                    model = str('No_Model')
+    import pyudev
+    """
+    Try with PyUdev to get the details of USB disks.
+    This is the easiest and reliable method to find USB details.
+    Also, it is a standalone package and no dependencies are required.
+    """
+    # gen.log "Using PyUdev for detecting USB details..."
+    context = pyudev.Context()
+    try:
+        device = pyudev.Device.from_device_file(context, usb_disk_part)
+    except:
+        gen.log("ERROR: Unknown disk/partition (%s)" % str(usb_disk_part))
+        return None
 
-        if mount_point:
-            size_total = shutil.disk_usage(mount_point)[0]
-            size_used = shutil.disk_usage(mount_point)[1]
-            size_free = shutil.disk_usage(mount_point)[2]
+    fdisk_cmd_out = subprocess.check_output('fdisk -l ' + usb_disk_part, shell=True)
 
-        else:
-            size_total = str('No_Mount')
-            size_used = str('No_Mount')
-            size_free = str('No_Mount')
-            mount_point = str('No_Mount')
+    if b'Extended' in fdisk_cmd_out:
+        mount_point = ''
+        uuid = ''
+        file_system = ''
+        vendor = ''
+        model = ''
+        label = ''
+        devtype = "extended partition"
+
+    elif device.get('DEVTYPE') == "partition":
+        uuid = device.get('ID_FS_UUID') or ""
+        file_system = device.get('ID_FS_TYPE') or ""
+        label = device.get('ID_FS_LABEL') or ""
+        mount_point = u.mount(usb_disk_part) or ""
+        mount_point = mount_point.replace('\\x20', ' ')
+        vendor = device.get('ID_VENDOR') or ""
+        model = device.get('ID_MODEL') or ""
+        devtype = "partition"
+
+    elif device.get('DEVTYPE') == "disk":
+        mount_point = ""
+        uuid = ""
+        file_system = ""
+        label = device.get('ID_FS_LABEL') or ""
+        vendor = device.get('ID_VENDOR') or ""
+        model = device.get('ID_MODEL') or ""
+        devtype = "disk"
+
+    if mount_point not in ["", "None"]:
+        size_total = shutil.disk_usage(mount_point)[0]
+        size_used = shutil.disk_usage(mount_point)[1]
+        size_free = shutil.disk_usage(mount_point)[2]
+
+    else:
+        size_total = device.get('UDISKS_PARTITION_SIZE') or ""
+        size_used = ""
+        size_free = ""
+        mount_point = ""
 
     return {'uuid': uuid, 'file_system': file_system, 'label': label, 'mount_point': mount_point,
             'size_total': size_total, 'size_used': size_used, 'size_free': size_free,
-            'vendor': vendor, 'model': model}
+            'vendor': vendor, 'model': model, 'devtype': devtype}
 
 
 def details_udisks2(usb_disk_part):
@@ -392,44 +380,16 @@ def details(usb_disk_part):
 
     assert usb_disk_part is not None
 
+    details = {}
+
     if platform.system() == 'Linux':
         try:
-            udev = details_udev(usb_disk_part)
-            uuid = udev['uuid']
-            file_system = udev['file_system']
-            label = udev['label']
-            mount_point = udev['mount_point']
-            size_total = udev['size_total']
-            size_used = udev['size_used']
-            size_free = udev['size_free']
-            vendor = udev['vendor']
-            model = udev['model']
+            details = details_udev(usb_disk_part)
         except:
-            udisks2 = details_udisks2(usb_disk_part)
-            uuid = udisks2['uuid']
-            file_system = udisks2['file_system']
-            label = udisks2['label']
-            mount_point = udisks2['mount_point']
-            size_total = udisks2['size_total']
-            size_used = udisks2['size_used']
-            size_free = udisks2['size_free']
-            vendor = udisks2['vendor']
-            model = udisks2['model']
+            details = details_udisks2(usb_disk_part)
     elif platform.system() == 'Windows':
-        win_details = win_disk_details(usb_disk_part)
-        uuid = win_details['uuid']
-        file_system = win_details['file_system']
-        label = win_details['label']
-        mount_point = win_details['mount_point']
-        size_total = win_details['size_total']
-        size_used = win_details['size_used']
-        size_free = win_details['size_free']
-        vendor = win_details['vendor']
-        model = win_details['model']
-
-    return {'uuid': uuid, 'file_system': file_system, 'label': label, 'mount_point': mount_point,
-            'size_total': size_total, 'size_used': size_used, 'size_free': size_free,
-            'vendor': vendor, 'model': model}
+        details = win_disk_details(usb_disk_part)
+    return details
 
 if __name__ == '__main__':
     usb_devices = list_devices()
