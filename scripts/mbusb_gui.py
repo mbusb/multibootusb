@@ -146,7 +146,7 @@ Are you SURE you want to enable it?",
 
             self.usb_details = usb.details(config.usb_disk)
 #             print(self.usb_details)
-            config.usb_mount = self.usb_details['mount_point']
+            config.usb_mount = self.usb_details.get('mount_point', "")
             self.ui.usb_dev.setText(config.usb_disk)
 
 #             if platform.system() == 'Windows':
@@ -158,12 +158,12 @@ Are you SURE you want to enable it?",
 #                 self.ui.usb_vendor.setText(self.usb_details['vendor'])
 #                 self.ui.usb_model.setText(self.usb_details['model'])
 
-            self.ui.usb_vendor.setText(self.usb_details['vendor'])
-            self.ui.usb_model.setText(self.usb_details['model'])
-            self.ui.usb_size.setText(str(usb.bytes2human(self.usb_details['size_total'])))
-            self.ui.usb_mount.setText(self.usb_details['mount_point'])
-            self.ui.usb_type.setText(self.usb_details['devtype'])
-            self.ui.usb_fs.setText(self.usb_details['file_system'])
+            self.ui.usb_vendor.setText(self.usb_details.get('vendor', ""))
+            self.ui.usb_model.setText(self.usb_details.get('model', ""))
+            self.ui.usb_size.setText(str(usb.bytes2human(self.usb_details.get('size_total', ""))))
+            self.ui.usb_mount.setText(self.usb_details.get('mount_point', ""))
+            self.ui.usb_type.setText(self.usb_details.get('devtype', ""))
+            self.ui.usb_fs.setText(self.usb_details.get('file_system', ""))
 
             self.update_list_box(config.usb_disk)
             self.ui_update_persistence()
@@ -225,7 +225,7 @@ Are you SURE you want to enable it?",
             for name in distro_list:
                 self.ui.installed_distros.addItem(name)
         else:
-            if config.usb_mount == 'No_Mount':
+            if not config.usb_mount:
                 log("USB disk is not mounted and can't update list widget...")
             #QtWidgets.QMessageBox.information(self, 'No Install...',
             #                                  'syslinux.cfg does not exist for updating list widget.')
