@@ -29,8 +29,7 @@ def distro(iso_cfg_ext_dir, iso_link):
     if platform.system() == "Linux" or platform.system() == "Windows":
         for path, subdirs, files in os.walk(iso_cfg_ext_dir):
             for name in files:
-                if name.endswith('.cfg') or name.endswith('.CFG') or name.endswith('.txt') or name.endswith('.TXT') \
-                        or name.endswith('.lst'):
+                if name.endswith(('.cfg', '.CFG', '.txt', '.TXT', '.lst')):
                     try:
                         # errors='ignore' is required as some files also contain non utf character
                         string = open(os.path.join(path, name),  errors='ignore').read()
@@ -112,8 +111,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "zenwalk"
                         elif re.search(r'ubuntu server', string, re.I):
                             return "ubuntu-server"
-                        elif re.search(r'Welcome to CentOS', string, re.I):
-                            return "centos-net-minimal"
+                        elif re.search(r'CentOS', string, re.I):
+                            return "centos"
                         elif re.search(r'Trinity Rescue Kit', string, re.I):
                             return "trinity-rescue"
                         elif re.search(r'alpine', string, re.I):
