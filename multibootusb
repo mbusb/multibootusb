@@ -49,6 +49,7 @@ def usage():
 def start_gui():
     from scripts import mbusb_gui
     gen.log('Starting multibootusb GUI...')
+    config.gui = True
     if platform.system() == 'Linux':
         if os.getuid() != 0:
             gen.log('\n\nAdmin privilege is required to run multibootusb.\n If you are running from source try '

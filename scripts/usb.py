@@ -100,7 +100,7 @@ def list_devices(partition=1, fixed=False):
 
             if fixed is True:
                 for device in context.list_devices(subsystem='block'):
-                    if device.get('ID_BUS') in ("usb", "scsi", "ata") and device['DEVTYPE'] in ['disk', 'partition']:
+                    if device.get('DEVTYPE') in ['disk', 'partition'] and device.get('ID_PART_TABLE_TYPE'):
                         devices.append(str(device['DEVNAME']))
                         gen.log("\t" + device['DEVNAME'])
             else:
