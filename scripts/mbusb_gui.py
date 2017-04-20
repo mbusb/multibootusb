@@ -277,9 +277,9 @@ Are you SURE you want to enable it?",
             log("File not selected...")
 
     def ui_update_persistence(self):
-        log("===== config.persistence_available = " + str(config.persistence_available))
-        log("===== config.persistence_max_size = " + str(config.persistence_max_size))
-        log("===== config.persistence = " + str(config.persistence))
+#         log("===== config.persistence_available = " + str(config.persistence_available))
+#         log("===== config.persistence_max_size = " + str(config.persistence_max_size))
+#         log("===== config.persistence = " + str(config.persistence))
         if config.persistence_available and config.persistence_max_size:
             self.ui.label_persistence_value.setVisible(True)
             self.ui.label_persistence.setVisible(True)
@@ -457,17 +457,17 @@ Are you SURE you want to enable it?",
             # extract_cfg_file(config.image_path)  # Extract files from ISO
             # config.distro = distro(iso_cfg_ext_dir(), config.image_path)  # Detect supported distro
             usb_details = usb.details(config.usb_disk)
-            log("MultiBoot Install: USB Disk is " + config.usb_disk)
-            log("MultiBoot Install: USB Label is " + config.usb_label)
-            log("MultiBoot Install: USB UUID is " + config.usb_uuid)
-            log("MultiBoot Install: USB Mount path is " + config.usb_mount)
-            log("MultiBoot Install: Total size of the disk is " + str(usb.bytes2human(usb_details['size_total'])))
-            log("MultiBoot Install: Total used size  is " + str(usb.bytes2human(usb_details['size_used'])))
-            log("MultiBoot Install: Total size left on the disk is " + str(usb.bytes2human(usb_details['size_free'])))
-            log("MultiBoot Install: FileSystem is " + usb_details['file_system'])
-            log("MultiBoot Install: Vendor is " + usb_details['vendor'])
-            log("MultiBoot Install: Model is " + usb_details['model'])
-            log("MultiBoot Install: Name of the ISO file is " + iso_name(config.image_path))
+            log("MultiBoot Install: USB Disk: " + config.usb_disk)
+            log("MultiBoot Install: USB Label: " + config.usb_label)
+            log("MultiBoot Install: USB UUID: " + config.usb_uuid)
+            log("MultiBoot Install: USB mount path: " + config.usb_mount)
+            log("MultiBoot Install: Disk total size: " + str(usb.bytes2human(usb_details['size_total'])))
+            log("MultiBoot Install: Disk used size: " + str(usb.bytes2human(usb_details['size_used'])))
+            log("MultiBoot Install: Disk free size: " + str(usb.bytes2human(usb_details['size_free'])))
+            log("MultiBoot Install: Filesystem: " + usb_details['file_system'])
+            log("MultiBoot Install: Disk vendor: " + usb_details['vendor'])
+            log("MultiBoot Install: Disk model: " + usb_details['model'])
+            log("MultiBoot Install: ISO file: " + iso_name(config.image_path))
 
             if os.path.exists(config.image_path):
                 self.ui.image_path.clear()
@@ -476,7 +476,7 @@ Are you SURE you want to enable it?",
                     copy_mbusb_dir_usb(config.usb_disk)
                     if not os.path.exists(os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path))):
                         config.persistence = self.ui.slider_persistence.value() * 1024 * 1024
-                        log("Persistence chosen is " + str(bytes2human(config.persistence)) + " MB")
+                        log("Persistence chosen is " + str(bytes2human(config.persistence)))
                         install_size = iso_size(config.image_path) + config.persistence
                         if install_size >= disk_usage(config.usb_mount).free:
                             log("ERROR: Not enough space available on " + config.usb_disk)

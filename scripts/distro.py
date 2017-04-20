@@ -162,7 +162,7 @@ def detect_iso_from_file_list(iso_link):
         elif any("dban" in s.lower() for s in iso_file_list):
             return "slitaz"
         elif any("memtest.img" in s.lower() for s in iso_file_list):
-            return "mentest"
+            return "memtest"
         elif any("mt86.png" in s.lower() for s in iso_file_list) and any("isolinux" in s.lower() for s in iso_file_list):
             return 'raw_iso'
         elif any("menu.lst" in s.lower() for s in iso_file_list):
