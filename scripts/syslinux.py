@@ -63,7 +63,7 @@ def syslinux_default(usb_disk, version=4):
             config.status_text = 'Installing mbr...'
             log ('\nExecuting ==> ' + mbr_install_cmd)
             if subprocess.call(mbr_install_cmd, shell=True) == 0:
-                config.status_text = 'mbr install is success...'
+                config.status_text = 'mbr install is successful...'
                 log("\nmbr install is success...\n")
                 if set_boot_flag(usb_disk) is True:
                     return True
@@ -158,13 +158,13 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
                 log ("Executing ==> " + sys_cmd)
                 config.status_text = 'Installing distro specific syslinux...'
                 if subprocess.call(sys_cmd, shell=True) == 0:
-                    config.status_text = 'Syslinux install on distro directory is success...'
-                    log ("\nSyslinux install on distro directory is success...\n")
+                    config.status_text = 'Syslinux install on distro directory is successful...'
+                    log ("\nSyslinux install on distro directory is successful...\n")
                     log ('Executing ==> ' + dd_cmd + '\n')
                     config.status_text = 'Copying boot sector...'
                     if subprocess.call(dd_cmd, shell=True) == 0:
-                        config.status_text = 'Bootsector copy is success...'
-                        log ("\nBootsector copy is success...\n")
+                        config.status_text = 'Bootsector copy is successful...'
+                        log ("\nBootsector copy is successful...\n")
                     else:
                         config.status_text = 'Failed to copy boot sector...'
                         log ("\nFailed to copy boot sector...\n")
@@ -182,7 +182,7 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
                 log("\nExecuting ==> " + sys_cmd + '\n')
                 config.status_text = 'Installing distro specific syslinux...'
                 if subprocess.call(sys_cmd, shell=True) == 0:
-                    config.status_text = 'Syslinux install on distro directory is success...'
+                    config.status_text = 'Syslinux install on distro directory is successful...'
                     log ("\nSyslinux install was successful on distro directory...\n")
                 else:
                     config.status_text = 'Failed to install syslinux on distro directory...'
@@ -197,10 +197,10 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
                     subprocess.call('chmod +x ' + syslinux_path, shell=True) == 0
                 log ("Executing ==> " + ext_cmd)
                 if subprocess.call(ext_cmd, shell=True) == 0:
-                    log ("\nSyslinux install on distro directory is success...\n")
+                    log ("\nSyslinux install on distro directory is successful...\n")
                     log ('Executing ==> ' + dd_cmd, '\n')
                     if subprocess.call(dd_cmd, shell=True) == 0:
-                        log ("\nBootsector copy is success...\n")
+                        log ("\nBootsector copy is successful...\n")
                     else:
                         log ("\nFailed to install syslinux on distro directory...\n")
 

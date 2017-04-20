@@ -67,23 +67,23 @@ def create_persistence():
     if platform.system() == 'Linux':
         mkfs = 'mkfs.ext3'
         dd = 'dd'
-        persistence_mkfs_cmd = mkfs + ' -F ' + os.path.join(config.usb_mount, 'multibootusb',
+        persistence_mkfs_cmd = mkfs + ' -F ' + gen.quote(os.path.join(config.usb_mount, 'multibootusb',
                                                             iso.iso_basename(config.image_path),
-                                                            fs_name)
+                                                            fs_name))
     elif platform.system() == 'Windows':
         mkfs = gen.quote(gen.resource_path(os.path.join("data", "tools", "mkfs", "mke2fs.exe")))
         dd = gen.quote(gen.resource_path(os.path.join("data", "tools", "dd", "dd.exe")))
-        persistence_mkfs_cmd = 'echo y|' + mkfs + ' -b 1024 -L ' + fs_name + ' ' + os.path.join(config.usb_mount, 'multibootusb',
-                                                            iso.iso_basename(config.image_path), fs_name)
+        persistence_mkfs_cmd = 'echo y|' + mkfs + ' -b 1024 -L ' + fs_name + ' ' + gen.quote(os.path.join(config.usb_mount, 'multibootusb',
+                                                            iso.iso_basename(config.image_path), fs_name))
 
     if config.distro == 'fedora':
         persistence_dd_cmd = dd + ' if=/dev/zero ' \
-                                  'of=' + os.path.join(config.usb_mount, 'multibootusb',
-                                                       iso.iso_basename(config.image_path), 'LiveOS', fs_name) + \
+                                  'of=' + gen.quote(os.path.join(config.usb_mount, 'multibootusb',
+                                                       iso.iso_basename(config.image_path), 'LiveOS', fs_name)) + \
                              ' bs=1M count=' + str(int(persistence))
     else:
-        persistence_dd_cmd = dd + ' if=/dev/zero of=' + os.path.join(config.usb_mount, 'multibootusb',
-                                                   iso.iso_basename(config.image_path), fs_name) +\
+        persistence_dd_cmd = dd + ' if=/dev/zero of=' + gen.quote(os.path.join(config.usb_mount, 'multibootusb',
+                                                   iso.iso_basename(config.image_path), fs_name)) +\
                                 ' bs=1M count=' + str(int(persistence))
 
     gen.log('Executing ==>' + persistence_dd_cmd)
