@@ -105,3 +105,4 @@ multibootusb*.exe
 # Test file which I work on to test logic before committing to main file.
 mbusb_te*py
 text.txt
+text.py
