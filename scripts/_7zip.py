@@ -48,7 +48,7 @@ def extract_iso(src, dst, pattern=None, suppress_out=True):
         _cmd = _7zip + cli_option + ' x -y -o' + gen.quote(dst) + ' ' + gen.quote(src) + suppress_out
     else:
         _cmd = _7zip + ' -y x ' + gen.quote(src) + ' -o' + dst + ' ' + gen.quote(pattern) + ' -r' + suppress_out
-    gen.log('Executing ' + _cmd)
+    gen.log('Executing ==> ' + _cmd)
     _7zip_process = subprocess.Popen(_cmd, universal_newlines=True, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
                                      stdout=subprocess.PIPE, shell=True)
     config.status_text = 'Status: Extracting ' + os.path.basename(src).strip()

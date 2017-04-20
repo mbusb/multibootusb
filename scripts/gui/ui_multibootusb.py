@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'gui/multibootusb.ui'
+# Form implementation generated from reading ui file 'scripts\gui\multibootusb.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -167,9 +167,18 @@ class Ui_MainWindow(object):
         self.gridLayout.setContentsMargins(5, 5, 5, 5)
         self.gridLayout.setObjectName("gridLayout")
         self.button_uninstall_distro = QtWidgets.QPushButton(self.tab_multibootusb)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("uninstall.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.button_uninstall_distro.setIcon(icon)
+        self.button_uninstall_distro.setIconSize(QtCore.QSize(16, 18))
         self.button_uninstall_distro.setObjectName("button_uninstall_distro")
         self.gridLayout.addWidget(self.button_uninstall_distro, 0, 3, 1, 1)
         self.button_install_distro = QtWidgets.QPushButton(self.tab_multibootusb)
+        self.button_install_distro.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap("install.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.button_install_distro.setIcon(icon1)
+        self.button_install_distro.setIconSize(QtCore.QSize(16, 18))
         self.button_install_distro.setObjectName("button_install_distro")
         self.gridLayout.addWidget(self.button_install_distro, 0, 2, 1, 1)
         self.slider_persistence = QtWidgets.QSlider(self.tab_multibootusb)
@@ -229,6 +238,7 @@ class Ui_MainWindow(object):
         self.tab_syslinux = QtWidgets.QWidget()
         self.tab_syslinux.setObjectName("tab_syslinux")
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.tab_syslinux)
+        self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.gridLayout_2 = QtWidgets.QGridLayout()
         self.gridLayout_2.setObjectName("gridLayout_2")
@@ -277,6 +287,7 @@ class Ui_MainWindow(object):
         self.tab_testboot = QtWidgets.QWidget()
         self.tab_testboot.setObjectName("tab_testboot")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.tab_testboot)
+        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.gridLayout_6 = QtWidgets.QGridLayout()
         self.gridLayout_6.setContentsMargins(-1, 10, -1, -1)
@@ -355,7 +366,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_7.addWidget(self.progressbar)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 629, 19))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 629, 21))
         self.menubar.setNativeMenuBar(True)
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
@@ -376,7 +387,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menu_Help.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(3)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

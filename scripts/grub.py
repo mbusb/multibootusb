@@ -189,33 +189,47 @@ def write_to_file(file_path, _strings):
 
 
 def extract_kernel_line(search_text, match_line, isolinux_dir):
+    """
+    Function to check if kernel/linux line present in isolinux.cfg file is valid.
+    If valid, then convert them in to grub accepted format
+    :param search_text: Type of text is to be searched. Typically kernel or linux 
+    :param match_line: Line containing kernel ot linux from isolinux supported .cfg files
+    :param isolinux_dir: Path to isolinux directory of an ISO
+    :return: Valid grub2 accepted kernel/linux line after conversion. If nothing found return ''. 
+    """
     kernel_line = ''
 
+    # Remove '=' from linux/kernel parameter
     if (search_text + '=') in match_line:
         kernel_path = match_line.replace((search_text + '='), '').strip()
         search_text = search_text.replace('=', '')
     else:
-        kernel_path = match_line.replace(search_text, '').strip()
-    print(os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path)))
-    print(os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), kernel_path))
-    print(os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), isolinux_dir, kernel_path))
-    if os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), kernel_path):
-        kernel_line = search_text.lower().replace('kernel', 'linux') + ' ' + kernel_path.strip()
-    elif os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), isolinux_dir, kernel_path):
-        kernel_line = search_text.lower().replace('kernel', 'linux') + ' /multibootusb/' + \
-                      isolinux_dir + '/' + kernel_path.strip()
+        kernel_path = match_line.replace(search_text, '', 1).strip()
 
+    # Check if kernel/linux exist using absolute path (kernel_path)
+    if os.path.exists(os.path.join(config.usb_mount, kernel_path)):
+        kernel_line = search_text.lower().replace('kernel', 'linux') + ' ' + kernel_path.strip()
+
+    # Check if path to kernel/linux exist in isolinux directory and return absolute path
+    elif os.path.exists(os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), isolinux_dir, kernel_path)):
+        kernel_line = search_text.lower().replace('kernel', 'linux') + ' /multibootusb/' + \
+                      iso.iso_basename(config.image_path) + '/' + isolinux_dir + '/' + kernel_path.strip()
+
+    # Check if multiple kernel/linux exist and convert it to grub accepted line
+    # Found such entries in manjaro and slitaz
     elif ',/' in kernel_path:
         kernel_line = search_text.lower().replace('kernel', 'linux') + ' ' + kernel_path.strip()
         kernel_line = kernel_line.replace(',/', ' /')
+
+    # Same as above but I found this only in dban
     elif 'z,' in kernel_path:
         kernel_line = search_text.lower().replace('kernel', 'linux') + ' ' + kernel_path.strip()
-        kernel_line = kernel_line.replace('z,', ' /multibootusb')
+        kernel_line = kernel_line.replace('z,', ' /multibootusb/' + iso.iso_basename(config.image_path) + '/'
+                                          + iso.isolinux_bin_dir(config.image_path).replace('\\', '/') + '/')
     else:
         kernel_line = ''
 
-
-    return kernel_line
+    return kernel_line.replace('\\', '/').replace('//', '/')
 
 
 def iso2grub2(iso_dir):
@@ -245,8 +259,6 @@ def iso2grub2(iso_dir):
                             data = cfg_file_str.read()
                             # Make sure that lines with menu label, kernel and append are available for processing
                             ext_text = re.finditer('(menu label|label)(.*?)(?=(menu label|label))', data, re.I|re.DOTALL)
-                            # if (sum(1 for j in ext_text)) == 0:
-                            #    ext_text = re.finditer('(menu label|label)(.*?)\Z', data, re.I|re.DOTALL)
                             if ext_text:
                                 for m in ext_text:
                                     menuentry = ''
@@ -255,12 +267,11 @@ def iso2grub2(iso_dir):
                                     boot_options = ''
                                     initrd_line = ''
                                     initrd = ''
-                                    print('---------->', os.path.join(config.usb_mount, 'multibootusb',
-                                                                      iso.iso_basename(config.image_path)))
+
                                     # Extract line containing 'menu label' and convert to menu entry of grub2
                                     if 'menu label' in m.group().lower():
                                         menu_line = re.search('menu label(.*)\s', m.group(), re.I).group()
-                                        menuentry = 'menuentry ' + re.sub(r'menu label', '', menu_line, re.I, ).strip()
+                                        menuentry = 'menuentry ' + gen.quote(re.sub(r'menu label', '', menu_line, re.I, ).strip())
                                         # Ensure that we do not have caps menu label in the menuentry
                                         menuentry = menuentry.replace('MENU LABEL', '')
 
@@ -268,27 +279,23 @@ def iso2grub2(iso_dir):
                                         # Probably config does not use 'menu label' line. Just line containing 'label'
                                         #  and convert to menu entry of grub2
                                         menu_line = re.search('^label(.*)\s', m.group(), re.I).group()
-                                        menuentry = 'menuentry ' + re.sub(r'label', '', menu_line, re.I, ).strip()
+                                        menuentry = 'menuentry ' + gen.quote(re.sub(r'label', '', menu_line, re.I, ).strip())
                                         # Ensure that we do not have caps label in the menuentry
                                         menuentry = menuentry.replace('LABEL', '')
 
-
                                     # Extract kernel line and change to linux line of grub2
                                     if 'kernel' in m.group().lower() or 'linux' in m.group().lower():
-                                        # print(m.group())
-                                        print('---------->', os.path.join(config.usb_mount, 'multibootusb',
-                                                                          iso.iso_basename(config.image_path)))
                                         kernel_text = re.findall('((kernel|linux)[= ].*?[ \s])', m.group(), re.I)
                                         match_count = len(re.findall('((kernel|linux)[= ].*?[ \s])', m.group(), re.I))
-
                                         if match_count is 1:
                                             kernel_line = extract_kernel_line(kernel_text[0][1], kernel_text[0][0], iso_bin_dir)
                                         elif match_count > 2:
                                             for _lines in kernel_text:
+                                                kernel_line = extract_kernel_line(_lines[0][1], _lines[0][0],
+                                                                                  iso_bin_dir)
                                                 if kernel_line is '':
                                                     continue
                                                 else:
-                                                    kernel_line = extract_kernel_line(kernel_text[0][1], _lines[0][0], iso_bin_dir)
                                                     break
 
                                     if 'initrd' in m.group().lower():
@@ -298,10 +305,11 @@ def iso2grub2(iso_dir):
                                             initrd_line = extract_kernel_line(initrd_text[0][1], initrd_text[0][0], iso_bin_dir)
                                         elif match_count > 2:
                                             for _lines in initrd_text:
-                                                if kernel_line is '':
+                                                initrd_line = extract_kernel_line(_lines[0][1], _lines[0][0],
+                                                                                  iso_bin_dir)
+                                                if initrd_line is '':
                                                     continue
                                                 else:
-                                                    initrd_line = extract_kernel_line(initrd_text[0][1], _lines[0][0], iso_bin_dir)
                                                     break
 
                                     if 'append' in m.group().lower():
@@ -315,174 +323,20 @@ def iso2grub2(iso_dir):
                                     else:
                                         linux = ''
 
-                                    print(menuentry)
-                                    print(linux)
-                                    print(initrd_line)
-
                                     if menuentry.strip() and linux.strip() and initrd_line.strip():
-                                        #print('\n', menuentry)
-                                        #print(linux)
-                                        #print(initrd_line, '\n')
                                         write_to_file(grub_file_path, menuentry + '{')
                                         write_to_file(grub_file_path, '    ' + linux)
                                         write_to_file(grub_file_path, '    ' + initrd_line)
                                         write_to_file(grub_file_path, '}\n')
                                     elif menuentry.strip() and linux.strip():
-                                        #print('\n', menuentry)
-                                        #print(linux, '\n')
-                                        write_to_file(grub_file_path, menuentry + '{')
-                                        write_to_file(grub_file_path, '    ' + linux)
-                                        write_to_file(grub_file_path, '}\n')
-
-        if os.path.exists(grub_file_path):
-            gen.log(
-                'loopback.cfg file successfully created.\nYou must send this file for debugging if something goes wrong.')
-            return 'loopback.cfg'
-        else:
-            gen.log('Could not convert syslinux config to loopback.cfg')
-            return False
-'''
-def iso2grub2(iso_dir):
-    """
-    Function to convert syslinux configuration to grub2 accepted configuration format. Features implemented are similar
-    to that of grub2  'loopback.cfg'. This 'loopback.cfg' file can be later on caled directly from grub2. The main 
-    advantage of this function is to generate the 'loopback.cfg' file automatically without manual involvement. 
-    :param iso_dir: Path to distro install directory for looping through '.cfg' files.
-    :param file_out: Path to 'loopback.cfg' file. By default it is set to root of distro install directory.
-    :return:
-    """
-    grub_file_path = os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), 'loopback.cfg')
-    gen.log('loopback.cfg file is set to ' + grub_file_path)
-    # Loop though the distro installed directory for finding config files
-    for dirpath, dirnames, filenames in os.walk(iso_dir):
-        for f in filenames:
-            # We will strict to only files ending with '.cfg' extension. This is the file extension isolinux or syslinux
-            #  recommends for writing configurations
-            if f.endswith(".cfg") or f.endswith('.CFG'):
-                cfg_file_path = os.path.join(dirpath, f)
-                # We will omit the grub directory
-                if 'grub' not in cfg_file_path:
-                    # we will use only files containing strings which can be converted to grub2 cfg style
-                    if string_in_file(cfg_file_path, 'menu label') or string_in_file(cfg_file_path, 'label'):
-                        with open(cfg_file_path, "r", errors='ignore') as cfg_file_str:
-                            data = cfg_file_str.read()
-                            # Make sure that lines with menu label, kernel and append are available for processing
-                            ext_text = re.finditer('(menu label|label)(.*?)(?=(menu label|label))', data, re.I|re.DOTALL)
-                            # if (sum(1 for j in ext_text)) == 0:
-                            #    ext_text = re.finditer('(menu label|label)(.*?)\Z', data, re.I|re.DOTALL)
-                            if ext_text:
-                                for m in ext_text:
-                                    menuentry = ''
-                                    kernel = ''
-                                    boot_options = ''
-                                    initrd = ''
-                                    # print(m.group())
-
-                                    # Extract line containing 'menu label' and convert to menu entry of grub2
-                                    if 'menu label' in m.group().lower():
-                                        menu_line = re.search('menu label(.*)\s', m.group(), re.I).group()
-                                        menuentry = 'menuentry ' + gen.quote(re.sub(r'menu label', '', menu_line, re.I, ).strip())
-                                        # Ensure that we do not have caps menu label in the menuentry
-                                        menuentry = menuentry.replace('MENU LABEL', '')
-                                    elif 'label ' in m.group().lower():
-                                        # Probably config does not use 'menu label' line. Just line containing 'label'
-                                        #  and convert to menu entry of grub2
-                                        menu_line = re.search('^label(.*)\s', m.group(), re.I).group()
-                                        menuentry = 'menuentry ' + gen.quote(re.sub(r'label', '', menu_line, re.I, ).strip())
-                                        # Ensure that we do not have caps label in the menuentry
-                                        menuentry = menuentry.replace('LABEL', '')
-
-                                    # Extract kernel line and change to linux line of grub2
-                                    if 'kernel' in m.group().lower() or 'linux ' in m.group().lower():
-                                        kernel_line = re.findall('((kernel|linux)[= ].*?[ \s])', m.group(), re.I)[0][0]
-
-                                        kernel = kernel_line.strip().replace('kernel', 'linux')
-                                        kernel = kernel.strip().replace('KERNEL', 'linux')
-                                        if 'linux=/multibootusb' in kernel.lower():
-                                            kernel = kernel.strip().replace('linux=', 'linux ')
-
-                                        elif 'linux=' in kernel.lower():
-                                            kernel = kernel.strip().replace('linux=', 'linux /multibootusb/' +
-                                                                                    iso.iso_basename(config.image_path) + '/'
-                                                                                    + iso.isolinux_bin_dir(config.image_path).replace('\\', '/') + '/')
-                                        elif 'linux /' not in kernel:
-                                            kernel = kernel.strip().replace('linux ', 'linux /multibootusb/' +
-                                                                                    iso.iso_basename(config.image_path) + '/'
-                                                                                    + iso.isolinux_bin_dir(config.image_path).replace('\\', '/') + '/')
-
-                                        # Ensure that we do not have linux parameter in caps
-                                        kernel = kernel.replace('LINUX ', 'linux ')
-                                        kernel = kernel.replace('Linux ', 'linux ')
-                                        # Fix for solus os. Patch welcome.
-                                        if config.distro == 'fedora' and '/linux' in kernel:
-                                            kernel = kernel.replace('/linux', '/kernel')
-
-                                    # Ensure that initrd is present in the config file
-                                    if 'initrd' in m.group().lower():
-                                        # Extract only initrd line which starts in first in the line
-                                        if re.search('^initrd', m.group(), re.I|re.MULTILINE):
-                                            initrd = re.findall('(initrd[= ].*?[ \s])', m.group(), re.I)[0]
-                                            if not initrd:
-                                                # print('initrd not in seperate line')
-                                                initrd = re.findall('(initrd[= ].*[ \s])', initrd, re.I|re.DOTALL)[0]
-                                                # Ensure that multiple initrd of syslinux are converted to grub2
-                                                # standard
-                                                initrd = initrd.replace(',/', ' /')
-                                                initrd = initrd.replace('z,', 'z /multibootusb/' +
-                                                                        iso.iso_basename(config.image_path) + '/'
-                                                                        + iso.isolinux_bin_dir(config.image_path).replace('\\', '/')  + '/')
-                                                #print('initrd')
-                                        else:
-                                            # Extract initrd parameter from within the line
-                                            initrd = re.findall('(initrd[= ].*?[ ])', m.group(), re.I|re.DOTALL)[0]
-                                            initrd = initrd.replace(',/', ' /')
-                                            initrd = initrd.replace('z,', 'z /multibootusb/' +
-                                                                    iso.iso_basename(config.image_path) + '/'
-                                                                    + iso.isolinux_bin_dir(config.image_path).replace('\\', '/')  + '/')
-                                            #print(initrd)
-
-                                        # Ensure that we change the relative path to absolute path
-                                        if 'initrd=/multibootusb' in initrd.lower():
-                                            initrd = initrd.strip().replace('initrd=', 'initrd ')
-                                            initrd = initrd.strip().replace('INITRD=', 'initrd ')
-
-                                        elif 'initrd=' in initrd.lower():
-                                            initrd = initrd.strip().replace('initrd=', 'initrd /multibootusb/' +
-                                                                          iso.iso_basename(config.image_path) + '/'
-                                                                          + iso.isolinux_bin_dir(config.image_path).replace('\\', '/') + '/')
-
-                                        # Ensure that there is no caps which is not accepted by grub2
-                                        initrd = initrd.replace('INITRD', 'initrd')
-
-                                    # Extract append line for getting boot options
-                                    if 'append' in m.group().lower():
-                                        append = re.search('append (.*)\s', m.group(), re.I).group()
-                                        boot_options = re.sub(r'((initrd[= ])(.*?)[ ])', '', append, re.I, flags=re.DOTALL)
-
-                                        # Ensure that there is no append line exisit
-                                        boot_options = re.sub(r'append', '', boot_options, re.I).strip()
-                                        boot_options = boot_options.replace('APPEND', '')
-
-                                    # We will ensure that all options are met as per grub2 specifications and
-                                    # write to file
-                                    linux = kernel.strip() + ' ' + boot_options.strip().strip()
-                                    if menuentry and linux and initrd:
-                                        # print('\n', menuentry)
-                                        # print(linux)
-                                        # print(initrd)
-                                        write_to_file(grub_file_path, menuentry + '{')
-                                        write_to_file(grub_file_path, '    ' + linux)
-                                        write_to_file(grub_file_path, '    ' + initrd)
-                                        write_to_file(grub_file_path, '}\n')
-                                    elif menuentry and linux.strip():
                                         write_to_file(grub_file_path, menuentry + '{')
                                         write_to_file(grub_file_path, '    ' + linux)
                                         write_to_file(grub_file_path, '}\n')
 
     if os.path.exists(grub_file_path):
-        gen.log('loopback.cfg file successfully created.\nYou must send this file for debugging if something goes wrong.')
+        gen.log(
+            'loopback.cfg file is successfully created.\nYou must send this file for debugging if something goes wrong.')
         return 'loopback.cfg'
     else:
-        gen.log('Could not convert syslinux config to loopback.cfg')
+        gen.log('Failed to convert syslinux config file to loopback.cfg')
         return False
-'''
