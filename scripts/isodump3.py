@@ -642,9 +642,9 @@ class ISO9660:
 
 ###########################################################################
 def dump_dir_record(dirs):
-    """ Dump all the file dirctory records contained in desc_buf """
+    """ Dump all the file directory records contained in desc_buf """
 
-    gen.log("Dump file/deirectory record")
+    gen.log("Dump file/directory record")
     gen.log("===========================", end="\n")
     if dirs != None:
         for f in dirs:
@@ -705,7 +705,7 @@ def dump_boot_record(volume_dsc):
     gen.log("boot system identifier(%s)" %bootsys_identifier)
 
     boot_identifier = volume_dsc[39:71]
-    gen.log("boot  identifier(%s)" %boot_identifier)
+    gen.log("boot identifier(%s)" %boot_identifier)
 
 def usage():
     """ Prompt user how to use   """

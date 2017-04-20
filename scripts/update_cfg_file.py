@@ -327,7 +327,7 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                                   "fromusb root=UUID=" + usb_uuid + " bootfromiso=/multibootusb/" +
                                   iso_basename(iso_link) + "/" + iso_name(iso_link) + " initrd=/multibootusb/"
                                   + iso_basename(iso_link) + '/isolinux/initrd.gz' + "\n")
-            elif distro == "mentest":
+            elif distro == "memtest":
                 config_file.write("kernel " + '/multibootusb/' + iso_basename(iso_link) + '/BOOT/MEMTEST.IMG\n')
 
             elif distro == "sgrubd2" or config.distro == 'raw_iso':

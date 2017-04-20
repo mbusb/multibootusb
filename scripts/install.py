@@ -101,8 +101,8 @@ def install_distro():
         os.system('sync')
 
     if config.persistence != 0:
-        log('Creating Persistence...')
-        config.status_text = 'Creating Persistence...'
+        log('Creating persistence...')
+        config.status_text = 'Creating persistence...'
         persistence.create_persistence()
 
     install_patch()
