@@ -330,11 +330,15 @@ def win_disk_details(disk_drive):
     pythoncom.CoInitialize()
     vendor = 'Not_Found'
     model = 'Not_Found'
-    devtype = 'Patition'
+    devtype = 'Not_Found'
     selected_usb_part = str(disk_drive)
     oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
     d = oFS.GetDrive(oFS.GetDriveName(oFS.GetAbsolutePathName(selected_usb_part)))
     selected_usb_device = d.DriveLetter
+    if d.DriveType is 1:
+        devtype = "Removable Disk"
+    elif d.DriveType is 2:
+        devtype = "Fixed Disk"
     label = (d.VolumeName).strip()
     if not label.strip():
         label = "No_label"

@@ -22,7 +22,7 @@ syslinux_version = ''
 uninstall_distro_dir_name = ""
 uninstall_distro_dir_path = ""
 iso_file_list = ''
-
+iso_bin_dir = ''
 process_exist = None
 
 imager_iso_link = ""
