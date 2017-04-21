@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>629</width>
-    <height>593</height>
+    <height>605</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -351,7 +351,7 @@
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>uninstall.png</normaloff>uninstall.png</iconset>
+			  <normaloff>:/icon_uninstall</normaloff>:/icon_uninstall</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -374,7 +374,7 @@
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>install.png</normaloff>install.png</iconset>
+			  <normaloff>:/icon_install</normaloff>:/icon_install</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -935,7 +935,7 @@
      <x>0</x>
      <y>0</y>
      <width>629</width>
-     <height>21</height>
+     <height>19</height>
     </rect>
    </property>
    <property name="nativeMenuBar">
