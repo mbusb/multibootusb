@@ -23,11 +23,10 @@ def mbusb_update_grub_cfg():
     try:
         gen.log('Trying to create loopback.cfg')
         iso2_grub2_cfg = iso2grub2(_iso_dir)
-        # gen.log('loopback.cfg file created...')
     except Exception as e:
         print(e)
         gen.log(e)
-        gen.log('Error converting syslinu cfg to grub2 cfg', error=True)
+        gen.log('Error converting syslinux cfg to grub2 cfg', error=True)
         iso2_grub2_cfg = False
 
     grub_cfg_path = None
@@ -167,10 +166,10 @@ def grub_raw_iso(mbus_grub_cfg_path):
 
 def string_in_file(_file, search_text):
     """
-
-    :param _file:
-    :param search_text:
-    :return:
+    Search if string exist in a file.
+    :param _file: Path to file
+    :param search_text: String to be searched
+    :return: True if string is found
     """
     if search_text in open(_file).read().lower():
         return True

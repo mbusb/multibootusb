@@ -561,11 +561,11 @@ Are you SURE you want to enable it?",
             if self.iso_size >= usb_disk_size:
                 QtWidgets.QMessageBox.information(self, "No enough space on disk.", os.path.basename(config.image_path) +
                                               " size is larger than the size of " + config.usb_disk)
-            elif gen.process_exist('explorer.exe') is not False:
-                # Check if windows explorer is running and inform user to close it.
-                QtWidgets.QMessageBox.information(self, "Windows Explorer", "Windows Explorer is running\n"
-                                                                            "You need to close it before writing ISO "
-                                                                            "image to disk...")
+            #elif gen.process_exist('explorer.exe') is not False:
+            #    # Check if windows explorer is running and inform user to close it.
+            #    QtWidgets.QMessageBox.information(self, "Windows Explorer", "Windows Explorer is running\n"
+            #                                                                "You need to close it before writing ISO "
+            #                                                                "image to disk...")
             else:
                 reply = QtWidgets.QMessageBox.question \
                     (self, 'Review selection',

@@ -371,14 +371,14 @@ def process_exist(process_name):
         for process in c.Win32_Process():
             if process_name in process.Name:
                 log(process_name + ' exist...')
-                log(process.ProcessId + ' ' + process.Name)
+                log(str(process.ProcessId) + ' ' + str(process.Name))
                 log("Having Windows explorer won't allow dd.exe to write ISO image properly."
                       "\nKilling the process..")
                 try:
                     os.kill(process.ProcessId, signal.SIGTERM)
                     return True
                 except:
-                    log('Unable to kill process ' + process.ProcessId)
+                    log('Unable to kill process ' + str(process.ProcessId))
 
     return False
 
