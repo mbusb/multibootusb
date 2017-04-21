@@ -1,0 +1,6 @@
+<RCC>
+	<qresource>
+		<file alias="icon_install">resources/install.png</file>
+		<file alias="icon_uninstall">resources/uninstall.png</file>
+	</qresource>
+</RCC>

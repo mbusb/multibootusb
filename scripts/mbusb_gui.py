@@ -30,6 +30,7 @@ from . import config
 from . import admin
 from . import qemu
 from .update_cfg_file import update_distro_cfg_files
+import scripts.gui.resources
 
 class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
     """
