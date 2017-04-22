@@ -453,7 +453,7 @@ Are you SURE you want to enable it?",
             log("ERROR: USB disk is not mounted.")
             QtWidgets.QMessageBox.information(self, "No Mount...", "USB disk is not mounted.\n"
                                                                    "Please mount USB disk and press refresh USB button.")
-        elif config.usb_disk[-1].isdigit() is False:
+        elif platform.system() == 'Linux' and config.usb_disk[-1].isdigit() is False:
                 gen.log('Selected USB is a disk. Please select a disk partition from the drop down list')
                 QtWidgets.QMessageBox.information(self, 'No Partition...!', 'USB disk selected doesn\'t contain a partition.\n'
                                                                             'Please select the partition (ending '
@@ -561,7 +561,7 @@ Are you SURE you want to enable it?",
             QtWidgets.QMessageBox.information(self, 'No ISO...', 'Please select an ISO.')
         else:
             imager = Imager()
-            if config.usb_disk[-1].isdigit() is True:
+            if platform.system() == 'Linux' and config.usb_disk[-1].isdigit() is True:
                 gen.log('Selected disk is a partitions. Please select a disk from the drop down list')
                 QtWidgets.QMessageBox.information(self, 'Wrong Disk...!', 'Disk selected is a partition.\nISO is to '
                                                                           'be written to whole disk for proper functioning'
