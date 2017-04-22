@@ -20,7 +20,6 @@ if platform.system() == 'Linux':
 if platform.system() == 'Windows':
     import psutil
     import win32com.client
-    import win32com.client
     import wmi
     import pythoncom
 
@@ -95,7 +94,11 @@ def list_devices(partition=1, fixed=False):
         try:
             # pyudev is good enough to detect USB devices on modern Linux machines.
             gen.log("Using pyudev for detecting USB drives...")
-            import pyudev
+            try:
+                import pyudev
+            except Exception as e:
+                gen.log('Pydev is not installed on host system. Using the inbuilt one.')
+                from . import pyudev
             context = pyudev.Context()
 
             for device in context.list_devices(subsystem='block', ID_BUS="usb"):
@@ -109,7 +112,8 @@ def list_devices(partition=1, fixed=False):
                             devices.append(str(device['DEVNAME']))
                             gen.log("\t" + device['DEVNAME'])
 
-        except:
+        except Exception as e:
+            gen.log(e)
             import dbus
             bus = dbus.SystemBus()
             try:
@@ -120,15 +124,23 @@ def list_devices(partition=1, fixed=False):
                     'org.freedesktop.UDisks2', '/org/freedesktop/UDisks2')
                 ud_manager = dbus.Interface(
                     ud_manager_obj, 'org.freedesktop.DBus.ObjectManager')
-                for k, v in ud_manager.GetManagedObjects().iteritems():
+                for k, v in ud_manager.GetManagedObjects().items():
                     drive_info = v.get('org.freedesktop.UDisks2.Block', {})
-                    if drive_info.get('IdUsage') == "filesystem" and not drive_info.get(
-                            'HintSystem') and not drive_info.get('ReadOnly'):
-                        device = drive_info.get('Device')
-                        device = bytearray(device).replace(
-                            b'\x00', b'').decode('utf-8')
-                        devices.append(device)
-            except:
+                    if fixed is True:
+                        if drive_info.get('IdUsage') == "filesystem" and not drive_info.get('ReadOnly'):
+                            device = drive_info.get('Device')
+                            device = bytearray(device).replace(b'\x00', b'').decode('utf-8')
+                            devices.append(device)
+                    else:
+                        if drive_info.get('IdUsage') == "filesystem" and not drive_info.get(
+                                'HintSystem') and not drive_info.get('ReadOnly'):
+                            device = drive_info.get('Device')
+                            device = bytearray(device).replace(
+                                b'\x00', b'').decode('utf-8')
+                            devices.append(device)
+
+            except Exception as e:
+                gen.log(e, error=True)
                 try:
                     # You must be using really old distro. Otherwise, the code
                     # should not reach here.
@@ -149,7 +161,8 @@ def list_devices(partition=1, fixed=False):
                                 device_file = device_props.Get(
                                     'org.freedesktop.UDisks.Device', "DeviceFile")
                                 devices.append(device_file)
-                except:
+                except Exception as e:
+                    gen.log(e, error=True)
                     gen.log("No USB device found...")
 
         devices.sort()
@@ -192,7 +205,10 @@ def details_udev(usb_disk_part):
     assert usb_disk_part is not None
     assert platform.system() == "Linux"
 
-    import pyudev
+    try:
+        import pyudev
+    except:
+        from . import pyudev
     """
     Try with PyUdev to get the details of USB disks.
     This is the easiest and reliable method to find USB details.

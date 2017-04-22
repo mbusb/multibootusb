@@ -12,6 +12,15 @@ import os
 import sys
 from scripts.gen import mbusb_version
 
+
+def get_data(_dir):
+    data = []
+    for dirpath, dirnames, filenames in os.walk(_dir):
+        for f in filenames:
+            cfg_file = os.path.join(dirpath, f)
+            data.append(cfg_file)
+    return data
+
 Version = mbusb_version()
 print(Version)
 setup(
@@ -37,7 +46,7 @@ setup(
                 ('/usr/share/multibootusb/data/tools/dd', ["data/tools/dd/dd.exe"]),
                 ('/usr/share/multibootusb/data/tools/dd', ["data/tools/dd/diskio.dll"]),
                 ('/usr/share/multibootusb/data/tools/mkfs', ["data/tools/mkfs/mke2fs.exe"]),
-                ('/usr/share/multibootusb/data/tools/EFI', ["data/EFI/*"]),
+                ('/usr/share/multibootusb/data/EFI', get_data('data/EFI')),
                 ('/usr/share/multibootusb/data/multibootusb', ["data/multibootusb/chain.c32"]),
                 ('/usr/share/multibootusb/data/multibootusb', ["data/multibootusb/bg.png"]),
                 ('/usr/share/multibootusb/data/multibootusb', ["data/multibootusb/extlinux.cfg"]),
@@ -47,9 +56,6 @@ setup(
                 ('/usr/share/multibootusb/data/multibootusb', ["data/multibootusb/menu.lst"]),
                 ('/usr/share/multibootusb/data/multibootusb', ["data/multibootusb/syslinux.cfg"]),
                 ('/usr/share/multibootusb/data/multibootusb', ["data/multibootusb/vesamenu.c32"]),
-                ('/usr/share/multibootusb/data/multibootusb/grub', ["data/multibootusb/grub/*"]),
-                ('/usr/share/multibootusb/data/tools/syslinux', ["data/tools/syslinux/syslinux_modules.zip"]),
-                ('/usr/share/multibootusb/data/tools/syslinux', ["data/tools/syslinux/syslinux_linux.zip"]),
-                ('/usr/share/multibootusb/data/tools/syslinux', ["data/tools/syslinux/syslinux_linux_64.zip"]),
-                ('/usr/share/multibootusb/data/tools/syslinux', ["data/tools/syslinux/syslinux_windows.zip"])]
+                ('/usr/share/multibootusb/data/multibootusb/grub', get_data('data/multibootusb/grub')),
+                ('/usr/share/multibootusb/data/tools/syslinux', get_data('data/tools/syslinux'))]
 )

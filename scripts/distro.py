@@ -71,21 +71,24 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "fedora"
                         elif re.search(r'redhat', string, re.I):
                             return "redhat"
-                        # elif re.search(r'suse', string, re.I):
-                        #   return "suse"
-                        elif re.search(r'opensuse', string, re.I):
-                            return "opensuse"
                         elif re.search(
                                 r'slitaz|dban |ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|android-x86.png|'
-                                r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/|AVG Rescue CD|ipxe.lkrn|SLACK_KERNEL=huge.s', string, re.I):
+                                r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/|AVG Rescue CD|lkrn', string, re.I):
                             return "slitaz"
+                        elif re.search(r'minimal Slackware|Slackware-HOWTO', string, re.I):
+                            # for minimal slackware detection
+                            return "slitaz"
+                        # elif re.search(r'suse', string, re.I):
+                        #   return "suse"
+                        elif re.search(r'class opensuse', string, re.I):
+                            return "opensuse-install"
                         elif re.search(r'boot=casper', string, re.I):
                             return "ubuntu"
                         elif re.search(r'wifislax', string, re.I):
                             return "wifislax"
                         elif re.search(r'slax', string, re.I):
                             return "slax"
-                        elif re.search(r'sms.jpg|vector|autoexec', string, re.I) and isolinux_bin_exist(iso_link):
+                        elif re.search(r'sms.jpg|vector |autoexec', string, re.I) and isolinux_bin_exist(iso_link):
                             return "sms"
                         elif re.search(r'antix', string, re.I):
                             return "antix"
@@ -108,6 +111,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                         elif re.search(r'zenwalk|slack|salix', string, re.I) and re.search(r'live', string, re.I):
                             return "salix-live"
                         elif re.search(r'zenwalk|slack|salix', string, re.I):
+                            print(os.path.join(path, name))
                             return "zenwalk"
                         elif re.search(r'ubuntu server', string, re.I):
                             return "ubuntu-server"

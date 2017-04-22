@@ -75,26 +75,27 @@ class Install():
         if not result == "1":
             return False
 
+
     def install_dependency_package(self):
         if subprocess.call("which pacman", shell=True) == 0:
             subprocess.call("pacman -Sy --noconfirm", shell=True)
-            if subprocess.call("pacman -S --needed --noconfirm p7zip python-pyqt5 mtools parted util-linux python-dbus") == 0:  # Thank you Neitsab for "--needed"  argument.
+            if subprocess.call("pacman -S --needed --noconfirm p7zip python-pyqt5 mtools python3-six parted util-linux python-dbus") == 0:  # Thank you Neitsab for "--needed"  argument.
                 result = True
         elif subprocess.call("which yum", shell=True) == 0:
             subprocess.call("yum check-update", shell=True)
-            if subprocess.call("dnf install mtools python3-PyQt5 util-linux parted p7zip p7zip-plugins python3-dbus -y", shell=True) == 0:
+            if subprocess.call("dnf install mtools python3-PyQt5 util-linux python3-six parted p7zip p7zip-plugins python3-pyudev python3-dbus -y", shell=True) == 0:
                 result = True
         elif subprocess.call("which apt-get", shell=True) == 0:
             subprocess.call("apt-get -q update", shell=True)
-            if subprocess.call("apt-get -q -y install python3-pyqt5 p7zip-full parted util-linux mtools python3-dbus", shell=True) == 0:
+            if subprocess.call("apt-get -q -y install python3-pyqt5 p7zip-full parted util-linux python3-pyudev mtools python3-dbus", shell=True) == 0:
                 result = True
         elif subprocess.call("which zypper", shell=True) == 0:
             subprocess.call("zypper refresh", shell=True)
-            if subprocess.call("zypper install -y mtools python3-qt5 p7zip p7zip-plugins util-linux parted", shell=True) == 0:
+            if subprocess.call("zypper install -y mtools python3-qt5 p7zip p7zip-plugins python3-pyudev python3-six util-linux parted", shell=True) == 0:
                 result = True
         elif subprocess.call("which urpmi", shell=True) == 0:
             subprocess.call("urpmi.update -a", shell=True)
-            if subprocess.call("urpmi install -auto mtools util-linux p7zip p7zip-plugins parted python3-qt5", shell=True) == 0:
+            if subprocess.call("urpmi install -auto mtools util-linux p7zip p7zip-plugins python3-pyudev python3-six parted python3-qt5", shell=True) == 0:
                 result = True
 
         if result is not True:

@@ -1,3 +1,34 @@
+Version - 8.6.0
+---------------
+
+==> A very big thanks to Alin Trăistaru. All credits goes to him for redesigning of GUI and code cleanups <==
+-------------------------------------------------------------------------------------------------------------
+
+* Fresh and friendly user interface (GUI)
+* Initial support for UEFI/EFI boot
+* Added GRUB2 boot loader
+* Auto creation of loopback.cfg file for GRUB2 support
+* Direct ISO write to USB now uses '"oflag=sync"' flag
+* Use system pyudev library by default
+* Fixed syslinux install failure in distro dir on ext2/3/4
+* Fixed crash when writing ISO to USB on Windows
+* Detect isolinux version 2 and install version 3 instead.
+* Improvements to persistence logic
+* Simplified USB disk detection
+* Improved CentOS detection
+* Improved user experience through rewording display messages
+* Fix for creating persistence on mount points containing spaces
+* Fixed kaspersky install issue
+* Improved fedora detection script
+* Added support for Virtualized USB. https://github.com/mbusb/multibootusb/issues/110
+* Added PLOP boot manager
+* Added Dam Small Linux
+* Added netboot.iso
+* Added latest memtest
+* Added slack mini boot
+* Added Fat Dog
+* Added Finnix
+
 Version - 8.5.0
 ---------------
 * Added Solus OS

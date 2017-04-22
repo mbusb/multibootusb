@@ -453,6 +453,11 @@ Are you SURE you want to enable it?",
             log("ERROR: USB disk is not mounted.")
             QtWidgets.QMessageBox.information(self, "No Mount...", "USB disk is not mounted.\n"
                                                                    "Please mount USB disk and press refresh USB button.")
+        elif config.usb_disk[-1].isdigit() is False:
+                gen.log('Selected USB is a disk. Please select a disk partition from the drop down list')
+                QtWidgets.QMessageBox.information(self, 'No Partition...!', 'USB disk selected doesn\'t contain a partition.\n'
+                                                                            'Please select the partition (ending '
+                                                                            'with a digit eg. /dev/sdb1)\nfrom the drop down list.')
         else:
             # clean_iso_cfg_ext_dir(os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))  # Need to be cleaned.
             # extract_cfg_file(config.image_path)  # Extract files from ISO
@@ -556,28 +561,34 @@ Are you SURE you want to enable it?",
             QtWidgets.QMessageBox.information(self, 'No ISO...', 'Please select an ISO.')
         else:
             imager = Imager()
-            usb_disk_size = int(imager.imager_usb_detail(config.usb_disk, partition=0).total_size)
-            self.iso_size = os.path.getsize(config.image_path)
-            if self.iso_size >= usb_disk_size:
-                QtWidgets.QMessageBox.information(self, "No enough space on disk.", os.path.basename(config.image_path) +
-                                              " size is larger than the size of " + config.usb_disk)
-            #elif gen.process_exist('explorer.exe') is not False:
-            #    # Check if windows explorer is running and inform user to close it.
-            #    QtWidgets.QMessageBox.information(self, "Windows Explorer", "Windows Explorer is running\n"
-            #                                                                "You need to close it before writing ISO "
-            #                                                                "image to disk...")
+            if config.usb_disk[-1].isdigit() is True:
+                gen.log('Selected disk is a partitions. Please select a disk from the drop down list')
+                QtWidgets.QMessageBox.information(self, 'Wrong Disk...!', 'Disk selected is a partition.\nISO is to '
+                                                                          'be written to whole disk for proper functioning'
+                                                                          '.\n\nPlease select the disk from the drop down list.')
             else:
-                reply = QtWidgets.QMessageBox.question \
-                    (self, 'Review selection',
-                     'Selected disk: %s\n' % config.usb_disk +
-                     'Selected image: %s\n\n' % os.path.basename(config.image_path) +
-                     'Proceed with writing image to disk?',
-                     QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+                usb_disk_size = int(imager.imager_usb_detail(config.usb_disk, partition=0).total_size)
+                self.iso_size = os.path.getsize(config.image_path)
+                if self.iso_size >= usb_disk_size:
+                    QtWidgets.QMessageBox.information(self, "No enough space on disk.", os.path.basename(config.image_path) +
+                                                  " size is larger than the size of " + config.usb_disk)
+                #elif gen.process_exist('explorer.exe') is not False:
+                #    # Check if windows explorer is running and inform user to close it.
+                #    QtWidgets.QMessageBox.information(self, "Windows Explorer", "Windows Explorer is running\n"
+                #                                                                "You need to close it before writing ISO "
+                #                                                                "image to disk...")
+                else:
+                    reply = QtWidgets.QMessageBox.question \
+                        (self, 'Review selection',
+                         'Selected disk: %s\n' % config.usb_disk +
+                         'Selected image: %s\n\n' % os.path.basename(config.image_path) +
+                         'Proceed with writing image to disk?',
+                         QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-                if reply == QtWidgets.QMessageBox.Yes:
-                    self.dd_start()
-                    config.process_exist = True
-                    self.progress_thread_dd.start()
+                    if reply == QtWidgets.QMessageBox.Yes:
+                        self.dd_start()
+                        config.process_exist = True
+                        self.progress_thread_dd.start()
 
     def on_close_Click(self):
         """

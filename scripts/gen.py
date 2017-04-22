@@ -50,6 +50,7 @@ def log(message, info=True, error=False, debug=False):
     elif debug is not False:
         logging.debug(message)
 
+
 def resource_path(relativePath):
     """
     Function to detect the correct path of file when working with sourcecode/install or binary.

@@ -177,6 +177,9 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                         'append loader=syslinux isofrom_device=/dev/disk/by-uuid/' + usb_uuid +
                                         ' isofrom_system=/multibootusb/' + iso_basename(iso_link) + '/' + iso_name(iso_link),
                                         string, flags=re.I)
+                elif distro == 'opensuse-install':
+                    string = re.sub(r'splash=silent', 'splash=silent install=hd:/dev/disk/by-uuid/'
+                                    + config.usb_uuid + '/multibootusb/' + iso_basename(iso_link), string)
                 elif distro == "pclinuxos":
                     string = re.sub(r'livecd=',
                                     'fromusb livecd=' + '/multibootusb/' + iso_basename(iso_link) + '/',
@@ -310,7 +313,6 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
         elif distro == 'grub4dos_iso':
             update_grub4dos_iso_menu()
         else:
-            # admin.adminCmd(["mount", "-o", "remount,rw", config.usb_disk])
             config_file = open(sys_cfg_file, "a")
             config_file.write("#start " + iso_basename(iso_link) + "\n")
             config_file.write("LABEL " + iso_basename(iso_link) + "\n")

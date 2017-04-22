@@ -104,21 +104,6 @@ class Imager(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-#     def on_Imager_Browse_iso_Click(self):
-#         """
-#         Browse and choose an ISO.
-#         :return:
-#         """
-#         self.ui.lineEdit_3.clear()
-#         config.imager_iso_link = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', "",  "ISO Files (*.iso)")[0]
-#         if config.imager_iso_link:
-#             if platform.system() == "Windows":
-#                 if "/" in config.imager_iso_link:
-#                     config.imager_iso_link = config.imager_iso_link.strip().replace("/", "\\")
-#             self.ui.lineEdit_3.insert(str(config.imager_iso_link))
-#             self.add_iso_gui_label_text()
-#         else:
-#             log("File not selected...")
 
     def add_iso_gui_label_text(self):
         """
