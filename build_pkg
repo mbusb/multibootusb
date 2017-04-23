@@ -27,6 +27,7 @@ import platform
 if platform.system() == "Windows":
     pyinstaller_path = 'D:\multibootusb\pyinstaller\pyinstaller.py'
     release_dir = 'D:\\multibootusb\\release'
+    nsis = '\"C:\\Program Files (x86)\\NSIS\\makensis.exe\"'
 else:
     from os.path import expanduser
     home = expanduser("~")
@@ -132,6 +133,36 @@ class pkg():
                     print("\n\n\nWindows binary has been created and can be found here::")
                     print((os.path.join("dist", "multibootusb-" + self.version + ".exe\n\n\n")))
                     result = True
+        elif self.pkg_name == "setup_exe":
+            import re
+            if not platform.system() == "Windows":
+                print("You can generate windows setup file from windows host only.")
+            else:
+                # subprocess.call('python ' + pyinstaller_path + ' --upx-dir C:\\upx multibootusb.spec', shell=True) == 0 and \
+                #        os.path.exists(os.path.join("dist", 'multibootusb-' + self.version + ".exe")):
+                # pyinstaller.exe --onefile --windowed --icon=app.ico app.py
+                if subprocess.call('python ' + pyinstaller_path + ' --onedir --uac-admin --windowed --icon=' +
+                                           os.path.join("data", "tools",  "multibootusb.ico") + ' multibootusb', shell=True) == 0:
+                    print('Successfully created one dir distribution package...\nCopying data directory...')
+                    shutil.copytree('data', os.path.join('dist', 'multibootusb', 'data'))
+                    if os.path.exists(os.path.join('dist', 'multibootusb', 'data')):
+                        print('Data directory successfully copied..')
+
+                        with open("multibootusb.nsi", "rt") as fin:
+                            with open("multibootusb_new.nsi", "wt") as fout:
+                                for line in fin:
+                                    if line.startswith('Name'):
+                                        fout.write('Name \"multibootusb ' + self.version + '\"')
+                                    elif line.startswith('OutFile'):
+                                        fout.write('OutFile \"multibootusb-' + self.version + '-setup.exe\"')
+                                    else:
+                                        fout.write(line)
+                        if subprocess.call(nsis + ' multibootusb_new.nsi', shell=True) == 0:
+                            os.remove('multibootusb_new.nsi')
+                            shutil.copy2('multibootusb-' + self.version + '-setup.exe',
+                                         os.path.join(self.release_upload_dir, "Windows"))
+                            print('Successfully created the setup.exe package...')
+
         elif self.pkg_name == 'install':
             if subprocess.call("python3", "install.py", shell=True) == 0:
                 print("Installation is successful.")
@@ -233,6 +264,7 @@ def usage():
     print ("Invalid option(s)\n"
         "Possible options are ::\n"
         "\033[94mexe\033[0m      <-- For making Windows/ Linux standalone executable using pyinstaller\n"
+        "\033[94msetup_exe\033[0m<-- For making Windows setup file using pyinstaller\n"
         "\033[94mdeb\033[0m      <-- For making creating package for debian/ubuntu\n"
         "\033[94mrpm\033[0m      <-- For creating package for fedora/redhat/centos\n"
         "\033[94msuse\033[0m     <-- For creating package for OpenSuse\n"
@@ -260,7 +292,7 @@ if __name__ == '__main__':
     else:
         argv = argv[1]
         if argv == "all":
-            all_arug = ["clean", "exe", "deb", "rpm", "suse", "mageia", "src"]
+            all_arug = ["clean", "exe", "deb", "rpm", "suse", "mageia", "src", "setup_exe"]
             for package_name in all_arug:
                 print(("Creating package for argument " + package_name))
                 build = pkg(package_name)

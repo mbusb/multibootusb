@@ -91,7 +91,10 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QMessageBox.information(self, 'No disk...', 'No USB disk selected.\n\nPlease choose a disk first.')
         else:
             qemu = self.check_qemu_exist()
-            qemu_usb_disk = config.usb_disk
+            if platform.system() == 'Linux' and config.usb_disk[-1].isdigit() is True:
+                qemu_usb_disk = config.usb_disk[:-1]
+            else:
+                qemu_usb_disk = config.usb_disk
 
             if qemu is None:
                 log("ERROR: USB Boot: qemu not found!")
