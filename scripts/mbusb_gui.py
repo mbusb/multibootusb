@@ -686,6 +686,7 @@ class GuiInstallProgress(QtCore.QThread):
             if not self.thread.isFinished() and config.percentage == 100:
                 config.status_text = "Status: Please wait..."
                 self.status.emit("Status: Please wait...")
+            time.sleep(0.1)
 
         self.update.emit(100)
         self.update.emit(0)
@@ -718,11 +719,14 @@ class GuiUninstallProgress(QtCore.QThread):
 
     def run(self):
         self.thread.start()
+
         while self.thread.isRunning():
             self.update.emit(config.percentage)
             self.status.emit(config.status_text)
             if not self.thread.isFinished() and config.percentage == 100:
                 config.status_text = "Please wait..."
+            time.sleep(0.1)
+
         self.update.emit(100)
         self.update.emit(0)
         config.percentage = 0
@@ -764,6 +768,7 @@ class DD_Progress(QtCore.QThread):
             if not self.thread.isFinished() and config.percentage == 100:
                 config.imager_status_text = ""
                 self.status.emit("Please wait...")
+            time.sleep(0.1)
 
         self.update.emit(100)
         self.update.emit(0)
