@@ -430,6 +430,7 @@ Are you SURE you want to enable it?",
         if self.ui.installed_distros.currentItem() is None:
             log("Please select a distro from the list.")
             QtWidgets.QMessageBox.information(self, 'No selection.', 'Please select a distro from the list.')
+            self.ui_enable_controls()
         else:
             config.uninstall_distro_dir_name = str(self.ui.installed_distros.currentItem().text()).strip()
             reply = QtWidgets.QMessageBox.question(self, "Review selection...",
