@@ -308,6 +308,21 @@ Are you SURE you want to enable it?",
         self.ui.label_persistence.setVisible(False)
         self.ui.slider_persistence.setVisible(False)
 
+    def ui_disable_controls(self):
+        self.ui.combo_drives.setEnabled(False)
+        self.ui.checkbox_all_drives.setEnabled(False)
+        self.ui.button_detect_drives.setEnabled(False)
+        self.ui.button_browse_image.setEnabled(False)
+        self.ui.image_path.setEnabled(False)
+        self.ui.tabWidget.setEnabled(False)
+
+    def ui_enable_controls(self):
+        self.ui.combo_drives.setEnabled(True)
+        self.ui.checkbox_all_drives.setEnabled(True)
+        self.ui.button_detect_drives.setEnabled(True)
+        self.ui.button_browse_image.setEnabled(True)
+        self.ui.image_path.setEnabled(True)
+        self.ui.tabWidget.setEnabled(True)
 
     def update_slider_text(self):
         slide_value = self.ui.slider_persistence.value() * 1024 * 1024
@@ -332,12 +347,16 @@ Are you SURE you want to enable it?",
         log(iso_name(config.image_path) + ' has been successfully installed.')
         QtWidgets.QMessageBox.information(self, 'Finished...', iso_name(config.image_path) + ' has been successfully installed.')
         config.process_exist = None
+        self.ui_enable_controls()
 
     def onInstall_syslinuxClick(self):
         """
         Function to install syslinux/extlinux on selected USB disk.
         :return:
         """
+
+        self.ui_disable_controls()
+
         if platform.system() == "Linux" or platform.system() == "Windows":
 
             if self.ui.install_sys_all.isChecked() or self.ui.install_sys_only.isChecked():
@@ -358,6 +377,8 @@ Are you SURE you want to enable it?",
             else:
                 QtWidgets.QMessageBox.information(self, 'No selection...',
                                               'Please select one of the option from above.')
+
+        self.ui_enable_controls()
 
     def onedit_syslinux(self):
         """
@@ -403,6 +424,9 @@ Are you SURE you want to enable it?",
         Triggers a function to uninstall a selected distro.
         :return:
         """
+
+        self.ui_disable_controls()
+
         if self.ui.installed_distros.currentItem() is None:
             log("Please select a distro from the list.")
             QtWidgets.QMessageBox.information(self, 'No selection.', 'Please select a distro from the list.')
@@ -418,6 +442,7 @@ Are you SURE you want to enable it?",
                     log("Distro install directory not found. Just updating syslinux.cfg file.")
                     update_sys_cfg_file()
                     #self.uninstall.update_sys_cfg_file()
+                    self.ui_enable_controls()
                 else:
                     self.progress_thread_uninstall.start()
 
@@ -434,6 +459,7 @@ Are you SURE you want to enable it?",
         self.ui.statusbar.showMessage("Status: Idle")
         QtWidgets.QMessageBox.information(self, 'Uninstall Complete...',
                                       config.uninstall_distro_dir_name + ' has been successfully removed.')
+        self.ui_enable_controls()
 
     def onCreateClick(self):
         """
@@ -442,22 +468,29 @@ Are you SURE you want to enable it?",
         :param iso_link: LineEdit text as selected ISO link.
         :return:
         """
+
+        self.ui_disable_controls()
+
         if not config.usb_disk:
             log("ERROR: No USB device found.")
             QtWidgets.QMessageBox.information(self, "No Device...",
                                           "No USB device found.\n\nInsert USB and use Refresh USB button to detect USB.")
+            self.ui_enable_controls()
         elif not config.image_path:
             log("No ISO selected.")
             QtWidgets.QMessageBox.information(self, "No ISO...", "No ISO found.\n\nPlease select an ISO.")
+            self.ui_enable_controls()
         elif usb.details(config.usb_disk)['mount_point'] == 'No_Mount':
             log("ERROR: USB disk is not mounted.")
             QtWidgets.QMessageBox.information(self, "No Mount...", "USB disk is not mounted.\n"
                                                                    "Please mount USB disk and press refresh USB button.")
+            self.ui_enable_controls()
         elif platform.system() == 'Linux' and config.usb_disk[-1].isdigit() is False:
-                gen.log('Selected USB is a disk. Please select a disk partition from the drop down list')
-                QtWidgets.QMessageBox.information(self, 'No Partition...!', 'USB disk selected doesn\'t contain a partition.\n'
+            gen.log('Selected USB is a disk. Please select a disk partition from the drop down list')
+            QtWidgets.QMessageBox.information(self, 'No Partition...!', 'USB disk selected doesn\'t contain a partition.\n'
                                                                             'Please select the partition (ending '
                                                                             'with a digit eg. /dev/sdb1)\nfrom the drop down list.')
+            self.ui_enable_controls()
         else:
             # clean_iso_cfg_ext_dir(os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))  # Need to be cleaned.
             # extract_cfg_file(config.image_path)  # Extract files from ISO
@@ -476,7 +509,7 @@ Are you SURE you want to enable it?",
             log("MultiBoot Install: ISO file: " + iso_name(config.image_path))
 
             if os.path.exists(config.image_path):
-                self.ui.image_path.clear()
+#                 self.ui.image_path.clear()
                 if config.distro:
                     log("MultiBoot Install: Distro type detected: " + config.distro)
                     copy_mbusb_dir_usb(config.usb_disk)
@@ -487,6 +520,7 @@ Are you SURE you want to enable it?",
                         if install_size >= disk_usage(config.usb_mount).free:
                             log("ERROR: Not enough space available on " + config.usb_disk)
                             QtWidgets.QMessageBox.information(self, "No Space.", "No space available on " + config.usb_disk)
+                            self.ui_enable_controls()
                         else:
                             reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
                                                        'Selected USB disk: %s\n' % config.usb_disk +
@@ -503,11 +537,13 @@ Are you SURE you want to enable it?",
                     else:
                         QtWidgets.QMessageBox.information(self, 'Already exists...',
                                                       os.path.basename(config.image_path) + ' is already installed.')
+                        self.ui_enable_controls()
                 else:
                     QtWidgets.QMessageBox.information(self, 'No support...',
                                                   'Sorry.\n' + os.path.basename(config.image_path) +
                                                   ' is not supported at the moment.\n'
                                                   'Please email this issue to feedback.multibootusb@gmail.com')
+                    self.ui_enable_controls()
 
         # Added to refresh usb disk remaining size after distro installation
         # self.update_gui_usb_info()
@@ -519,11 +555,6 @@ Are you SURE you want to enable it?",
         """
         self.ui.progressbar.setValue(0)
         self.ui.statusbar.showMessage("Status: Idle")
-        self.ui.combo_drives.setEnabled(True)
-        self.ui.button_browse_image.setEnabled(True)
-#        self.ui.pushbtn_imager_refreshusb.setEnabled(True)
-#         self.ui.imager_bootable.setText("Bootable ISO: ")
-#         self.ui.imager_iso_size.setText("Image Size: ")
         config.process_exist = None
 
         msgBox = QtWidgets.QMessageBox()
@@ -532,6 +563,8 @@ Are you SURE you want to enable it?",
         msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msgBox.setIcon(QtWidgets.QMessageBox.Information)
         msgBox.exec()
+
+        self.ui_enable_controls()
 
     def dd_start(self):
         """
@@ -555,6 +588,8 @@ Are you SURE you want to enable it?",
         QtWidgets.QMessageBox.information(self, 'Failed!', 'Failed writing image.')
 
     def dd_write(self):
+        self.ui_disable_controls()
+
         if not config.usb_disk:
             QtWidgets.QMessageBox.information(self, 'No USB...', 'Please Insert USB disk and rerun multibootusb.')
         elif not config.image_path:
