@@ -12,6 +12,7 @@ import sys
 import platform
 import threading
 import subprocess
+import time
 from .usb import *
 from .gen import *
 # from .iso import *
@@ -146,6 +147,7 @@ def install_progress():
             percentage = 100
         config.percentage = percentage
         pbar.update(percentage)
+        time.sleep(0.1)
 
 
 def install_patch():

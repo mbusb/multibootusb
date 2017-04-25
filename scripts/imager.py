@@ -48,10 +48,11 @@ def dd_linux():
     ).start()
 
     while dd_process.poll() is None:
-        time.sleep(1)  # If this time delay is not given, the Popen does not execute the actual command
+        time.sleep(0.1)  # If this time delay is not given, the Popen does not execute the actual command
         dd_process.send_signal(signal.SIGUSR1)
         dd_process.stderr.flush()
         while True:
+            time.sleep(0.1)
             out_error = dd_process.stderr.readline().decode()
             if out_error:
                 if 'bytes' in out_error:
