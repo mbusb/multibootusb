@@ -47,20 +47,12 @@ def extract_iso(src, dst, pattern=None, suppress_out=True):
     if pattern is None:
         _cmd = _7zip + cli_option + ' x -y -o' + gen.quote(dst) + ' ' + gen.quote(src) + suppress_out
     else:
-        _cmd = _7zip + ' -y x ' + gen.quote(src) + ' -o' + dst + ' ' + gen.quote(pattern) + ' -r' + suppress_out
+        _cmd = _7zip + ' x -y ' + gen.quote(src) + ' -o' + dst + ' ' + gen.quote(pattern) + ' -r' + suppress_out
     gen.log('Executing ==> ' + _cmd)
-    _7zip_process = subprocess.Popen(_cmd, universal_newlines=True, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
-                                     stdout=subprocess.PIPE, shell=True)
+
     config.status_text = 'Status: Extracting ' + os.path.basename(src).strip()
-    while True:
-        line = _7zip_process.stdout.readline()
-        # gen.log(line)
-        if line.startswith('- '):
-            config.status_text = 'Status: Extracting ' + line[2:].strip()
-        elif platform.system() == 'Linux': # line.startswith('Extracting'):  # Under Linux it prints directly all the process (may be due to version diff).
-            config.status_text = 'Status: ' + line.strip()
-        if line == '' and _7zip_process.poll() != None:
-            break
+    with open(os.devnull, 'w') as devnull:
+        subprocess.call(_cmd, stdin=devnull, stdout=devnull, stderr=devnull, shell=True)
 
 
 def list_iso(iso_link, suppress_out=True):
