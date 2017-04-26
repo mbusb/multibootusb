@@ -37,3 +37,5 @@ editors_linux = ["xdg-open", "gedit", "kate", "kwrite"]
 editors_win = ["notepad++.exe", "notepad.exe"]
 
 imager_usb_disk = []
+
+debug = False

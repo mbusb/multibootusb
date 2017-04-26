@@ -18,11 +18,13 @@ try:
     from scripts.mbusb_cli import *
     from scripts import admin
     from scripts import gen
+    from scripts import config
 except:
     try:
         from .scripts.mbusb_cli import *
         from .scripts import admin
         from .scripts import gen
+        from .scripts import config
     except:
         import scripts
 
@@ -33,16 +35,17 @@ uninstall = False
 
 
 def usage():
-    print('\nAn advanced multi boot live usb creator using command line.')
-    print('\nUsage: python3 multibootusb -c -i /path/to/iso [option(s)] -t /path/to/device\n')
-    print('[option(s)] are      :\n')
-    print(' -h or --help        :   Print this help message and exit')
-    print(' -i or --iso         :   Path to ISO file')
-    print(' -t or --target      :   Path to target USB device partition (example /dev/sdb1)\n')
-    print(' -c or --command     :   This option is must for invoking multibootusb from command line\n')
-    print(' -u or --uninstall   :   List and uninstall distro from USB disk')
-    print(' Command line example for making a bootable USB from command line should look like this:-\n')
-    print(' python3 multibootusb -c -i ../../favourite.iso -t /dev/sdb1\n')
+    print('\n An advanced multiboot live usb creator using command line.')
+    print('\n Usage: python3 multibootusb [option(s)]\n')
+    print(' Options:\n')
+    print('  -h or --help        :   Print this help message and exit')
+    print('  -i or --iso         :   Path to ISO file')
+    print('  -t or --target      :   Path to target USB device partition (example /dev/sdb1)')
+    print('  -c or --command     :   This option is must for invoking multibootusb from command line')
+    print('  -u or --uninstall   :   List and uninstall distro from USB disk')
+    print('  -d or --debug       :   Enable debug messages (very verbose!)\n')
+    print(' Command line example for making a bootable USB from command line should look like this:\n')
+    print('\tpython3 multibootusb -c -i ../../favourite.iso -t /dev/sdb1\n')
     exit(2)
 
 
@@ -63,8 +66,8 @@ if __name__ == '__main__':
             admin.runAsAdmin()
             sys.exit(0)
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'i:t:vhcu',
-                                   ['iso=', 'target=', 'version', 'help', 'command', 'uninstall'])
+        opts, args = getopt.getopt(sys.argv[1:], 'i:t:vhcud',
+                                   ['iso=', 'target=', 'version', 'help', 'command', 'uninstall', 'debug'])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
@@ -83,6 +86,8 @@ if __name__ == '__main__':
             gui = False
         elif opt in ('-u', '--uninstall'):
             uninstall = True
+        elif opt in ('-d', '--debug'):
+            config.debug = True
         else:
             gui = True
             #start_gui()
@@ -90,6 +95,11 @@ if __name__ == '__main__':
             usage()
             sys.exit()
             '''
+
+if config.debug is True:
+    from scripts.debug import colors
+    print(colors.HEADER + "=== DEBUG ENABLED ===")
+
 
 if gui is False:
     if uninstall is True and config.usb_disk is not None:
