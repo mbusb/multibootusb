@@ -140,9 +140,8 @@ def install_progress():
     thrd.start()
     pbar = progressbar.ProgressBar(maxval=100).start()  # bar = progressbar.ProgressBar(redirect_stdout=True)
     while thrd.is_alive():
-        current_size = details(config.usb_disk)['size_used']
+        current_size = shutil.disk_usage(usb_details['mount_point'])[1]
         percentage = int((current_size / final_size) * 100)
-#         log("Install at " + str(percentage) + "%")
         if percentage > 100:
             percentage = 100
         config.percentage = percentage
