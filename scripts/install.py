@@ -28,7 +28,8 @@ def install_distro():
     :return:
     """
     usb_mount = config.usb_mount
-    install_dir = os.path.join(usb_mount, "multibootusb", iso_basename(config.image_path))
+    print('------------------>' + config.usb_mount)
+    install_dir = os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path))
     _iso_file_list = iso.iso_file_list(config.image_path)
 
     if not os.path.exists(os.path.join(usb_mount, "multibootusb")):
@@ -122,6 +123,7 @@ def copy_iso(src, dst):
     elif platform.system() == "Linux":
         shutil.copy(src, dst)
 
+
 def install_progress():
     """
     Function to calculate progress percentage of install.
@@ -130,7 +132,7 @@ def install_progress():
     from . import progressbar
 
     usb_details = details(config.usb_disk)
-    usb_mount = usb_details['mount_point']
+    config.usb_mount = usb_details['mount_point']
     usb_size_used = usb_details['size_used']
     thrd = threading.Thread(target=install_distro, name="install_progress")
     # thrd.daemon()

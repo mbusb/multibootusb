@@ -45,7 +45,11 @@ def usage():
     print('  -u or --uninstall   :   List and uninstall distro from USB disk')
     print('  -d or --debug       :   Enable debug messages (very verbose!)\n')
     print(' Command line example for making a bootable USB from command line should look like this:\n')
-    print('\tpython3 multibootusb -c -i ../../favourite.iso -t /dev/sdb1\n')
+    print('\tpython3 multibootusb -c -i ../../favourite.iso -t /dev/sdb1 on Linux and \n')
+    print('\tpython3 multibootusb -c -i ../../favourite.iso -t /dev/sdb1 on Windows\n')
+    print(' Command line example for uninstalling distro from USB should look like this:\n')
+    print('\tpython3 multibootusb -c -u -t /dev/sdb1 on Linux and \n')
+    print('\tpython3 multibootusb -c -u -t /dev/sdb1 on Windows\n')
     exit(2)
 
 
@@ -79,7 +83,7 @@ if __name__ == '__main__':
             print_version()
             sys.exit()
         elif opt in ('-i', '--iso'):
-            config.iso_link = arg
+            config.image_path = arg
         elif opt in ('-t', '--target'):
             config.usb_disk = arg
         elif opt in ('-c', '--command'):

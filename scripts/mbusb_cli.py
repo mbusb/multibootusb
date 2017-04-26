@@ -43,19 +43,19 @@ def cli_install_distro():
     if usb.is_block(config.usb_disk) is False:
         log(config.usb_disk, 'is not a valid device partition...')
         exit(1)
-    elif integrity(config.image_path) is not True:
-        log(config.image_path, ' failed to pass integrity check...')
-        exit(1)
+    #elif integrity(config.image_path) is not True:
+    #    log(config.image_path, ' failed to pass integrity check...')
+    #    exit(1)
     elif size_not_enough(config.image_path, config.usb_disk) is True:
-        log(config.usb_disk, 'does not have enough space...')
+        log(config.usb_disk + 'does not have enough space...')
     else:
         prepare_mbusb_host_dir()
         extract_cfg_file(config.image_path)
         _distro = distro(iso_cfg_ext_dir(), config.image_path)
-        log('Detected distro type is', _distro)
         if _distro is not None:
-            log('\nSelected ISO is          :', quote(iso_name(config.image_path)))
-            log('Selected target device is:', quote(config.usb_disk), '\n')
+            log('Detected distro type is    :' + _distro)
+            log('\nSelected ISO is          :'+ quote(iso_name(config.image_path)))
+            log('Selected target device is  :'+ quote(config.usb_disk), '\n')
             log('Please confirm the option.')
             log('Y/y/Yes/yes/YES or N/n/No/no/NO')
             if read_input_yes() is True:
@@ -66,15 +66,15 @@ def cli_install_distro():
                 syslinux_default(config.usb_disk)
                 update_distro_cfg_files(config.image_path, config.usb_disk, _distro)
         else:
-            log('Sorry', iso_name(config.image_path), 'is not supported at the moment\n'
-                                                'Please report tissue at https://github.com/mbusb/multibootusb/issues')
+            log('\n\nSorry ' + iso_name(config.image_path) + ' is not supported at the moment.\n'
+                'Please report tissue at https://github.com/mbusb/multibootusb/issues\n')
 
 
 def cli_uninstall_distro():
     distro_list = install_distro_list()
     if distro_list is not None:
         for index, _distro_dir in enumerate(distro_list):
-            log(index, '--->>', _distro_dir)
+            log(str(index) + '  --->>  ' + _distro_dir)
         user_input = read_input_uninstall()
         if user_input is not False:
             for index, _distro_dir in enumerate(distro_list):

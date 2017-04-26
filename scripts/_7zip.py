@@ -111,7 +111,7 @@ def test_iso(iso_link, suppress_out=True):
 
     _cmd = _7zip + ' t ' + iso_link + suppress_out
 
-    # gen.log('Executing', _cmd)
+    gen.log('Executing ==> ' + _cmd)
 
     rc = subprocess.call(_cmd, shell=True)
 

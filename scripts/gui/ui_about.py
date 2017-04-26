@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'gui/about.ui'
+# Form implementation generated from reading ui file 'about.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_About(object):
     def setupUi(self, About):
         About.setObjectName("About")
-        About.resize(640, 380)
+        About.resize(498, 369)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -48,6 +48,16 @@ class Ui_About(object):
     def retranslateUi(self, About):
         _translate = QtCore.QCoreApplication.translate
         About.setWindowTitle(_translate("About", "Dialog"))
-        self.label_6.setText(_translate("About", "<html><head/><body><p align=\"center\">An advanced bootable usb creator with option to install/uninstall multiple distros.</p><p align=\"center\">This software is written in Python and PyQt. </p><p align=\"center\">Copyright 2010-2017 Sundar</p><p align=\"center\"><span style=\" font-weight:600;\">Author(s)</span>: Sundar, Ian Bruce, Lee</p><p align=\"center\"><span style=\" font-weight:600;\">Licence</span>: GPL version 2 or later</p><p align=\"center\"><span style=\" font-weight:600;\">Home page</span>: <a href=\" http://multibootusb.org\"><span style=\" text-decoration: underline; color:#0000ff;\">http://multibootusb.org</span></a></p><p align=\"center\"><span style=\" font-weight:600;\">Help/Email</span>: feedback.multibootusb@gmail.com</p><p align=\"center\"><span style=\" font-weight:600;\">Source Code</span>: <a href=\"https://github.com/mbusb/multibootusb\"><span style=\" text-decoration: underline; color:#0000ff;\">https://github.com/mbusb/multibootusb</span></a></p><p><br/></p></body></html>"))
+        self.label_6.setText(_translate("About", "<html><head/><body><p align=\"center\">An advanced bootable usb creator with option to install/uninstall multiple distros.</p><p align=\"center\">This software is written in Python and PyQt. </p><p align=\"center\">Copyright  2010-2017  Sundar</p><p align=\"center\"><span style=\" font-weight:600;\">Author(s)</span>: Sundar, Ian Bruce, LiQiong Lee and Alin Trăistaru (alindt)</p><p align=\"center\"><span style=\" font-weight:600;\">Licence</span>: GPL version 2 or later</p><p align=\"center\"><span style=\" font-weight:600;\">Home page</span>: <a href=\" http://multibootusb.org\"><span style=\" text-decoration: underline; color:#0000ff;\">http://multibootusb.org</span></a></p><p align=\"center\"><span style=\" font-weight:600;\">Help/Email</span>: feedback.multibootusb@gmail.com</p><p align=\"center\"><span style=\" font-weight:600;\">Source Code</span>: <a href=\"https://github.com/mbusb/multibootusb\"><span style=\" text-decoration: underline; color:#0000ff;\">https://github.com/mbusb/multibootusb</span></a></p><p><br/></p></body></html>"))
         self.button_close.setText(_translate("About", "Close"))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    About = QtWidgets.QDialog()
+    ui = Ui_About()
+    ui.setupUi(About)
+    About.show()
+    sys.exit(app.exec_())
 
