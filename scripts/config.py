@@ -33,7 +33,9 @@ imager_status_text = ""
 
 install_size = ""
 
-editors_linux = ["gedit", "kate", "kwrite"]
+editors_linux = ["xdg-open", "gedit", "kate", "kwrite"]
 editors_win = ["notepad++.exe", "notepad.exe"]
 
 imager_usb_disk = []
+
+debug = False
