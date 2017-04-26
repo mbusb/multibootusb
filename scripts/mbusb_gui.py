@@ -534,6 +534,8 @@ Are you SURE you want to enable it?",
                                 self.ui.slider_persistence.setEnabled(False)
                                 config.process_exist = True
                                 self.progress_thread_install.start()
+                            elif reply == QtWidgets.QMessageBox.No:
+                                self.ui_enable_controls()
 
                     else:
                         QtWidgets.QMessageBox.information(self, 'Already exists...',
@@ -629,6 +631,8 @@ Are you SURE you want to enable it?",
                         self.dd_start()
                         config.process_exist = True
                         self.progress_thread_dd.start()
+                    elif reply == QtWidgets.QMessageBox.No:
+                        self.ui_enable_controls()
 
     def on_close_Click(self):
         """
