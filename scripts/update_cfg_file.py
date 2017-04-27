@@ -134,7 +134,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     iso_basename(iso_link) + '/ ', string, flags=re.I)
                 elif distro == "systemrescuecd":
                     rows = []
-                    subdir = '/multibootusb/' + iso_basename(iso_link) + '/'
+                    subdir = '/multibootusb/' + iso_basename(iso_link)
                     for line in string.splitlines(True):
                         addline = True
                         if re.match(r'append.*--.*', line, flags=re.I):

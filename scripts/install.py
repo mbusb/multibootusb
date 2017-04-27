@@ -28,7 +28,6 @@ def install_distro():
     :return:
     """
     usb_mount = config.usb_mount
-    print('------------------>' + config.usb_mount)
     install_dir = os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path))
     _iso_file_list = iso.iso_file_list(config.image_path)
 

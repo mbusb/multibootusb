@@ -29,8 +29,6 @@ except:
         import scripts
 
 gui = True
-iso_link = None
-usb_disk = None
 uninstall = False
 
 
@@ -41,15 +39,15 @@ def usage():
     print('  -h or --help        :   Print this help message and exit')
     print('  -i or --iso         :   Path to ISO file')
     print('  -t or --target      :   Path to target USB device partition (example /dev/sdb1)')
-    print('  -c or --command     :   This option is must for invoking multibootusb from command line')
-    print('  -u or --uninstall   :   List and uninstall distro from USB disk')
+    print('  -c or --command     :   Invoke command line usage. This option is must')
+    print('  -u or --uninstall   :   List and uninstall distro from an USB disk')
     print('  -d or --debug       :   Enable debug messages (very verbose!)\n')
-    print(' Command line example for making a bootable USB from command line should look like this:\n')
+    print(' Eexample for making a bootable USB from command line should look like this:\n')
     print('\tpython3 multibootusb -c -i ../../favourite.iso -t /dev/sdb1 on Linux and \n')
-    print('\tpython3 multibootusb -c -i ../../favourite.iso -t /dev/sdb1 on Windows\n')
-    print(' Command line example for uninstalling distro from USB should look like this:\n')
+    print('\tpython3 multibootusb -c -i ../../favourite.iso -t G: on Windows\n')
+    print(' Example for uninstalling distro from an USB should look like this:\n')
     print('\tpython3 multibootusb -c -u -t /dev/sdb1 on Linux and \n')
-    print('\tpython3 multibootusb -c -u -t /dev/sdb1 on Windows\n')
+    print('\tpython3 multibootusb -c -u -t G: on Windows\n')
     exit(2)
 
 
@@ -102,16 +100,21 @@ if __name__ == '__main__':
 
 if config.debug is True:
     from scripts.debug import colors
-    print(colors.HEADER + "=== DEBUG ENABLED ===")
+    log(colors.HEADER + "=== DEBUG ENABLED ===")
 
 
 if gui is False:
-    if uninstall is True and config.usb_disk is not None:
+    if uninstall is True and config.usb_disk is not '':
         cli_uninstall_distro()
-    elif config.iso_link is None and config.usb_disk is None:
+    elif uninstall is True and config.usb_disk is '':
+        log('\nYou must provide \'-t\' option to point to your USB disk for uninstalling a distro.\n'
+            'See the usage example below.')
         usage()
-    elif config.iso_link is None or config.usb_disk is None:
-        print('\nOptions \'-i\' and \'t\' must be supplied together. See the usage below.')
+    elif config.image_path is '' and config.usb_disk is '':
+        log('\nNo option provided. See the usage below.')
+        usage()
+    elif config.image_path is '' or config.usb_disk is '':
+        log('\nOptions \'-i\' and \'-t\' must be supplied together. See the usage below.')
         usage()
     else:
         cli_install_distro()
