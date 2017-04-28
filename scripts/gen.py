@@ -39,7 +39,7 @@ def log(message, info=True, error=False, debug=False):
             os.remove(LOG_FILE_PATH)
     logging.basicConfig(filename=LOG_FILE_PATH,
                         filemode='a',
-                        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                        format='%(asctime)s.%(msecs)03d %(name)s %(levelname)s %(message)s',
                         datefmt='%H:%M:%S',
                         level=logging.DEBUG)
     print(message)
