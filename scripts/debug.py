@@ -32,8 +32,6 @@ finally:
             RESET = ''
             BOLD = ''
             UNDERLINE = ''
-    finally:
-        config.debug and print(colors.HEADER + "=== DEBUG ENABLED ===")
 
 def fnCall():
     """
