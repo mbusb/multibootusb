@@ -233,9 +233,15 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
     # Ensure that isolinux.cfg file is copied as syslinux.cfg to boot correctly.
     for dirpath, dirnames, filenames in os.walk(install_dir):
         for f in filenames:
-            if f.endswith("isolinux.cfg") or f.endswith("ISOLINUX.CFG"):
-                if not os.path.exists(os.path.join(dirpath, "syslinux.cfg")) or not os.path.exists(os.path.join(dirpath, "SYSLINUX.CFG")):
-                    shutil.copy2(os.path.join(dirpath, f), os.path.join(dirpath, "syslinux.cfg"))
+            if f.lower().endswith("isolinux.cfg"):
+                if not os.path.exists(os.path.join(dirpath, "syslinux.cfg")):
+                    try:
+                        shutil.copyfile(os.path.join(dirpath, f), os.path.join(dirpath, "syslinux.cfg"))
+                    except Exception as e:
+                        log('Copying isolinux to syslinux failed...')
+                        log(e)
+                else:
+                    continue
 
     # Assertain if the entry is made..
     sys_cfg_file = os.path.join(config.usb_mount, "multibootusb", "syslinux.cfg")
