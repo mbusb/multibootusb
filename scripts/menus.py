@@ -8,8 +8,6 @@
 
 from . import iso
 from . import config
-from . import grub
-
 
 def pc_tool_config(syslinux=True, grub=False):
     """
@@ -19,8 +17,7 @@ def pc_tool_config(syslinux=True, grub=False):
     :return: 
     """
     if syslinux is True:
-        return """LABEL livecd
-KERNEL /system/stage1
+        return """KERNEL /system/stage1
 APPEND initrd=/system/stage2 root=/dev/ram0 rw rdinit=/linuxrc video=vesa:ywrap,mtrr vga=0x303 loglevel=0 splash boot=cdrom\n"""
     elif grub is True:
         return """menuentry """ + iso.iso_basename(config.image_path) + """ {
