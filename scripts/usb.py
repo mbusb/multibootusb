@@ -258,7 +258,8 @@ def details_udev(usb_disk_part):
         size_free = shutil.disk_usage(mount_point)[2]
 
     else:
-        size_total = device.get('UDISKS_PARTITION_SIZE') or ""
+        fdisk_cmd = 'fdisk -l ' + usb_disk_part + ' | grep "^Disk /" | sed -re "s/.*\s([0-9]+)\sbytes.*/\\1/"'
+        size_total = subprocess.check_output(fdisk_cmd, shell=True).strip()
         size_used = ""
         size_free = ""
         mount_point = ""
