@@ -1,13 +1,13 @@
 Version - 8.7.0
 ---------------
-* Welcome "Alin TrÄƒistaru (alindt)". He is one of the major contributor for the project
-* Hide GUI widgets when installation is progress
+* Welcome "Alin Trăistaru (alindt)". He is one of the major contributor for the project
+* Hide GUI widgets when installation in progress
 * Show USB disk size in USB details
 * Reduced CPU usage drastically
 * Open default text editor application under Linux for editing syslinux file
 * Reduced various redundant function calls
 * Dropped p7zip-plugin for suse and mageia (package not available in repo)
-* Improved CLI user experience. Windows users should run from source to avail this option
+* Improved CLI user experience. Windows users should run from source to enable this option
 * Added custom functions for writing custom loopback.cfg file
 * Various code cleanup
 * Removed windows line ending which prevented application not to start under Linux
