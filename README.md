@@ -1,6 +1,6 @@
 
 
-####  User guide is located [here](http://multibootusb.org/page_guide/)
+### Only limited instructions are provided here. For detailed instruction please refer [User guide ](http://multibootusb.org/page_guide/)
 
 What is multibootusb?
 ---------------------

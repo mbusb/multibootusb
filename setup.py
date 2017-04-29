@@ -46,7 +46,7 @@ setup(
                 ('/usr/share/multibootusb/data/tools/dd', ["data/tools/dd/dd.exe"]),
                 ('/usr/share/multibootusb/data/tools/dd', ["data/tools/dd/diskio.dll"]),
                 ('/usr/share/multibootusb/data/tools/mkfs', ["data/tools/mkfs/mke2fs.exe"]),
-                ('/usr/share/multibootusb/data/EFI', get_data('data/EFI')),
+                ('/usr/share/multibootusb/data/EFI/BOOT', get_data('data/EFI')),
                 ('/usr/share/multibootusb/data/multibootusb', ["data/multibootusb/chain.c32"]),
                 ('/usr/share/multibootusb/data/multibootusb', ["data/multibootusb/bg.png"]),
                 ('/usr/share/multibootusb/data/multibootusb', ["data/multibootusb/extlinux.cfg"]),

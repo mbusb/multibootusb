@@ -346,24 +346,30 @@ Are you SURE you want to enable it?",
         """
 
         self.ui_disable_controls()
-
         if platform.system() == "Linux" or platform.system() == "Windows":
+            if self.ui.check_install_sys_all.isChecked() or self.ui.check_install_sys_only.isChecked():
+                if platform.system() == 'Linux' and config.usb_disk[-1].isdigit() is False:
+                    gen.log('Selected USB is a disk. Please select a disk partition from the drop down list')
+                    QtWidgets.QMessageBox.information(self, 'No Partition...!',
+                                                      'USB disk selected doesn\'t contain a partition.\n'
+                                                      'Please select the partition (ending '
+                                                      'with a digit eg. /dev/sdb1)\nfrom the drop down list.')
 
-            if self.ui.install_sys_all.isChecked() or self.ui.install_sys_only.isChecked():
-                log("Installing default syslinux on ", config.usb_disk)
-                ret = syslinux_default(config.usb_disk)
-                if ret is True:
-                    if self.ui.install_sys_all.isChecked():
-                        log("Copying multibootusb directory to " + config.usb_mount)
-                        for dirpath, dirnames, filenames in os.walk(resource_path(os.path.join("tools", "multibootusb"))):
-                            for f in filenames:
-                                log("Copying " + f)
-                                shutil.copy(resource_path(os.path.join(dirpath, f)), os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb"))
-                    QtWidgets.QMessageBox.information(self, 'Install Success...',
-                                                  'Syslinux installed successfully on ' + config.usb_disk)
-                elif ret is False:
-                    QtWidgets.QMessageBox.information(self, 'Install error...',
-                                                  'Sorry. Syslinux failed to install on ' + config.usb_disk)
+                else:
+                    log("Installing default syslinux on " + config.usb_disk)
+                    ret = syslinux_default(config.usb_disk)
+                    if ret is True:
+                        if self.ui.check_install_sys_all.isChecked():
+                            log("Copying multibootusb directory to " + config.usb_mount)
+                            for dirpath, dirnames, filenames in os.walk(resource_path(os.path.join("tools", "multibootusb"))):
+                                for f in filenames:
+                                    log("Copying " + f)
+                                    shutil.copy(resource_path(os.path.join(dirpath, f)), os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb"))
+                        QtWidgets.QMessageBox.information(self, 'Install Success...',
+                                                      'Syslinux installed successfully on ' + config.usb_disk)
+                    elif ret is False:
+                        QtWidgets.QMessageBox.information(self, 'Install error...',
+                                                      'Sorry. Syslinux failed to install on ' + config.usb_disk)
             else:
                 QtWidgets.QMessageBox.information(self, 'No selection...',
                                               'Please select one of the option from above.')
