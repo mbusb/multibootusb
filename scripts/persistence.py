@@ -25,7 +25,7 @@ def max_disk_persistence(usb_disk):
     assert usb_disk is not None
 
     fat_max_size = (4096 * 1024 * 1024)
-    usb_details = usb.details(usb_disk)
+    usb_details = config.usb_details
     config.usb_uuid = usb_details['uuid']
     config.usb_label = usb_details['label']
 

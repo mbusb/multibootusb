@@ -21,7 +21,7 @@ def install_distro_list():
     List all distro names installed by previous install
     :return:  List of distro names as list
     """
-    usb_details = details(config.usb_disk)
+    usb_details = config.usb_details
     config.usb_mount = usb_details['mount_point']
     sys_cfg_file = os.path.join(config.usb_mount, "multibootusb", "syslinux.cfg")
 
