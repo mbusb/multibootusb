@@ -44,17 +44,16 @@ def log(message, info=True, error=False, debug=False):
                         level=logging.DEBUG)
     print(message)
 
-    '''
     # remove ANSI color codes from logs
-    message_clean = re.compile(r'\x1b[^m]*m').sub('', message)
+    # message_clean = re.compile(r'\x1b[^m]*m').sub('', message)
 
     if info is True:
-        logging.info(message_clean)
+        logging.info(message)
     elif error is not False:
-        logging.error(message_clean)
+        logging.error(message)
     elif debug is not False:
-        logging.debug(message_clean)
-    '''
+        logging.debug(message)
+
 
 
 def resource_path(relativePath):
@@ -92,7 +91,7 @@ def print_version():
     Simple log the version number of the multibootusb application
     :return:
     """
-    log('multibootusb version: ', mbusb_version())
+    log('multibootusb version: ' + mbusb_version())
 
 
 def quote(text):
@@ -113,7 +112,7 @@ def is_quoted(text):
     :param text:    Any word or sentence with or without quote.
     :return:        True if text is quoted else False.
     """
-    if text.startswith("""") and text.endswith("""):
+    if text.startswith("\"") and text.endswith("\""):
         return True
     else:
         return False
@@ -140,10 +139,10 @@ def mbusb_log_file():
     """
     Function to genrate path to log file.
     Under linux path is created as /tmp/multibootusb.log
-    Under Windows the file is created under 
+    Under Windows the file is created under installation directory
     """
     if platform.system() == "Linux":
-        home_dir = os.path.expanduser('~')
+        # home_dir = os.path.expanduser('~')
         # log_file = os.path.join(home_dir, "multibootusb.log")
         log_file = os.path.join(tempfile.gettempdir(), "multibootusb.log")
     elif platform.system() == "Windows":

@@ -279,6 +279,9 @@ def usage():
     sys.exit(-1)
 
 if __name__ == '__main__':
+    if platform.system() == 'Linux':
+        print('Converting line ending to Linux for proper functioning.')
+        os.system('dos2unix multibootusb')
     argv = sys.argv
     if not os.path.exists(release_dir):
         print("Release directory does not exist.\nPlease mount and rerun the script.")
