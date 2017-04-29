@@ -39,16 +39,20 @@ def log(message, info=True, error=False, debug=False):
             os.remove(LOG_FILE_PATH)
     logging.basicConfig(filename=LOG_FILE_PATH,
                         filemode='a',
-                        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                        format='%(asctime)s.%(msecs)03d %(name)s %(levelname)s %(message)s',
                         datefmt='%H:%M:%S',
                         level=logging.DEBUG)
     print(message)
+
+    # remove ANSI color codes from logs
+    message_clean = re.compile(r'\x1b[^m]*m').sub('', message)
+
     if info is True:
-        logging.info(message)
+        logging.info(message_clean)
     elif error is not False:
-        logging.error(message)
+        logging.error(message_clean)
     elif debug is not False:
-        logging.debug(message)
+        logging.debug(message_clean)
 
 
 def resource_path(relativePath):
