@@ -14,6 +14,7 @@ from .gen import *
 from .iso import *
 from . import config
 from . import grub
+from . import menus
 
 
 def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
@@ -343,7 +344,8 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
             elif distro == 'pc-unlocker':
                 config_file.write("kernel ../ldntldr" + '\n')
                 config_file.write("append initrd=../ntldr" + '\n')
-
+            elif distro == 'pc-tool':
+                config_file.write(menus.pc_tool_config(syslinux=True, grub=False))
             else:
                 if isolinux_bin_exist(config.image_path) is True:
                     if distro == "generic":

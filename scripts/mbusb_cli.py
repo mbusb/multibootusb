@@ -41,14 +41,20 @@ def cli_install_distro():
 
     log('Starting multibootusb from Command line...')
     if usb.is_block(config.usb_disk) is False:
-        log(config.usb_disk, 'is not a valid device partition...')
+        log(config.usb_disk + ' is not a valid device partition...')
         exit(1)
     #elif integrity(config.image_path) is not True:
     #    log(config.image_path, ' failed to pass integrity check...')
     #    exit(1)
     elif size_not_enough(config.image_path, config.usb_disk) is True:
-        log(config.usb_disk + 'does not have enough space...')
+        log(config.usb_disk + ' does not have enough space...')
     else:
+        usb_details = details(config.usb_disk)
+        config.usb_mount = usb_details['mount_point']
+        print(config.usb_mount)
+        print(config.image_path)
+        config.usb_uuid = usb_details['uuid']
+        config.usb_label = usb_details['label']
         prepare_mbusb_host_dir()
         extract_cfg_file(config.image_path)
         _distro = distro(iso_cfg_ext_dir(), config.image_path)
@@ -82,4 +88,4 @@ def cli_uninstall_distro():
                     config.uninstall_distro_dir_name = _distro_dir
                     unin_distro()
     else:
-        log('No distro installed on', config.usb_disk)
+        log('No distro installed on ' + config.usb_disk)

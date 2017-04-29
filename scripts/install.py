@@ -53,7 +53,8 @@ def install_distro():
         elif platform.system() == "Linux":
             log("Copying " + config.image_path + " to " + usb_mount)
             shutil.copy(config.image_path, usb_mount)
-    elif config.distro == "Windows" or config.distro == "alpine" or config.distro == 'pc-unlocker':
+    elif config.distro == "Windows" or config.distro == "alpine" or config.distro == 'pc-unlocker'\
+            or config.distro == 'pc-tool':
         log("Extracting iso to " + usb_mount)
         iso_extract_full(config.image_path, usb_mount)
     elif config.distro == "trinity-rescue":

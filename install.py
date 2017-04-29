@@ -91,11 +91,11 @@ class Install():
                 result = True
         elif subprocess.call("which zypper", shell=True) == 0:
             subprocess.call("zypper refresh", shell=True)
-            if subprocess.call("zypper install -y mtools python3-qt5 p7zip p7zip-plugins python3-pyudev python3-six util-linux parted", shell=True) == 0:
+            if subprocess.call("zypper install -y mtools python3-qt5 p7zip python3-pyudev python3-six util-linux parted", shell=True) == 0:
                 result = True
         elif subprocess.call("which urpmi", shell=True) == 0:
             subprocess.call("urpmi.update -a", shell=True)
-            if subprocess.call("urpmi install -auto mtools util-linux p7zip p7zip-plugins python3-pyudev python3-six parted python3-qt5", shell=True) == 0:
+            if subprocess.call("urpmi install -auto mtools util-linux p7zip python3-pyudev python3-six parted python3-qt5", shell=True) == 0:
                 result = True
 
         if result is not True:

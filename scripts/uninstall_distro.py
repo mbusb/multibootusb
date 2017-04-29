@@ -76,18 +76,7 @@ def delete_frm_file_list():
                 if os.path.isfile(os.path.join(usb_mount, f)):
                     gen.log("Removing " + (os.path.join(usb_mount, f)))
                     os.remove(os.path.join(usb_mount, f))
-                    '''
-                    if 'bootx64.efi' in os.path.join(usb_mount, f) or 'grub.cfg' in os.path.join(usb_mount, f):
-                        try:
-                            gen.log("Removing " + (os.path.join(usb_mount, f)))
-                            os.remove(os.path.join(usb_mount, f))
-                        except:
-                            gen.log('Could not remove ' + f)
-                    else:
-                        gen.log('Not removing ' + f)
-                    '''
                 elif os.path.isdir(os.path.join(usb_mount, f)):
-                    #if 'bootx64.efi' not in os.path.join(usb_mount, f) or 'grub.cfg' not in os.path.join(usb_mount, f):
                      shutil.rmtree(os.path.join(usb_mount, f))
 
         if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "generic.cfg")):

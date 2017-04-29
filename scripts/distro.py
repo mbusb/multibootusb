@@ -133,6 +133,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "fsecure"
                         elif re.search(r'default rwp', string, re.I):
                             return "pc-unlocker"
+                        elif re.search(r'/system/stage1', string, re.I):
+                            return 'pc-tool'
 
 
         distro = detect_iso_from_file_list(iso_link)

@@ -20,6 +20,11 @@ def mbusb_update_grub_cfg():
     """
     # Lets convert syslinux config file to grub2 accepted file format.
     _iso_dir = os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path))
+
+    # First write custom loopback.cfg file so as to be detected by iso2grub2 function later.
+    write_custom_gurb_cfg()
+
+    # Try to generate loopback entry file from syslinux config files
     try:
         gen.log('Trying to create loopback.cfg')
         iso2_grub2_cfg = iso2grub2(_iso_dir)
@@ -49,7 +54,6 @@ def mbusb_update_grub_cfg():
     efi_grub_cfg = get_grub_cfg(config.image_path)
     loopback_cfg_path = iso.iso_file_path(config.image_path, 'loopback.cfg')
     boot_grub_cfg = get_grub_cfg(config.image_path, efi=False)
-
 
     if loopback_cfg_path is not False:
         grub_cfg_path = loopback_cfg_path.replace('\\', '/')
@@ -93,6 +97,15 @@ def mbusb_update_grub_cfg():
         gen.log('Updated entry in grub.cfg...')
     else:
         gen.log('Unable to update entry in grub.cfg...')
+
+
+def write_custom_gurb_cfg():
+    from . import menus
+    print(os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), 'loopback.cfg'))
+    loopback_cfg_path = os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), 'loopback.cfg')
+    if config.distro == 'pc-tool':
+        menu = menus.pc_tool_config(syslinux=False, grub=True)
+        write_to_file(loopback_cfg_path, menu)
 
 
 def get_grub_cfg(iso_link, efi=True):
