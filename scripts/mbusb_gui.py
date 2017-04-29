@@ -143,28 +143,18 @@ Are you SURE you want to enable it?",
 
         if config.usb_disk:
             log("Selected device " + config.usb_disk)
-            config.persistence_max_size = persistence.max_disk_persistence(config.usb_disk)
 
-            self.usb_details = usb.details(config.usb_disk)
-#             print(self.usb_details)
-            config.usb_mount = self.usb_details.get('mount_point', "")
+            config.usb_details = usb.details(config.usb_disk)
+            config.persistence_max_size = persistence.max_disk_persistence(config.usb_disk)
+            config.usb_mount = config.usb_details.get('mount_point', "")
             self.ui.usb_dev.setText(config.usb_disk)
 
-#             if platform.system() == 'Windows':
-#                 self.ui.label_usb_vendor.setText("FileSystem:")
-#                 self.ui.usb_vendor.setText(self.usb_details['file_system'])
-#                 self.ui.label_usb_model.setText("Label: ")
-#                 self.ui.usb_model.setText(self.usb_details['label'])
-#             else:
-#                 self.ui.usb_vendor.setText(self.usb_details['vendor'])
-#                 self.ui.usb_model.setText(self.usb_details['model'])
-
-            self.ui.usb_vendor.setText(self.usb_details.get('vendor', ""))
-            self.ui.usb_model.setText(self.usb_details.get('model', ""))
-            self.ui.usb_size.setText(str(usb.bytes2human(self.usb_details.get('size_total', ""))))
-            self.ui.usb_mount.setText(self.usb_details.get('mount_point', ""))
-            self.ui.usb_type.setText(self.usb_details.get('devtype', ""))
-            self.ui.usb_fs.setText(self.usb_details.get('file_system', ""))
+            self.ui.usb_vendor.setText(config.usb_details.get('vendor', ""))
+            self.ui.usb_model.setText(config.usb_details.get('model', ""))
+            self.ui.usb_size.setText(str(usb.bytes2human(config.usb_details.get('size_total', ""))))
+            self.ui.usb_mount.setText(config.usb_details.get('mount_point', ""))
+            self.ui.usb_type.setText(config.usb_details.get('devtype', ""))
+            self.ui.usb_fs.setText(config.usb_details.get('file_system', ""))
 
             self.update_list_box(config.usb_disk)
             self.ui_update_persistence()
