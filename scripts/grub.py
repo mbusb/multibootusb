@@ -52,8 +52,8 @@ def mbusb_update_grub_cfg():
             syslinux_menu = iso_iso_cfg_path.replace('\\', '/')
 
     efi_grub_cfg = get_grub_cfg(config.image_path)
-    loopback_cfg_path = iso.iso_file_path(config.image_path, 'loopback.cfg')
     boot_grub_cfg = get_grub_cfg(config.image_path, efi=False)
+    loopback_cfg_path = iso.iso_file_path(config.image_path, 'loopback.cfg')
 
     if loopback_cfg_path is not False:
         grub_cfg_path = loopback_cfg_path.replace('\\', '/')
@@ -72,8 +72,12 @@ def mbusb_update_grub_cfg():
             with open(mbus_grub_cfg_path, 'a') as f:
                 f.write("#start " + iso.iso_basename(config.image_path) + "\n")
                 if grub_cfg_path is not None:
-                    f.write('     menuentry ' + iso.iso_basename(config.image_path) + ' {configfile '
-                            + '/multibootusb/' + iso.iso_basename(config.image_path) + '/' + grub_cfg_path + '}' + "\n")
+                    if  config.distro == 'grub2only':
+                        f.write('     menuentry ' + iso.iso_basename(config.image_path) + ' {configfile '
+                                + '/' + grub_cfg_path.replace('\\', '/') + '}' + "\n")
+                    else:
+                        f.write('     menuentry ' + iso.iso_basename(config.image_path) + ' {configfile '
+                                + '/multibootusb/' + iso.iso_basename(config.image_path) + '/' + grub_cfg_path + '}' + "\n")
                 elif config.distro == 'f4ubcd':
                     f.write('     menuentry ' + iso.iso_basename(config.image_path) +
                             ' {linux /multibootusb/grub.exe --config-file=/multibootusb' +
@@ -101,7 +105,6 @@ def mbusb_update_grub_cfg():
 
 def write_custom_gurb_cfg():
     from . import menus
-    print(os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), 'loopback.cfg'))
     loopback_cfg_path = os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), 'loopback.cfg')
     if config.distro == 'pc-tool':
         menu = menus.pc_tool_config(syslinux=False, grub=True)
@@ -142,7 +145,6 @@ def grub_custom_menu(mbus_grub_cfg_path, distro):
     gen.log('size of the ISO is ' + str(iso_size_mb))
     if distro == 'sgrubd2' or distro == 'raw_iso':
         grub_raw_iso(mbus_grub_cfg_path)
-    elif distro == '':
 
         '''
         with open(mbus_grub_cfg_path, 'a') as f:

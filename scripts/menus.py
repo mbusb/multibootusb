@@ -8,6 +8,7 @@
 
 from . import iso
 from . import config
+from . import grub
 
 
 def pc_tool_config(syslinux=True, grub=False):
@@ -25,3 +26,12 @@ APPEND initrd=/system/stage2 root=/dev/ram0 rw rdinit=/linuxrc video=vesa:ywrap,
         return """menuentry """ + iso.iso_basename(config.image_path) + """ {
 linux /system/stage1 root=/dev/ram0 rw rdinit=/linuxrc video=vesa:ywrap,mtrr vga=0x303 loglevel=0 splash boot=cdrom
 initrd /system/stage2\n}"""
+
+
+def grub2only():
+    return """MENU LABEL """ + iso.iso_basename(config.image_path) + """
+Linux /multibootusb/grub/lnxboot.img
+INITRD /multibootusb/grub/core.img
+TEXT HELP
+    Switch to GRUB2 to select boot options.
+ENDTEXT\n"""

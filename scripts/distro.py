@@ -135,6 +135,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "pc-unlocker"
                         elif re.search(r'/system/stage1', string, re.I):
                             return 'pc-tool'
+                        elif re.search(r'vba32rescue', string, re.I):
+                            return 'grub2only'
 
 
         distro = detect_iso_from_file_list(iso_link)

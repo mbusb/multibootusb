@@ -346,6 +346,8 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 config_file.write("append initrd=../ntldr" + '\n')
             elif distro == 'pc-tool':
                 config_file.write(menus.pc_tool_config(syslinux=True, grub=False))
+            elif distro == 'grub2only':
+                config_file.write(menus.grub2only())
             else:
                 if isolinux_bin_exist(config.image_path) is True:
                     if distro == "generic":

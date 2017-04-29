@@ -11,6 +11,7 @@ usb_disk = ""
 usb_mount = ""
 usb_uuid = ""
 usb_label = ""
+usb_details = ''
 image_path = ""
 persistence = 0
 persistence_available = False

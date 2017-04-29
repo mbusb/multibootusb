@@ -182,6 +182,8 @@ def extract_cfg_file(iso_link):
     # file_list = iso_file_list(iso_link)
     for ext in _pattern:
         _7zip.extract_iso(iso_link, _iso_cfg_ext_dir, pattern='*' + ext)
+    #_7zip.extract_iso(iso_link, _iso_cfg_ext_dir, pattern='isolinux.bin ISOLINUX.BIN')
+    #_7zip.extract_iso(iso_link, _iso_cfg_ext_dir, pattern='*.cfg *.CFG *.txt *.TXT *.lst')
 
 
 def iso_extract_full(iso_link, dest_dir):

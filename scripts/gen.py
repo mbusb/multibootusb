@@ -44,6 +44,7 @@ def log(message, info=True, error=False, debug=False):
                         level=logging.DEBUG)
     print(message)
 
+    '''
     # remove ANSI color codes from logs
     message_clean = re.compile(r'\x1b[^m]*m').sub('', message)
 
@@ -53,6 +54,7 @@ def log(message, info=True, error=False, debug=False):
         logging.error(message_clean)
     elif debug is not False:
         logging.debug(message_clean)
+    '''
 
 
 def resource_path(relativePath):
