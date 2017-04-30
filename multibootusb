@@ -68,8 +68,8 @@ if __name__ == '__main__':
             admin.runAsAdmin()
             sys.exit(0)
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'i:t:vhcud',
-                                   ['iso=', 'target=', 'version', 'help', 'command', 'uninstall', 'debug'])
+        opts, args = getopt.getopt(sys.argv[1:], 'i:t:yvhcud',
+                                   ['iso=', 'target=', 'yes', 'version', 'help', 'command', 'uninstall', 'debug'])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
@@ -81,7 +81,10 @@ if __name__ == '__main__':
             print_version()
             sys.exit()
         elif opt in ('-i', '--iso'):
-            config.image_path = arg
+            if ',' not in arg:
+                config.image_path = arg
+            else:
+                config.image_path = arg.split(',')
         elif opt in ('-t', '--target'):
             config.usb_disk = arg
         elif opt in ('-c', '--command'):
@@ -90,6 +93,8 @@ if __name__ == '__main__':
             uninstall = True
         elif opt in ('-d', '--debug'):
             config.debug = True
+        elif opt in ('-y', '--yes'):
+            config.yes = True
         else:
             gui = True
             #start_gui()
