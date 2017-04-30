@@ -106,3 +106,6 @@ multibootusb*.exe
 mbusb_te*py
 text.txt
 text.py
+
+# Temp files
+*~
