@@ -20,6 +20,7 @@ import shutil
 import subprocess
 import sys
 import platform
+import re
 
 
 ####################################################################################################
@@ -34,6 +35,9 @@ else:
     # pyinstaller_path = "/home/sundar/Documents/pyInstaller/pyinstaller.py"
     pyinstaller_path = "/media/sundar/Data/multibootusb/pyinstaller/pyinstaller.py"
     release_dir = "/media/sundar/Data/multibootusb/release"
+    debian_bin_path = '/usr/bin/multibootusb'
+    rpm_bin_path = '/usr/local/bin/multibootusb'
+
 sourceforge_release_path = "multibootusb@frs.sourceforge.net:/home/frs/project/multibootusb/"
 ####################################################################################################
 
@@ -45,6 +49,27 @@ class bcolors:
     WARNING = '\033[93m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
+
+
+def coorect_bin_path(_file_path, search_bin_path, replace_bin_path):
+    import shutil
+
+    # shutil.move(_file_path, _file_path + "~")
+    # destination = open(_file_path, "w")
+    # source = open(_file_path + "~", "r").read()
+
+    with open(_file_path + "~", 'r') as _infile:
+        data = _infile.read()
+
+        if re.search(search_bin_path, data, re.I):
+            _data = re.search(search_bin_path, data, re.I).group()
+            _mod_text = re.sub(search_bin_path, replace_bin_path, data)
+            print('_mod_text', _mod_text)
+            with open(_file_path, 'w') as _out_file:
+                _out_file.write(_mod_text)
+        else:
+            with open(_file_path, 'w') as _out_file:
+                _out_file.write(data)
 
 
 class pkg():
@@ -64,6 +89,8 @@ class pkg():
         if not os.path.exists(os.path.join(self.release_upload_dir, "Source")):
             os.mkdir(os.path.join(self.release_upload_dir, "Source"))
         if self.pkg_name == "deb":
+            print('Modifying policy file...')
+            coorect_bin_path('org.debian.pkexec.run-multibootusb.policy', rpm_bin_path, debian_bin_path)
             print("Ensure thta you have python-stdeb package installed!")
             stdcfg = """[DEFAULT]
                       Package: multibootusb
@@ -89,6 +116,8 @@ class pkg():
                 print((os.path.join("deb_dist", "python3-multibootusb_" + self.version + "-1_all.deb\n\n\n")))
                 result = True
         elif self.pkg_name == 'rpm' or self.pkg_name == 'suse' or self.pkg_name == 'mageia':
+            print('Modifying policy file for rpm packages...')
+            coorect_bin_path('org.debian.pkexec.run-multibootusb.policy', debian_bin_path, rpm_bin_path)
             if self.pkg_name == 'suse' or self.pkg_name == 'mageia':
                 require = "python3-qt5, parted, util-linux, mtools, python3-dbus, python3-pyudev, p7zip, python3-six"
             else:
@@ -282,6 +311,7 @@ if __name__ == '__main__':
     if platform.system() == 'Linux':
         print('Converting line ending to Linux for proper functioning.')
         os.system('dos2unix multibootusb')
+
     argv = sys.argv
     if not os.path.exists(release_dir):
         print("Release directory does not exist.\nPlease mount and rerun the script.")
