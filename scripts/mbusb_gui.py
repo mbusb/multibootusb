@@ -434,7 +434,6 @@ Are you SURE you want to enable it?",
                                                    QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
             if reply == QtWidgets.QMessageBox.Yes:
-
                 if not os.path.exists(os.path.join(config.usb_mount, 'multibootusb', config.uninstall_distro_dir_name)):
                     log("Distro install directory not found. Just updating syslinux.cfg file.")
                     update_sys_cfg_file()
@@ -442,6 +441,8 @@ Are you SURE you want to enable it?",
                     self.ui_enable_controls()
                 else:
                     self.progress_thread_uninstall.start()
+            else:
+                self.ui_enable_controls()
 
     def uninstall_sys_file_update(self):
         """
