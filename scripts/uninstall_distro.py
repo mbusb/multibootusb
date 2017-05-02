@@ -115,13 +115,7 @@ def uninstall_distro():
     if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "iso_file_list.cfg")):
         with open(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "iso_file_list.cfg"), "r") as f:
             config.iso_file_list = f.readlines()
-            # gen.log iso_file_list
 
-    for path, subdirs, files in os.walk(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name)):
-        for name in files:
-            if name.endswith('ldlinux.sys') or name.endswith('ldlinux.c32'):
-                os.chmod(os.path.join(path, name), 0o777)
-                os.unlink(os.path.join(path, name))
     if config.distro == "opensuse":
         if os.path.exists(os.path.join(usb_mount, config.uninstall_distro_dir_name + ".iso")):
             os.remove(os.path.join(usb_mount, config.uninstall_distro_dir_name + ".iso"))
