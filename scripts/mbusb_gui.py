@@ -510,7 +510,6 @@ Are you SURE you want to enable it?",
 #                 self.ui.image_path.clear()
                 if config.distro:
                     log("MultiBoot Install: Distro type detected: " + config.distro)
-                    copy_mbusb_dir_usb(config.usb_disk)
                     if not os.path.exists(os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path))):
                         config.persistence = self.ui.slider_persistence.value() * 1024 * 1024
                         log("Persistence chosen is " + str(bytes2human(config.persistence)))
@@ -529,6 +528,7 @@ Are you SURE you want to enable it?",
 
                             if reply == QtWidgets.QMessageBox.Yes:
                                 self.ui.slider_persistence.setEnabled(False)
+                                copy_mbusb_dir_usb(config.usb_disk)
                                 config.process_exist = True
                                 self.progress_thread_install.start()
                             elif reply == QtWidgets.QMessageBox.No:
