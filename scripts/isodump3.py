@@ -152,15 +152,15 @@ class ISO9660:
         BLOCK_SIZE = priVol.blockSize
 
         # Check RRIP
-        #gen.log ("loc extent(%d)"%(dirRec.locExtent))
+        #gen.log("loc extent(%d)"%(dirRec.locExtent))
         self.priVol = priVol # readDirItems will use self.priVol
         root_dir = self.readDirItems(dirRec.locExtent, priVol.rootTotal)[0]
         rripNode = self.__rripLoop__(root_dir.suspBuf, root_dir.lenDr-root_dir.sysUseStar)
         if rripNode.offset != -1:
             self.rripOffset = rripNode.offset
-            #gen.log ("RRIP: rrip_offset %d"%(self.rripOffset))
+            #gen.log("RRIP: rrip_offset %d"%(self.rripOffset))
         else:
-            gen.log ("This ISO doesn't support RRIP")
+            gen.log("This ISO doesn't support RRIP")
         self.rootDir = root_dir
 
     #  Rrip extension
@@ -168,7 +168,7 @@ class ISO9660:
 
         if self.rripOffset > 0:
             entry_buf = desc_buf[self.rripOffset:]
-            gen.log ("__rripLoop__ offset:%d"%(self.rripOffset))
+            gen.log("__rripLoop__ offset:%d"%(self.rripOffset))
         else:
             entry_buf = desc_buf
 
@@ -181,7 +181,7 @@ class ISO9660:
             len_entry = 0
 
             while True:
-                #gen.log (("\n%d, %d\n")%(len_buf, head))
+                #gen.log(("\n%d, %d\n")%(len_buf, head))
                 head += len_entry
                 if len_buf - head < 4: # less than one entry
                     break
@@ -322,7 +322,7 @@ class ISO9660:
                 else:
                     return item
             else:
-                gen.log ("can't find " + dircomps[i_dircomp])
+                gen.log("can't find " + dircomps[i_dircomp])
                 return None
 
     def readDirrecord(self, desc_buf):
@@ -628,7 +628,7 @@ class ISO9660:
                             lastfile_end = BLOCK_SIZE * dr2.locExtent + dr2.lenData
                             self.isoFile.seek(0, os.SEEK_END)
                             iso_end = self.isoFile.tell()
-                            #gen.log ("%d-->%d")%(lastfile_end, iso_end)
+                            #gen.log("%d-->%d")%(lastfile_end, iso_end)
                             if iso_end >= lastfile_end:
                                 return True
                             else:

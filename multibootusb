@@ -12,6 +12,10 @@ import sys
 import os
 import platform
 
+# The following line is required for distros based on rpm so as to avoid import errors when running from installed system
+sys.path.append('/usr/local/lib/python3.4/dist-packages')
+# print(sys.path)
+
 # Had trouble in importing scripts directory. Had to add few lines below to ensure it works on source as well as
 # post install
 try:
@@ -30,6 +34,16 @@ except:
 
 gui = True
 uninstall = False
+
+
+def running_from():
+    """
+    Print version and path location (installed or source code) info for debugging later.
+    """
+    if os.path.exists('scripts'):
+        gen.log('Running multibootusb version ' + gen.mbusb_version() + ' from source...')
+    else:
+        gen.log('Running multibootusb version ' + gen.mbusb_version() + ' from installed system...')
 
 
 def usage():
@@ -67,6 +81,7 @@ def start_gui():
 
 
 if __name__ == '__main__':
+    running_from()
     if platform.system() == 'Windows':
         if not admin.isUserAdmin():
             admin.runAsAdmin()

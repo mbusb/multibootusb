@@ -53,14 +53,14 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'ignore_bootid root=UUID=' + usb_uuid + ' live-media-path=/multibootusb/'
                                     + iso_basename(iso_link) + '/casper', string)
                     string = re.sub(r'ui gfxboot', '#ui gfxboot', string)
-                    if not persistence == 0:
+                    if persistence != 0:
                         string = re.sub(r'boot=casper', 'boot=casper persistent persistent-path=/multibootusb/' +
                                         iso_basename(iso_link) + "/", string)
 
-                elif distro == "debian" or distro == "debian-install":
+                elif distro in ["debian", "debian-install"]:
                     string = re.sub(r'boot=live', 'boot=live ignore_bootid live-media-path=/multibootusb/' +
                                     iso_basename(iso_link) + '/live', string)
-                    if not persistence == 0:
+                    if persistence != 0:
                         string = re.sub(r'boot=live', 'boot=live persistent persistent-path=/multibootusb/' +
                                         iso_basename(iso_link) + "/", string)
                 elif distro == 'grml':
@@ -81,7 +81,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                         string = re.sub(r'initrd=', 'rd.live.dir=/multibootusb/' + iso_basename(iso_link) +
                                         '/LiveOS initrd=', string)
 
-                    if not persistence == 0:
+                    if persistence != 0:
                         if re.search(r'liveimg', string, re.I):
                             string = re.sub(r'liveimg', 'liveimg overlay=UUID=' + usb_uuid, string)
                         elif re.search(r'rd.live.image', string, re.I):
@@ -152,7 +152,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                             rows.append(line)
 
                     string = ''.join(rows)
-                elif distro == "arch" or distro == "chakra":
+                elif distro in ["arch", "chakra"]:
                     string = re.sub(r'isolabel=\S*',
                                     'isodevice=/dev/disk/by-uuid/' + usb_uuid, string, flags=re.I)
                     string = re.sub(r'isobasedir=',
@@ -168,7 +168,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                     string = re.sub(r'append',
                                     'append kdeosisobasedir=/multibootusb/' + iso_basename(iso_link) + '/kdeos/', string, flags=re.I)
                     string = re.sub(r'ui gfxboot', '# ui gfxboot', string)  # Bug in the isolinux package
-                elif distro == "suse" or distro == "opensuse":
+                elif distro in ["suse", "opensuse"]:
                     if re.search(r'opensuse_12', string, re.I):
                         string = re.sub(r'append',
                                         'append loader=syslinux isofrom_system=/dev/disk/by-uuid/' + usb_uuid + ":/" +
@@ -256,7 +256,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
         gen.log('EFI image does not exist. Copying now...')
         shutil.copy2(resource_path(os.path.join("data", "EFI", "BOOT", "bootx64.efi")),
                                    os.path.join(config.usb_mount, 'EFI', 'BOOT'))
-    elif not gen.grub_efi_exist(efi_grub_img) is True:
+    elif gen.grub_efi_exist(efi_grub_img) is False:
         gen.log('EFI image overwritten by distro install. Replacing it now...')
         shutil.copy2(resource_path(os.path.join("data", "EFI", "BOOT", "bootx64.efi")),
                      os.path.join(config.usb_mount, 'EFI', 'BOOT'))
@@ -270,7 +270,7 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
     :return:
     """
     if platform.system() == 'Linux':
-        os.system('sync')
+        os.sync()
     log('Updating multibootusb config file...')
     sys_cfg_file = os.path.join(usb_mount, "multibootusb", "syslinux.cfg")
     install_dir = os.path.join(usb_mount, "multibootusb", iso_basename(iso_link))
@@ -279,7 +279,7 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
         if distro == "hbcd":
             if os.path.exists(os.path.join(usb_mount, "multibootusb", "menu.lst")):
                 _config_file = os.path.join(usb_mount, "multibootusb", "menu.lst")
-                config_file = open(_config_file,"w")
+                config_file = open(_config_file, "w")
                 string = re.sub(r'/HBCD', '/multibootusb/' + iso_basename(iso_link) + '/HBCD', _config_file)
                 config_file.write(string)
                 config_file.close()
@@ -360,7 +360,7 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 if isolinux_bin_exist(config.image_path) is True:
                     if distro == "generic":
                         distro_syslinux_install_dir = isolinux_bin_dir(iso_link)
-                        if not isolinux_bin_dir(iso_link) == "/":
+                        if isolinux_bin_dir(iso_link) != "/":
                             distro_sys_install_bs = os.path.join(usb_mount, isolinux_bin_dir(iso_link)) + '/' + distro + '.bs'
                         else:
                             distro_sys_install_bs = '/' + distro + '.bs'
