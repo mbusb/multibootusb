@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'gui/multibootusb.ui'
+# Form implementation generated from reading ui file 'multibootusb.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -233,11 +233,15 @@ class Ui_MainWindow(object):
         self.gridLayout_9.addItem(spacerItem2, 0, 1, 1, 1)
         spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.gridLayout_9.addItem(spacerItem3, 2, 1, 1, 1)
+        self.label_6 = QtWidgets.QLabel(self.tab_imager)
+        self.label_6.setObjectName("label_6")
+        self.gridLayout_9.addWidget(self.label_6, 3, 0, 1, 3)
         self.horizontalLayout_7.addLayout(self.gridLayout_9)
         self.tabWidget.addTab(self.tab_imager, "")
         self.tab_syslinux = QtWidgets.QWidget()
         self.tab_syslinux.setObjectName("tab_syslinux")
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.tab_syslinux)
+        self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.gridLayout_2 = QtWidgets.QGridLayout()
         self.gridLayout_2.setObjectName("gridLayout_2")
@@ -286,6 +290,7 @@ class Ui_MainWindow(object):
         self.tab_testboot = QtWidgets.QWidget()
         self.tab_testboot.setObjectName("tab_testboot")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.tab_testboot)
+        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.gridLayout_6 = QtWidgets.QGridLayout()
         self.gridLayout_6.setContentsMargins(-1, 10, -1, -1)
@@ -364,7 +369,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_7.addWidget(self.progressbar)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 629, 19))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 629, 21))
         self.menubar.setNativeMenuBar(True)
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
@@ -415,6 +420,7 @@ class Ui_MainWindow(object):
         self.label_persistence_value.setText(_translate("MainWindow", "0 MB"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_multibootusb), _translate("MainWindow", "MultiBootUSB"))
         self.button_write_image_to_disk.setText(_translate("MainWindow", "Write image to USB"))
+        self.label_6.setText(_translate("MainWindow", "<html><head/><body><p align=\"justify\"><span style=\" font-weight:600; color:#ff0000;\">WARNING</span> : Any bootable USB made using<span style=\" font-weight:600;\"> ISO Imager will destroy all data </span>on the selected USB disk. </p><p align=\"justify\">Use it at your own risk. Developers are not responsile for loss of any data.</p></body></html>"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_imager), _translate("MainWindow", "Write Image to disk"))
         self.groupBox_2.setTitle(_translate("MainWindow", "Install Syslinux"))
         self.check_install_sys_only.setText(_translate("MainWindow", "Install only syslinu&x (existing configurations will not be altered)."))
@@ -449,4 +455,14 @@ class Ui_MainWindow(object):
         self.menu_Help.setTitle(_translate("MainWindow", "&Help"))
         self.action_Quit.setText(_translate("MainWindow", "&Quit"))
         self.action_About.setText(_translate("MainWindow", "&About"))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())
 

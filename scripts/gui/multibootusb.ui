@@ -351,7 +351,7 @@
             </property>
             <property name="icon">
              <iconset>
-			  <normaloff>:/icon_uninstall</normaloff>:/icon_uninstall</iconset>
+              <normaloff>:/icon_uninstall</normaloff>:/icon_uninstall</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -374,7 +374,7 @@
             </property>
             <property name="icon">
              <iconset>
-			  <normaloff>:/icon_install</normaloff>:/icon_install</iconset>
+              <normaloff>:/icon_install</normaloff>:/icon_install</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -548,7 +548,7 @@
            </spacer>
           </item>
           <item row="2" column="1">
-           <spacer name="verticalSpacer_5">
+           <spacer name="verticalSpacer_2">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
@@ -559,6 +559,16 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="3" column="0" colspan="3">
+           <widget class="QLabel" name="label_waning">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;WARNING&lt;/span&gt; : Any bootable USB made using&lt;span style=&quot; font-weight:600;&quot;&gt; ISO Imager will destroy all data &lt;/span&gt;on the selected USB disk. &lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;Use it at your own risk. Developers are not responsile for loss of any data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -935,7 +945,7 @@
      <x>0</x>
      <y>0</y>
      <width>629</width>
-     <height>19</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="nativeMenuBar">

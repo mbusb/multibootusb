@@ -75,10 +75,10 @@ def iso_install(iso_image):
         _distro = distro(iso_cfg_ext_dir(), iso_image)
         if _distro is not None:
             log('Initiating installation process for ' + iso.iso_basename(iso_image))
+            log('Detected distro type is    :' + _distro)
+            log('\nSelected ISO is          :' + quote(iso_name(iso_image)))
+            log('Selected target device is  :' + quote(config.usb_disk), '\n')
             if config.yes is not True:
-                log('Detected distro type is    :' + _distro)
-                log('\nSelected ISO is          :' + quote(iso_name(iso_image)))
-                log('Selected target device is  :' + quote(config.usb_disk), '\n')
                 log('Please confirm the option.')
                 log('Y/y/Yes/yes/YES or N/n/No/no/NO')
                 if read_input_yes() is True:
@@ -100,7 +100,6 @@ def iso_install(iso_image):
                 syslinux_default(config.usb_disk)
                 update_distro_cfg_files(iso_image, config.usb_disk, _distro)
                 log('Finished installing ' + iso.iso_basename(iso_image))
-
         else:
             log('\n\nSorry ' + iso_name(iso_image) + ' is not supported at the moment.\n'
                 'Please report tissue at https://github.com/mbusb/multibootusb/issues\n')
