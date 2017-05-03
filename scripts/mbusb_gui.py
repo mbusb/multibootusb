@@ -591,18 +591,18 @@ Are you SURE you want to enable it?",
         self.ui_disable_controls()
 
         if not config.usb_disk:
-            QtWidgets.QMessageBox.information(self, 'No USB...', 'Please Insert USB disk and rerun multibootusb.')
+            QtWidgets.QMessageBox.information(self, 'No USB disk selected', 'Please insert USB disk and click "Detect Drives".')
             self.ui_enable_controls()
         elif not config.image_path:
-            QtWidgets.QMessageBox.information(self, 'No ISO...', 'Please select an ISO.')
+            QtWidgets.QMessageBox.information(self, 'No ISO selected', 'Please select an ISO.')
             self.ui_enable_controls()
         else:
             imager = Imager()
-            if platform.system() == 'Linux' and config.usb_disk[-1].isdigit() is True:
-                gen.log('Selected disk is a partitions. Please select a disk from the drop down list')
-                QtWidgets.QMessageBox.information(self, 'Wrong Disk...!', 'Disk selected is a partition.\nISO is to '
-                                                                          'be written to whole disk for proper functioning'
-                                                                          '.\n\nPlease select the disk from the drop down list.')
+            if platform.system() == 'Linux' and config.usb_details['devtype'] == "partition":
+                gen.log('Selected device is a partition. Please select a disk from the drop down list')
+                QtWidgets.QMessageBox.information(self, 'Incompatible device', 'Selected device (%s) is a partition!\n'
+                                                                          'ISO must be written to a whole disk.'
+                                                                          '\n\nPlease select a disk from the drop down list.' % config.usb_disk)
                 self.ui_enable_controls()
             else:
                 usb_disk_size = int(imager.imager_usb_detail(config.usb_disk, partition=0).total_size)
