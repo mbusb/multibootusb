@@ -80,7 +80,7 @@ def list_iso(iso_link, suppress_out=True):
             if '.....' in line:
                 if gen.has_digit(line[2]) or gen.has_digit(line[4]):
                     if len(line) > 6:
-                        f_path = " ".join(line[5:len(line)])
+                        f_path = " ".join(line[5:])
                         file_list.append(f_path)
                     else:
                         f_path = line[-1]
@@ -115,10 +115,7 @@ def test_iso(iso_link, suppress_out=True):
 
     rc = subprocess.call(_cmd, shell=True)
 
-    if rc == 0 or rc == 1:
-        return True
-    else:
-        return False
+    return bool(rc in [0, 1])
 
 
 if __name__ == '__main__':
