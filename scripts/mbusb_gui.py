@@ -331,7 +331,7 @@ Are you SURE you want to enable it?",
         self.update_list_box(config.usb_disk)
         if sys.platform.startswith("linux"):
             self.ui.statusbar.showMessage("Status: Sync is in progress...")
-            os.system('sync')
+            os.sync()
         self.ui.statusbar.showMessage("Status: Idle")
         self.ui_disable_persistence()
         log(iso_name(config.image_path) + ' has been successfully installed.')
@@ -453,7 +453,7 @@ Are you SURE you want to enable it?",
         self.update_list_box(config.usb_mount)
         if sys.platform.startswith("linux"):
             self.ui.statusbar.showMessage("Status: Sync in progress...")
-            os.system('sync')
+            os.sync()
         self.ui.statusbar.showMessage("Status: Idle")
         QtWidgets.QMessageBox.information(self, 'Uninstall Complete...',
                                       config.uninstall_distro_dir_name + ' has been successfully removed.')

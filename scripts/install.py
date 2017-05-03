@@ -100,7 +100,7 @@ def install_distro():
 
     if platform.system() == 'Linux':
         log('ISO extracted successfully. Sync is in progress...')
-        os.system('sync')
+        os.sync()
 
     if config.persistence != 0:
         log('Creating persistence...')
@@ -159,7 +159,7 @@ def install_patch():
     """
     if config.distro == 'debian':
         if platform.system() == 'Linux':  # Need to syn under Linux. Otherwise, USB disk becomes random read only.
-            os.system('sync')
+            os.sync()
         iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
         isolinux_path = os.path.join(iso_cfg_ext_dir, isolinux_bin_path(config.image_path))
         iso_linux_bin_dir = isolinux_bin_dir(config.image_path)

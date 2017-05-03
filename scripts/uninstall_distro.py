@@ -90,7 +90,7 @@ def delete_frm_file_list():
     if platform.system() == 'Linux':
         gen.log('Removed files from ' + config.uninstall_distro_dir_name)
         gen.log('Syncing....')
-        os.system('sync')
+        os.sync()
 
 
 
@@ -107,7 +107,7 @@ def uninstall_distro():
     usb_mount = usb_details['mount_point']
 
     if platform.system() == 'Linux':
-        os.system('sync')
+        os.sync()
         # remove 'immutable' from files on ext2/3/4 fs
         if usb_mount:
             subprocess.call("chattr -i -R %s/* 2>/dev/null" % usb_mount, shell=True)
@@ -133,7 +133,7 @@ def uninstall_distro():
 
     if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name)):
         if platform.system() == 'Linux':
-            os.system('sync')
+            os.sync()
         shutil.rmtree(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name))
 
     delete_frm_file_list()
@@ -161,7 +161,7 @@ def update_sys_cfg_file():
     :return:
     """
     if platform.system() == 'Linux':
-        os.system('sync')
+        os.sync()
 
     sys_cfg_file = os.path.join(config.usb_mount, "multibootusb", "syslinux.cfg")
     if not os.path.exists(sys_cfg_file):
@@ -181,7 +181,7 @@ def update_grub_cfg_file():
     :return:
     """
     if platform.system() == 'Linux':
-        os.system('sync')
+        os.sync()
 
     grub_cfg_file = os.path.join(config.usb_mount, "multibootusb", "grub", "grub.cfg")
     if not os.path.exists(grub_cfg_file):
@@ -204,7 +204,7 @@ def uninstall_progress():
     usb_details = details(config.usb_disk)
     usb_mount = usb_details['mount_point']
     if platform.system() == 'Linux':
-        os.system('sync')
+        os.sync()
 
     if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "multibootusb.cfg")):
         with open(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "multibootusb.cfg"),
