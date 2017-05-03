@@ -118,7 +118,9 @@ class pkg():
         elif self.pkg_name == 'rpm' or self.pkg_name == 'suse' or self.pkg_name == 'mageia':
             print('Modifying policy file for rpm packages...')
             coorect_bin_path('org.debian.pkexec.run-multibootusb.policy', debian_bin_path, rpm_bin_path)
-            if self.pkg_name == 'suse' or self.pkg_name == 'mageia':
+            if self.pkg_name == 'suse':
+                require = "python3-qt5, parted, util-linux, mtools, dbus-1-python3, python3-pyudev, p7zip, python3-six"
+            elif  self.pkg_name == 'mageia':
                 require = "python3-qt5, parted, util-linux, mtools, python3-dbus, python3-pyudev, p7zip, python3-six"
             else:
                 require = "python3-PyQt5, parted, util-linux, mtools, python3-dbus, python3-pyudev, p7zip, p7zip-plugins, python3-six"
