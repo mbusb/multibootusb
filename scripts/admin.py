@@ -86,7 +86,10 @@ def runAsAdmin(cmdLine=None, wait=True):
     #    raise RuntimeError, "This function is only implemented on Windows."
     if platform.system() == "Windows":
 
-        import win32api, win32con, win32event, win32process
+        import win32api
+        import win32con
+        import win32event
+        import win32process
         from win32com.shell.shell import ShellExecuteEx
         from win32com.shell import shellcon
 
