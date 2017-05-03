@@ -11,7 +11,8 @@ __copyright__ = '2010, Kovid Goyal <kovid@kovidgoyal.net>'
 __docformat__ = 'restructuredtext en'
 
 # from __future__ import print_function
-import os, re
+import os
+import re
 
 
 def node_mountpoint(node):
@@ -133,16 +134,6 @@ class UDisks2(object):
 
     def mount(self, device_node_path):
         d = self.device(device_node_path)
- 
-#         euid = os.environ['SUDO_UID']
-#         egid = os.environ['SUDO_GID']
-# 
-#         if euid and egid:
-#             user, group = int(euid), int(egid)
-#         else:
-#             user, group = os.getuid(), os.getgid()
-# 
-#         mount_options = ['rw', 'noexec', 'nosuid', 'nodev', 'uid=%d' % user, 'gid=%d' % group]
         mount_options = ['rw', 'noexec', 'nosuid', 'nodev']
 
         try:
@@ -158,8 +149,8 @@ class UDisks2(object):
             mp = node_mountpoint(str(device_node_path))
             if mp is None:
                 raise
-        finally:
-            return mp
+
+        return mp
 
     def unmount(self, device_node_path):
         d = self.device(device_node_path)

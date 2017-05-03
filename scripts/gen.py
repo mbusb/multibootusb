@@ -243,17 +243,17 @@ def read_input_yes():
         return False
 
 
-def strings(filename, min=4):
+def strings(filename, _min=4):
     with open(filename, errors="ignore") as f:
         result = ""
         for c in f.read():
             if c in string.printable:
                 result += c
                 continue
-            if len(result) >= min:
+            if len(result) >= _min:
                 yield result
             result = ""
-        if len(result) >= min:  # catch result at EOF
+        if len(result) >= _min:  # catch result at EOF
             yield result
 
 
@@ -392,7 +392,7 @@ def write_to_file(filepath, text):
     Simple function to write a text file
     :param filepath: Path to file
     :param text: Text to be written on to file
-    :return: 
+    :return:
     """
     with open(filepath, 'w') as f:
         f.write(text.strip())
