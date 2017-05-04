@@ -6,12 +6,10 @@
 # Licence:  This file is a part of multibootusb package. You can redistribute it or modify
 # under the terms of GNU General Public License, v.2 or above
 
-import sys
 import os
 import platform
 import tarfile
 import subprocess
-from . import usb
 from . import iso
 from . import gen
 from . import config
@@ -45,7 +43,7 @@ def persistence_distro(distro, iso_link):
     assert distro is not None
     assert iso_link is not None
 
-    iso_size = iso.iso_size(iso_link)
+#     iso_size = iso.iso_size(iso_link)
 
     if distro in ["ubuntu", "debian", "debian-install", "fedora"]:
         gen.log("Persistence option is available.")
@@ -92,7 +90,7 @@ def create_persistence():
     if subprocess.call(persistence_dd_cmd, shell=True) == 0:
         gen.log("\nSuccessfully created persistence file...\n")
 
-    if not config.distro == 'fedora':
+    if config.distro != 'fedora':
         gen.log('Applying filesystem to persistence file...')
         config.status_text = 'Applying filesystem to persistence file. Please wait...'
         gen.log('Executing ==> ' + persistence_mkfs_cmd)
@@ -111,4 +109,3 @@ def extract_file(file_path, install_dir):
     tar = tarfile.open(file_path, "r:bz2")
     tar.extractall(install_dir)
     tar.close()
-

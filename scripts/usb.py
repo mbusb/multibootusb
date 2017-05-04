@@ -20,7 +20,7 @@ if platform.system() == 'Linux':
 if platform.system() == 'Windows':
     import psutil
     import win32com.client
-    import wmi
+#     import wmi
     import pythoncom
 
 
@@ -84,7 +84,7 @@ def disk_usage(mount_path):
         raise NotImplementedError("Platform not supported.")
 
 
-def list_devices(partition=1, fixed=False):
+def list_devices(fixed=False):
     """
     List inserted USB devices.
     :return: USB devices as list.
@@ -97,7 +97,7 @@ def list_devices(partition=1, fixed=False):
             try:
                 import pyudev
             except Exception as e:
-                gen.log('Pydev is not installed on host system. Using the inbuilt one.')
+                gen.log('PyUdev is not installed on host system, using built-in.')
                 from . import pyudev
             context = pyudev.Context()
 
@@ -209,12 +209,9 @@ def details_udev(usb_disk_part):
         import pyudev
     except:
         from . import pyudev
-    """
-    Try with PyUdev to get the details of USB disks.
-    This is the easiest and reliable method to find USB details.
-    Also, it is a standalone package and no dependencies are required.
-    """
-    # gen.log "Using PyUdev for detecting USB details..."
+#   Try with PyUdev to get the details of USB disks.
+#   This is the easiest and reliable method to find USB details.
+#   Also, it is a standalone package and no dependencies are required.
     context = pyudev.Context()
     try:
         device = pyudev.Device.from_device_file(context, usb_disk_part)
@@ -280,7 +277,7 @@ def details_udisks2(usb_disk_part):
     device = bd.Get('org.freedesktop.UDisks2.Block', 'Device', dbus_interface='org.freedesktop.DBus.Properties')
     device = bytearray(device).replace(b'\x00', b'').decode('utf-8')
     uuid = bd.Get('org.freedesktop.UDisks2.Block', 'IdUUID', dbus_interface='org.freedesktop.DBus.Properties')
-    file_system =  bd.Get('org.freedesktop.UDisks2.Block', 'IdType', dbus_interface='org.freedesktop.DBus.Properties')
+    file_system = bd.Get('org.freedesktop.UDisks2.Block', 'IdType', dbus_interface='org.freedesktop.DBus.Properties')
     mount_point = bd.Get('org.freedesktop.UDisks2.Filesystem', 'MountPoints', dbus_interface='org.freedesktop.DBus.Properties')
     if mount_point:
         # mount_point = str(bytearray(mount_point[0]).decode('utf-8').replace(b'\x00', b''))
@@ -367,18 +364,17 @@ def win_disk_details(disk_drive):
     size_total = shutil.disk_usage(mount_point)[0]
     size_used = shutil.disk_usage(mount_point)[1]
     size_free = shutil.disk_usage(mount_point)[2]
-    '''
+
     # The below code works only from vista and above. I have removed it as many people reported that the software
     # was not working under windows xp. Even then, it is significantly slow if 'All Drives' option is checked.
     # Removing the code doesn't affect the functionality as it is only used to find vendor id and model of the drive.
-    c = wmi.WMI()
-    for physical_disk in c.Win32_DiskDrive(InterfaceType="USB"):
-        for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
-            for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
-                if logical_disk.Caption == disk_drive:
-                    vendor = (physical_disk.PNPDeviceID.split('&VEN_'))[1].split('&PROD_')[0]
-                    model = (physical_disk.PNPDeviceID.split('&PROD_'))[1].split('&REV_')[0]
-    '''
+#     c = wmi.WMI()
+#     for physical_disk in c.Win32_DiskDrive(InterfaceType="USB"):
+#         for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
+#             for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
+#                 if logical_disk.Caption == disk_drive:
+#                     vendor = (physical_disk.PNPDeviceID.split('&VEN_'))[1].split('&PROD_')[0]
+#                     model = (physical_disk.PNPDeviceID.split('&PROD_'))[1].split('&REV_')[0]
 
     return {'uuid': uuid, 'file_system': file_system, 'label': label, 'mount_point': mount_point,
             'size_total': size_total, 'size_used': size_used, 'size_free': size_free,
