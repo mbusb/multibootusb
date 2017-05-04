@@ -12,9 +12,7 @@ import subprocess
 import collections
 import platform
 import signal
-from PyQt5 import QtGui
 from PyQt5 import QtWidgets
-from PyQt5 import QtCore
 from .gui.ui_multibootusb import Ui_MainWindow
 from .gen import *
 from . import iso
@@ -28,15 +26,14 @@ if platform.system() == "Windows":
 
 def dd_linux():
     import time
-    input = "if=" + config.image_path
+    _input = "if=" + config.image_path
     in_file_size = float(os.path.getsize(config.image_path))
-    output = "of=" + config.usb_disk
+    _output = "of=" + config.usb_disk
     os.system("umount " + config.usb_disk + "1")
-    command = ['dd', input, output, "bs=1M", "oflag=sync"]
+    command = ['dd', _input, _output, "bs=1M", "oflag=sync"]
     log("Executing ==> " + " ".join(command))
     dd_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
-    # bar = progressbar.ProgressBar(redirect_stdout=True)
     pbar = progressbar.ProgressBar(
             maxval=100,
             widgets=[
@@ -73,10 +70,10 @@ def dd_win():
     windd = resource_path(os.path.join("data", "tools", "dd", "dd.exe"))
     if os.path.exists(resource_path(os.path.join("data", "tools", "dd", "dd.exe"))):
         log("dd exist")
-    input = "if=" + config.image_path
+    _input = "if=" + config.image_path
     in_file_size = float(os.path.getsize(config.image_path) / 1024 / 1024)
-    output = "of=\\\.\\" + config.usb_disk
-    command = [windd, input, output, "bs=1M", "--progress"]
+    _output = "of=\\\.\\" + config.usb_disk
+    command = [windd, _input, _output, "bs=1M", "--progress"]
     log("Executing ==> " + " ".join(command))
     dd_process = subprocess.Popen(command, universal_newlines=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
                                   shell=False)
@@ -127,19 +124,8 @@ class Imager(QtWidgets.QMainWindow, Ui_MainWindow):
             self.ui.imager_iso_size.setText("ISO Size: " + self.iso_size + " MB")
             log("ISO Size is " + self.iso_size + " MB")
 
-#     def onImagerComboChange(self):
-#         config.imager_usb_disk = str(self.ui.comboBox_2.currentText())
-#         if bool(config.imager_usb_disk):
-#             self.ui.imager_disk_label.setText(self.imager_usb_detail(config.imager_usb_disk, partition=0).usb_type)
-#             self.ui.imager_total_size.setText(usb.bytes2human(int(self.imager_usb_detail(config.imager_usb_disk, partition=0).total_size)))
-# 
-#             if platform.system() == "Linux":
-#                 self.ui.label_imager_uuid.setText("Disk Model:")
-#                 self.ui.imager_uuid.setText(str(self.imager_usb_detail(config.imager_usb_disk, partition=0).model))
-#             else:
-#                 self.ui.imager_uuid.setText(self.imager_usb_detail(config.imager_usb_disk, partition=0).model)
-
-    def imager_list_usb(self, partition=1):
+    @staticmethod
+    def imager_list_usb(partition=1):
         """
         Function to detect whole USB disk. It uses lsblk package on Linux.
         :param partition: What to return. By default partition is set.
@@ -148,7 +134,7 @@ class Imager(QtWidgets.QMainWindow, Ui_MainWindow):
         disk = []
         if platform.system() == "Linux":
             output = subprocess.check_output("lsblk -i", shell=True)
-            if not partition == 1:
+            if partition != 1:
                 for line in output.splitlines():
                     line = line.split()
                     if (line[2].strip()) == b'1' and (line[5].strip()) == b'disk':
@@ -159,15 +145,15 @@ class Imager(QtWidgets.QMainWindow, Ui_MainWindow):
                     if (line[2].strip()) == b'1' and line[5].strip() == b'part':
                         disk.append(str("/dev/" + str(line[0].strip()[2:])))
         else:
-            if partition == 1 or not partition == 1:
-                oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
-                oDrives = oFS.Drives
-                for drive in oDrives:
-                    if drive.DriveType == 1 and drive.IsReady:
-                        disk.append(drive)
+            oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
+            oDrives = oFS.Drives
+            for drive in oDrives:
+                if drive.DriveType == 1 and drive.IsReady:
+                    disk.append(drive)
         return disk
 
-    def imager_usb_detail(self, usb_disk, partition=1):
+    @staticmethod
+    def imager_usb_detail(usb_disk, partition=1):
         """
         Function to detect details of USB disk using lsblk
         :param usb_disk: path to usb disk
@@ -180,7 +166,7 @@ class Imager(QtWidgets.QMainWindow, Ui_MainWindow):
             output = subprocess.check_output("lsblk -ib " + usb_disk, shell=True)
             for line in output.splitlines():
                 line = line.split()
-                if not partition == 1:
+                if partition != 1:
                     if line[2].strip() == b'1' and line[5].strip() == b'disk':
                         total_size = line[3]
                         if not total_size:

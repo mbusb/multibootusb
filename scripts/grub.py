@@ -147,19 +147,16 @@ def grub_custom_menu(mbus_grub_cfg_path, distro):
     if distro in ['sgrubd2', 'raw_iso']:
         grub_raw_iso(mbus_grub_cfg_path)
 
-        '''
-        with open(mbus_grub_cfg_path, 'a') as f:
-            f.write("#start " + iso.iso_basename(config.image_path) + "\n")
-            f.write(grub_raw_iso())
-            f.write("#end " + iso.iso_basename(config.image_path) + "\n")
-        
-    
-    elif iso_size_mb < 750.0:
-        grub_raw_iso(mbus_grub_cfg_path)
-        '''
+#         with open(mbus_grub_cfg_path, 'a') as f:
+#             f.write("#start " + iso.iso_basename(config.image_path) + "\n")
+#             f.write(grub_raw_iso())
+#             f.write("#end " + iso.iso_basename(config.image_path) + "\n")
+#
+#
+#     elif iso_size_mb < 750.0:
+#         grub_raw_iso(mbus_grub_cfg_path)
 
     else:
-
         return False
 
 
@@ -207,10 +204,10 @@ def extract_kernel_line(search_text, match_line, isolinux_dir):
     """
     Function to check if kernel/linux line present in isolinux.cfg file is valid.
     If valid, then convert them in to grub accepted format
-    :param search_text: Type of text is to be searched. Typically kernel or linux 
+    :param search_text: Type of text is to be searched. Typically kernel or linux
     :param match_line: Line containing kernel ot linux from isolinux supported .cfg files
     :param isolinux_dir: Path to isolinux directory of an ISO
-    :return: Valid grub2 accepted kernel/linux line after conversion. If nothing found return ''. 
+    :return: Valid grub2 accepted kernel/linux line after conversion. If nothing found return ''.
     """
     kernel_line = ''
 
@@ -250,8 +247,8 @@ def extract_kernel_line(search_text, match_line, isolinux_dir):
 def iso2grub2(iso_dir):
     """
     Function to convert syslinux configuration to grub2 accepted configuration format. Features implemented are similar
-    to that of grub2  'loopback.cfg'. This 'loopback.cfg' file can be later on caled directly from grub2. The main 
-    advantage of this function is to generate the 'loopback.cfg' file automatically without manual involvement. 
+    to that of grub2  'loopback.cfg'. This 'loopback.cfg' file can be later on caled directly from grub2. The main
+    advantage of this function is to generate the 'loopback.cfg' file automatically without manual involvement.
     :param iso_dir: Path to distro install directory for looping through '.cfg' files.
     :param file_out: Path to 'loopback.cfg' file. By default it is set to root of distro install directory.
     :return:
@@ -308,7 +305,7 @@ def iso2grub2(iso_dir):
                                             for _lines in kernel_text:
                                                 kernel_line = extract_kernel_line(_lines[0][1], _lines[0][0],
                                                                                   iso_bin_dir)
-                                                if kernel_line is '':
+                                                if kernel_line == '':
                                                     continue
                                                 else:
                                                     break
@@ -322,7 +319,7 @@ def iso2grub2(iso_dir):
                                             for _lines in initrd_text:
                                                 initrd_line = extract_kernel_line(_lines[0][1], _lines[0][0],
                                                                                   iso_bin_dir)
-                                                if initrd_line is '':
+                                                if initrd_line == '':
                                                     continue
                                                 else:
                                                     break

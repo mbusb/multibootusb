@@ -7,7 +7,6 @@
 # under the terms of GNU General Public License, v.2 or above
 
 import os
-import sys
 import subprocess
 import platform
 from .gen import *
@@ -39,7 +38,7 @@ def set_boot_flag(usb_disk):
                 return False
 
 
-def syslinux_default(usb_disk, version=4):
+def syslinux_default(usb_disk):
     """
     Install Syslinux of a selected drive
     :param usb_disk: '/dev/sdx' on linux and 'E:' on Windows
@@ -152,7 +151,7 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
             if platform.system() == "Linux":
                 syslinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux") + config.syslinux_version
                 if os.access(syslinux_path, os.X_OK) is False:
-                    subprocess.call('chmod +x ' + syslinux_path, shell=True) == 0
+                    subprocess.call('chmod +x ' + syslinux_path, shell=True)
                 sys_cmd = syslinux_path + option + quote(distro_syslinux_install_dir) + ' ' + usb_disk
                 dd_cmd = 'dd if=' + usb_disk + ' ' + 'of=' + quote(distro_sys_install_bs) + ' count=1'
                 log("Executing ==> " + sys_cmd)
@@ -194,7 +193,7 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
                 ext_cmd = syslinux_path + " --install " + distro_syslinux_install_dir
                 dd_cmd = 'dd if=' + usb_disk + ' ' + 'of=' + quote(distro_sys_install_bs) + ' count=1'
                 if os.access(syslinux_path, os.X_OK) is False:
-                    subprocess.call('chmod +x ' + syslinux_path, shell=True) == 0
+                    subprocess.call('chmod +x ' + syslinux_path, shell=True)
                 log("Executing ==> " + ext_cmd)
                 if subprocess.call(ext_cmd, shell=True) == 0:
                     log("\nSyslinux install on distro directory is successful...\n")
