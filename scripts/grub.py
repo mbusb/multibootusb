@@ -12,6 +12,7 @@ from . import iso
 from . import _7zip
 from . import gen
 from .usb import bytes2human
+from . import menus
 
 
 def mbusb_update_grub_cfg():
@@ -105,10 +106,13 @@ def mbusb_update_grub_cfg():
 
 
 def write_custom_gurb_cfg():
-    from . import menus
     loopback_cfg_path = os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), 'loopback.cfg')
     if config.distro == 'pc-tool':
         menu = menus.pc_tool_config(syslinux=False, grub=True)
+    elif config.distro == 'rising-av':
+        menu = menus.rising(syslinux=False, grub=True)
+
+    if menus:
         write_to_file(loopback_cfg_path, menu)
 
 

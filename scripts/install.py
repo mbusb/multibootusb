@@ -79,6 +79,9 @@ def install_distro():
         #iso.iso_extract_full(config.image_path, usb_mount)
         config.status_text = "Copying ISO..."
         copy_iso(config.image_path, install_dir)
+    elif config.distro == "rising-av":
+        iso.iso_extract_file(config.image_path, install_dir, '*boot')
+        iso.iso_extract_file(config.image_path, usb_mount, '*rising')
     elif config.distro == 'sgrubd2':
         copy_iso(config.image_path, install_dir)
     elif config.distro == 'alt-linux':

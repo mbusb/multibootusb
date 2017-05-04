@@ -135,6 +135,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return 'pc-tool'
                         elif re.search(r'vba32rescue', string, re.I):
                             return 'grub2only'
+                        elif re.search(r'BOOT_IMAGE=rising', string, re.I):
+                            return 'rising-av'
 
 
         distro = detect_iso_from_file_list(iso_link)
