@@ -194,7 +194,7 @@ Are you SURE you want to enable it?",
 
         self.ui.combo_drives.clear()
         if self.ui.checkbox_all_drives.isChecked():
-            detected_devices = usb.list_devices(partition=1, fixed=True)
+            detected_devices = usb.list_devices(fixed=True)
         else:
             detected_devices = usb.list_devices()
 
