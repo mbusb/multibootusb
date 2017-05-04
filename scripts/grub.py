@@ -37,10 +37,10 @@ def mbusb_update_grub_cfg():
 
     grub_cfg_path = None
     syslinux_menu = None
-    sys_cfg_path = None
+#     sys_cfg_path = None
     loopback_cfg_path = None
     mbus_grub_cfg_path = os.path.join(config.usb_mount, 'multibootusb', 'grub', 'grub.cfg')
-    iso_grub_cfg = iso.iso_file_path(config.image_path, 'grub.cfg')
+#     iso_grub_cfg = iso.iso_file_path(config.image_path, 'grub.cfg')
     if iso.isolinux_bin_dir(config.image_path) is not False:
         iso_sys_cfg_path = os.path.join(iso.isolinux_bin_dir(config.image_path), 'syslinux.cfg')
         iso_iso_cfg_path = os.path.join(iso.isolinux_bin_dir(config.image_path), 'isolinux.cfg')
@@ -274,11 +274,11 @@ def iso2grub2(iso_dir):
                             if ext_text:
                                 for m in ext_text:
                                     menuentry = ''
-                                    kernel = ''
+#                                     kernel = ''
                                     kernel_line = ''
                                     boot_options = ''
                                     initrd_line = ''
-                                    initrd = ''
+#                                     initrd = ''
 
                                     # Extract line containing 'menu label' and convert to menu entry of grub2
                                     if 'menu label' in m.group().lower():

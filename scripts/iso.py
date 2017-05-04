@@ -7,9 +7,7 @@
 # Licence:  This file is a part of multibootusb package. You can redistribute it or modify
 # under the terms of GNU General Public License, v.2 or above
 
-import sys
 import os
-import string
 import re
 from .gen import *
 from .isodump3 import ISO9660

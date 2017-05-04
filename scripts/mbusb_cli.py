@@ -7,8 +7,6 @@
 # under the terms of GNU General Public License, v.2 or above
 
 import os
-import re
-import shutil
 from . import usb
 from . import gen
 from .iso import *
@@ -29,15 +27,13 @@ def read_input_uninstall():
 
 
 def cli_install_distro():
-    '''
-    if platform.system() == 'Linux':
-        if os.getuid() != 0:
-            exit("You need to have root privileges to run this script.\nPlease try again using 'sudo'. Exiting.")
-    elif platform.system() == 'Windows':
-
-        if admin.isUserAdmin():
-            admin.elevate()
-    '''
+#     if platform.system() == 'Linux':
+#         if os.getuid() != 0:
+#             exit("You need to have root privileges to run this script.\nPlease try again using 'sudo'. Exiting.")
+#     elif platform.system() == 'Windows':
+#
+#         if admin.isUserAdmin():
+#             admin.elevate()
 
     log('Starting multibootusb from Command line...')
     if usb.is_block(config.usb_disk) is False:
@@ -65,7 +61,7 @@ def iso_install(iso_image):
     """
     Script for installing iso image to a disk. This can be called by other script for auto install of many distros
     :param iso_image: Path to ISO image
-    :return: 
+    :return:
     """
     if size_not_enough(iso_image, config.usb_disk) is True:
         log(config.usb_disk + ' does not have enough space...')

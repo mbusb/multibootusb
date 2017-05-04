@@ -16,7 +16,6 @@ from PyQt5 import QtWidgets
 from .gui.ui_multibootusb import Ui_MainWindow
 from .gen import *
 from . import iso
-from . import usb
 from . import config
 from . import progressbar
 
@@ -180,7 +179,7 @@ class Imager(QtWidgets.QMainWindow, Ui_MainWindow):
                 selected_usb_part = str(usb_disk)
                 oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
                 d = oFS.GetDrive(oFS.GetDriveName(oFS.GetAbsolutePathName(selected_usb_part)))
-                selected_usb_device = d.DriveLetter
+#                 selected_usb_device = d.DriveLetter
                 label = (d.VolumeName).strip()
                 if not label.strip():
                     label = "No label."
