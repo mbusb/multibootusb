@@ -11,10 +11,10 @@ from . import config
 
 def pc_tool_config(syslinux=True, grub=False):
     """
-    Menu entry for PC Tool ISO 
-    :param syslinux: 
-    :param grub: 
-    :return: 
+    Menu entry for PC Tool ISO
+    :param syslinux:
+    :param grub:
+    :return:
     """
     if syslinux is True:
         return """KERNEL /system/stage1

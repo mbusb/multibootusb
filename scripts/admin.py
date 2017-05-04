@@ -102,7 +102,7 @@ def runAsAdmin(cmdLine=None, wait=True):
         cmd = '"%s"' % (cmdLine[0],)
         # XXX TODO: isn't there a function or something we can call to massage command line params?
         params = " ".join(['"%s"' % (x,) for x in cmdLine[1:]])
-        cmdDir = ''
+#         cmdDir = ''
         showCmd = win32con.SW_SHOWNORMAL
         #showCmd = win32con.SW_HIDE
         lpVerb = 'runas'  # causes UAC elevation prompt.
@@ -146,19 +146,22 @@ def adminCmd(cmd, fork=False, gui=False):
     else:
         if os.system('which pkexec') == 0:
             if gui:
-                cmd = ['export DISPLAY=$DISPLAY; export XAUTHORITY=$XAUTHORITY; '] + cmd    # By default, pkexec disallows X11 apps. Restore DISPLAY & XAUTHORITY to allow it. man 1 pkexec/"SECURITY NOTES" section
+                # By default, pkexec disallows X11 apps. Restore DISPLAY & XAUTHORITY
+                # to allow it. man 1 pkexec/"SECURITY NOTES" section
+                cmd = ['export DISPLAY=$DISPLAY; export XAUTHORITY=$XAUTHORITY; '] + cmd
             sudo_cmd = ['pkexec', '/bin/sh', '-c']
-        elif os.system('which gksudo')  == 0:
+        elif os.system('which gksudo') == 0:
             sudo_cmd = ["gksudo", "--", "/bin/sh", "-c"]
-        elif os.system('which gksu')    == 0:
+        elif os.system('which gksu') == 0:
             sudo_cmd = ["gksu"]
         elif os.system('which kdesudo') == 0:
             sudo_cmd = ["kdesudo", "-t", "-c"]    # http://www.unix.com/man-page/debian/1/kdesudo/
-        elif os.system('which kdesu')   == 0:
+        elif os.system('which kdesu') == 0:
             sudo_cmd = ["kdesu", "-t", "-c"]      # http://linux.die.net/man/1/kdesu
         else:
             QtWidgets.QMessageBox.information('No root...',
-                                          'Could not find any of: pkexec, sudo, gksu, kdesu, gksudo, or kdesudo. Please install one then restart multibootusb.')
+                                          'Could not find any of: pkexec, sudo, gksu, kdesu, gksudo, or kdesudo.\n'
+                                          'Please install one then restart multibootusb.')
             sys.exit(0)
     final_cmd = ' '.join(sudo_cmd + ['"' + ' '.join(cmd).replace('"', '\\"') + '"'])
     gen.log("Executing ==>  " + final_cmd)

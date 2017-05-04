@@ -194,7 +194,7 @@ def copy_mbusb_dir_usb(usb_disk):
     :param usb_mount_path: Path to USB mount.
     :return:
     """
-    from .iso import iso_size
+#     from .iso import iso_size
     from .usb import details
 
     usb_details = details(usb_disk)

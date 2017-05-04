@@ -13,7 +13,6 @@ from .iso import *
 from .isodump3 import ISO9660
 from .gen import *
 from . import _7zip
-from . import config
 
 
 def distro(iso_cfg_ext_dir, iso_link):
@@ -22,8 +21,8 @@ def distro(iso_cfg_ext_dir, iso_link):
     :param iso_cfg_ext_dir: Directory where *.cfg files are extracted.
     :return: Detected distro name as string.
     """
-    iso9660fs = ISO9660(iso_link)
-    # iso_file_list = iso9660fs.readDir("/")
+#     iso9660fs = ISO9660(iso_link)
+#     iso_file_list = iso9660fs.readDir("/")
     iso_file_list = _7zip.list_iso(iso_link)
     if platform.system() == "Linux" or platform.system() == "Windows":
         for path, subdirs, files in os.walk(iso_cfg_ext_dir):

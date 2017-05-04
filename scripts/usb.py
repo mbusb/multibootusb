@@ -20,7 +20,7 @@ if platform.system() == 'Linux':
 if platform.system() == 'Windows':
     import psutil
     import win32com.client
-    import wmi
+#     import wmi
     import pythoncom
 
 
