@@ -11,7 +11,6 @@
 import os
 import subprocess
 import platform
-from .admin import adminCmd
 from PyQt5 import QtWidgets
 from .gui.ui_multibootusb import Ui_MainWindow
 from .gen import *
@@ -27,7 +26,7 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
         QtWidgets.QMainWindow.__init__(self)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-            
+
     def on_Qemu_Boot_iso_Click(self):
         """
         Main function to boot a selected ISO.
@@ -102,9 +101,7 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
                     cmd = qemu + ' -hda ' + qemu_usb_disk + ram + ' -vga std'
                     try:
                         log('Executing ==> ' + cmd)
-                        # adminCmd([qemu, '-hda', usb_disk[:-1], '-m', ram, '-vga std'], gui=True)
                         subprocess.Popen(cmd, shell=True)
-                        # adminCmd(qemu_cmd, gui=True)
                     except:
                         QtWidgets.QMessageBox.information(self, 'Error...', 'Error booting USB\n\nUnable to start QEMU.')
 
@@ -133,8 +130,9 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
             return None
         else:
             return selected_ram
-            
-    def check_qemu_exist(self):
+
+    @staticmethod
+    def check_qemu_exist():
         """
         Check if QEMU is available on host system.
         :return: path to QEMU program or None otherwise.
@@ -150,7 +148,7 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
         elif platform.system() == "Windows":
             qemu = resource_path(os.path.join("data", "tools", "qemu", "qemu-system-x86_64.exe"))
             log(qemu)
-        
+
         if qemu:
             log("QEMU: using " + qemu)
         else:
@@ -158,24 +156,21 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
 
         return qemu
 
-
-    def get_physical_disk_number(self, usb_disk):
+    @staticmethod
+    def get_physical_disk_number(usb_disk):
         """
         Get the physical disk number as detected ny Windows.
         :param usb_disk: USB disk (Like F:)
         :return: Disk number.
         """
         import wmi
-        c = wmi.WMI ()
-        for physical_disk in c.Win32_DiskDrive ():
-            for partition in physical_disk.associators ("Win32_DiskDriveToDiskPartition"):
-                for logical_disk in partition.associators ("Win32_LogicalDiskToPartition"):
+        c = wmi.WMI()
+        for physical_disk in c.Win32_DiskDrive():
+            for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
+                for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
                     if logical_disk.Caption == usb_disk:
-                        """
-                        log physical_disk.Caption
-                        log partition.Caption
-                        log logical_disk.Caption
-                        """
+#                         log physical_disk.Caption
+#                         log partition.Caption
+#                         log logical_disk.Caption
                         log("Physical Device Number is " + partition.Caption[6:-14])
                         return str(partition.Caption[6:-14])
-

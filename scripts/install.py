@@ -8,7 +8,6 @@
 
 import os
 import shutil
-import sys
 import platform
 import threading
 import subprocess
@@ -47,7 +46,7 @@ def install_distro():
 
     if config.distro == "opensuse":
         iso.iso_extract_file(config.image_path, install_dir, 'boot')
-        status_text = "Copying ISO..."
+        config.status_text = "Copying ISO..."
         if platform.system() == "Windows":
             subprocess.call(["xcopy", config.image_path, usb_mount], shell=True)  # Have to use xcopy as python file copy is dead slow.
         elif platform.system() == "Linux":
@@ -137,7 +136,7 @@ def install_progress():
     thrd = threading.Thread(target=install_distro, name="install_progress")
     # thrd.daemon()
     # install_size = usb_size_used / 1024
-    install_size = iso_size(config.image_path) / 1024
+#     install_size = iso_size(config.image_path) / 1024
     final_size = (usb_size_used + iso_size(config.image_path)) + config.persistence
     thrd.start()
     pbar = progressbar.ProgressBar(maxval=100).start()  # bar = progressbar.ProgressBar(redirect_stdout=True)
@@ -162,7 +161,7 @@ def install_patch():
             os.sync()
         iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
         isolinux_path = os.path.join(iso_cfg_ext_dir, isolinux_bin_path(config.image_path))
-        iso_linux_bin_dir = isolinux_bin_dir(config.image_path)
+#         iso_linux_bin_dir = isolinux_bin_dir(config.image_path)
         config.syslinux_version = isolinux_version(isolinux_path)
         iso_file_list = iso.iso_file_list(config.image_path)
         os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path), isolinux_bin_dir(config.image_path))

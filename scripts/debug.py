@@ -1,5 +1,4 @@
 import os
-import platform
 import inspect
 from . import config
 
@@ -8,8 +7,8 @@ try:
 except:
     try:
         from .colorama import init as colorama_init, Fore, Back, Style
-    except:
-        pass
+    except Exception as e:
+        raise e
 finally:
     try:
         colorama_init(autoreset=True)
@@ -38,7 +37,8 @@ def fnCall():
     Prints filename:line:function for parent and grandparent.
     """
 
-    if not config.debug: return
+    if not config.debug:
+        return
 
     print(colors.OKGREEN + colors.BOLD + "=== DEBUG === | %s:%d:%s() called from %s:%d:%s()" % (
         inspect.stack()[1][1].split(os.sep)[-1],
@@ -48,4 +48,3 @@ def fnCall():
         inspect.stack()[2][2],
         inspect.stack()[2][3],
         )+colors.RESET)
-
