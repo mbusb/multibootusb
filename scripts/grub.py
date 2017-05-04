@@ -106,13 +106,19 @@ def mbusb_update_grub_cfg():
 
 
 def write_custom_gurb_cfg():
+    """
+    Create custom grub loopback.cfg file for known distros. Custom menu entries are stored on munus.py module
+    :return: 
+    """
     loopback_cfg_path = os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), 'loopback.cfg')
+    menu = False
     if config.distro == 'pc-tool':
         menu = menus.pc_tool_config(syslinux=False, grub=True)
     elif config.distro == 'rising-av':
         menu = menus.rising(syslinux=False, grub=True)
 
-    if menus:
+    if menu is not False:
+        gen.log('Writing custom loopback.cfg file...')
         write_to_file(loopback_cfg_path, menu)
 
 

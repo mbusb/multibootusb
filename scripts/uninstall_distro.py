@@ -73,11 +73,14 @@ def delete_frm_file_list():
                     gen.log('Could not remove ldlinux.sys')
 
             if os.path.exists(os.path.join(usb_mount, f)):
-                if os.path.isfile(os.path.join(usb_mount, f)):
-                    gen.log("Removing " + (os.path.join(usb_mount, f)))
+                if os.path.isdir(os.path.join(usb_mount, f)):
+                    gen.log("Removing directory " + (os.path.join(usb_mount, f)))
+                    shutil.rmtree(os.path.join(usb_mount, f))
+
+                elif os.path.isfile(os.path.join(usb_mount, f)):
+                    gen.log("Removing file " + (os.path.join(usb_mount, f)))
                     os.remove(os.path.join(usb_mount, f))
-                elif os.path.isdir(os.path.join(usb_mount, f)):
-                     shutil.rmtree(os.path.join(usb_mount, f))
+
 
         if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "generic.cfg")):
             with open(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "generic.cfg"), "r") as generic_cfg:
@@ -127,6 +130,7 @@ def uninstall_distro():
             os.remove(os.path.join(usb_mount, config.uninstall_distro_dir_name + ".iso"))
     elif config.distro == "windows" or config.distro == "alpine" or config.distro == "generic":
         delete_frm_file_list()
+
     if config.distro == "ipfire":
         files = os.listdir(usb_mount)
         for f in files:

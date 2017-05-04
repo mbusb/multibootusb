@@ -137,6 +137,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return 'grub2only'
                         elif re.search(r'BOOT_IMAGE=rising', string, re.I):
                             return 'rising-av'
+                        elif re.search(r'Avira Rescue System', string, re.I):
+                            return 'Avira-RS'
 
 
         distro = detect_iso_from_file_list(iso_link)

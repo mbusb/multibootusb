@@ -97,6 +97,18 @@ def install_distro():
         iso_extract_full(config.image_path, usb_mount)
     elif config.distro == 'grub4dos_iso' or config.distro == 'raw_iso':
         copy_iso(config.image_path, install_dir)
+    elif config.distro == 'Avira-RS':
+        iso_extract_full(config.image_path, install_dir)
+        # we want following directories on root of the USB drive. Ensure the previous directories are removed before moving.
+        if os.path.exists(os.path.join(usb_mount, 'antivir')):
+            shutil.rmtree(os.path.join(usb_mount, 'antivir'))
+            shutil.move(os.path.join(install_dir, 'antivir'), os.path.join(usb_mount))
+        if os.path.exists(os.path.join(usb_mount, 'avupdate')):
+            shutil.rmtree(os.path.join(usb_mount, 'avupdate'))
+            shutil.move(os.path.join(install_dir, 'avupdate'), os.path.join(usb_mount))
+        if os.path.exists(os.path.join(usb_mount, 'system')):
+            shutil.rmtree(os.path.join(usb_mount, 'system'))
+            shutil.move(os.path.join(install_dir, 'system'), os.path.join(usb_mount))
     else:
         iso.iso_extract_full(config.image_path, install_dir)
 
