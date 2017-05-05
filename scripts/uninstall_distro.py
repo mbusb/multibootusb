@@ -73,6 +73,7 @@ def delete_frm_file_list():
                     gen.log('Could not remove ldlinux.sys')
 
             if os.path.exists(os.path.join(usb_mount, f)):
+
                 if os.path.isdir(os.path.join(usb_mount, f)):
                     gen.log("Removing directory " + (os.path.join(usb_mount, f)))
                     shutil.rmtree(os.path.join(usb_mount, f))
@@ -80,7 +81,6 @@ def delete_frm_file_list():
                 elif os.path.isfile(os.path.join(usb_mount, f)):
                     gen.log("Removing file " + (os.path.join(usb_mount, f)))
                     os.remove(os.path.join(usb_mount, f))
-
 
         if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "generic.cfg")):
             with open(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "generic.cfg"), "r") as generic_cfg:

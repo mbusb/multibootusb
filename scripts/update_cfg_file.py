@@ -49,6 +49,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'boot=casper cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid '
                                     'ignore_bootid root=UUID=' + usb_uuid + ' live-media-path=/multibootusb/'
                                     + iso_basename(iso_link) + '/casper', string)
+                    string = re.sub(r'live-media=\S*', 'live-media=/dev/disk/by-uuid/' + usb_uuid , string)
                     string = re.sub(r'ui gfxboot', '#ui gfxboot', string)
                     if persistence != 0:
                         string = re.sub(r'boot=casper', 'boot=casper persistent persistent-path=/multibootusb/' +
