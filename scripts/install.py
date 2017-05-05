@@ -57,7 +57,10 @@ def install_distro():
         log("Extracting iso to " + usb_mount)
         iso_extract_full(config.image_path, usb_mount)
     elif config.distro == "trinity-rescue":
-        iso.iso_extract_file(config.image_path, usb_mount, '*trk3')
+        iso_extract_full(config.image_path, install_dir)
+        if os.path.exists(os.path.join(usb_mount, 'trk3')):
+            shutil.rmtree(os.path.join(usb_mount, 'trk3'))
+        shutil.move(os.path.join(install_dir, 'trk3'), os.path.join(usb_mount))
     elif config.distro == "ipfire":
         iso.iso_extract_file(config.image_path, usb_mount, '*.tlz')
         iso.iso_extract_file(config.image_path, usb_mount, 'distro.img')
