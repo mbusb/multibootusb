@@ -4,7 +4,7 @@
 # Purpose:  Main file which will determine if cli or gui is to be opened
 # Authors:  Sundar
 # Licence:  This file is a part of multibootusb package. You can redistribute it or modify
-# under the terms of GNU General Public License, v.2 or above
+#           under the terms of GNU General Public License, version 2 or above.
 
 import logging
 import getopt
@@ -47,25 +47,49 @@ def running_from():
 
 
 def usage():
-    print('\n An advanced multiboot live usb creator using command line.')
-    print('\n Usage: python3 multibootusb [option(s)]\n')
-    print(' Options:\n')
-    print('  -h or --help        :   Print this help message and exit')
-    print('  -i or --iso         :   Path to ISO file()s. If may ISOs are supplied, it should be seperated by \',\' and no space is allowed between ISOs.')
-    print('  -t or --target      :   Path to target USB device partition (example /dev/sdb1)')
-    print('  -c or --command     :   Invoke command line usage. This option is must')
-    print('  -y or --yes         :   Default yes for user input during install. Will not wait for user')
-    print('  -u or --uninstall   :   List and uninstall distro from an USB disk')
-    print('  -d or --debug       :   Enable debug messages (very verbose!)\n')
-    print(' Eexample for making a bootable USB from command line should look like this:\n')
-    print('\tpython3 multibootusb -c -i ../../favourite.iso -t /dev/sdb1 on Linux and \n')
-    print('\tpython3 multibootusb -c -i ../../favourite.iso -t G: on Windows\n')
-    print(' Example for uninstalling distro from an USB should look like this:\n')
-    print('\tpython3 multibootusb -c -u -t /dev/sdb1 on Linux and \n')
-    print('\tpython3 multibootusb -c -u -t G: on Windows\n')
-    print(' Example for installing multiple distro without user intervention look like this:\n')
-    print('\tpython3 multibootusb -c -y -i ../../favourite.iso,../../other-distro.iso -t /dev/sdb1 on Linux and \n')
-    print('\tpython3 multibootusb -c -i ../../favourite.iso,../../other-distro.iso -t G: on Windows\n')
+    print('''
+An advanced multiboot live usb creator which can be used from the command line
+or via a GUI.
+
+Usage: python3 multibootusb [option(s)]
+
+Options:
+  -h or --help        :   Print this help message and exit
+  -c or --command     :   Invoke command line usage.  This option is required;
+                          if omitted, the GUI will be launched.
+  -i or --iso         :   Path to ISO file()s.  If many ISOs are supplied,
+                          they should be separated by ',' with no spaces in
+                          between.
+  -t or --target      :   Path to target USB device partition (e.g. "/dev/sdb1").
+  -y or --yes         :   Default yes for user input during install.
+                          Will not wait for user.
+  -u or --uninstall   :   List and uninstall distro from an USB disk.
+  -d or --debug       :   Enable debug messages (very verbose!)
+
+Example for making a bootable USB from the command line:
+
+    Linux:
+        python3 multibootusb -c -i ../../favourite.iso -t /dev/sdb1
+
+    Windows:
+        python3 multibootusb -c -i ../../favourite.iso -t G:
+
+Example for uninstalling a distro from a USB:
+
+    Linux:
+        python3 multibootusb -c -u -t /dev/sdb1
+
+    Windows:
+        python3 multibootusb -c -u -t G:
+
+Example for installing multiple distros without user intervention:
+
+    Linux:
+        python3 multibootusb -c -y -i ../../favourite.iso,../../other-distro.iso -t /dev/sdb1
+
+    Windows:
+        python3 multibootusb -c -i ../../favourite.iso,../../other-distro.iso -t G:
+''')
     exit(2)
 
 
