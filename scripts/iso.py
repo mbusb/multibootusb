@@ -168,12 +168,11 @@ def extract_cfg_file(iso_link):
     :param iso_link: Path to ISO file
     :return:
     """
-    _pattern = ['.cfg', '.CFG', '.txt', '.TXT', 'isolinux.bin', 'ISOLINUX.BIN', '.lst']
+    #_pattern = ['.cfg', '.CFG', '.txt', '.TXT', 'isolinux.bin', 'ISOLINUX.BIN', '.lst']
+    _pattern = ['.cfg', '.txt', 'isolinux.bin', '.lst']
     # file_list = iso_file_list(iso_link)
     for ext in _pattern:
         _7zip.extract_iso(iso_link, _iso_cfg_ext_dir, pattern='*' + ext)
-    #_7zip.extract_iso(iso_link, _iso_cfg_ext_dir, pattern='isolinux.bin ISOLINUX.BIN')
-    #_7zip.extract_iso(iso_link, _iso_cfg_ext_dir, pattern='*.cfg *.CFG *.txt *.TXT *.lst')
 
 
 def iso_extract_full(iso_link, dest_dir):

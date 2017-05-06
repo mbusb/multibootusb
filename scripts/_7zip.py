@@ -29,12 +29,12 @@ def extract_iso(src, dst, pattern=None, suppress_out=True):
     # 7z x -y -oC:\path_to_directory X:\path_to_iso_file.iso
     # 7z e archive.zip -oC:\path_to_directory *.cfg *.bin -r
     if platform.system() == 'Windows':
-        cli_option = ' -bb1'  # Linux does not accept this option (may be due to version diff).
+        cli_option = ' -ssc- -bb1'  # Linux does not accept this option (may be due to version diff).
         if suppress_out != '':
             # suppress_out = ' 2> nul'
             suppress_out = ''
     else:
-        cli_option = ''
+        cli_option = ' -ssc- '
         if suppress_out != '':
             suppress_out = ' 2> /dev/null'
 
@@ -47,7 +47,7 @@ def extract_iso(src, dst, pattern=None, suppress_out=True):
     if pattern is None:
         _cmd = _7zip + cli_option + ' x -y -o' + gen.quote(dst) + ' ' + gen.quote(src) + suppress_out
     else:
-        _cmd = _7zip + ' x -y ' + gen.quote(src) + ' -o' + dst + ' ' + gen.quote(pattern) + ' -r' + suppress_out
+        _cmd = _7zip + cli_option + ' x -y ' + gen.quote(src) + ' -o' + dst + ' ' + gen.quote(pattern) + ' -r' + suppress_out
     gen.log('Executing ==> ' + _cmd)
 
     config.status_text = 'Status: Extracting ' + os.path.basename(src).strip()
