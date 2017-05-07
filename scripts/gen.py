@@ -112,10 +112,7 @@ def is_quoted(text):
     :param text:    Any word or sentence with or without quote.
     :return:        True if text is quoted else False.
     """
-    if text.startswith("\"") and text.endswith("\""):
-        return True
-    else:
-        return False
+    return bool(text.startswith("\"") and text.endswith("\""))
 
 
 def has_digit(word):
@@ -216,12 +213,15 @@ def copy_mbusb_dir_usb(usb_disk):
         log('multibootusb directory already exists. Not copying.')
 
     if not os.path.exists(os.path.join(usb_mount_path, 'EFI', 'BOOT', 'multibootusb_grub2.txt')):
+        if not os.path.exists(os.path.join(usb_mount_path, 'EFI', 'BOOT')):
+            log('EFI directory does not exist. Creating new.')
+            os.makedirs(os.path.join(usb_mount_path, 'EFI', 'BOOT'), exist_ok=True)
         try:
             log('Copying EFI directory to ' + usb_mount_path)
             shutil.copytree(resource_path(os.path.join("data", "EFI")), os.path.join(usb_mount_path, "EFI"))
             result = True
         except:
-            log('multibootusb directory could not be copied to ' + usb_mount_path)
+            log('EFI directory could not be copied to ' + usb_mount_path)
             result = False
     else:
         log('EFI directory already exist. Not copying.')
@@ -263,10 +263,8 @@ def size_not_enough(iso_link, usb_disk):
     isoSize = iso_size(iso_link)
     usb_details = details(usb_disk)
     usb_size = usb_details['size_free']
-    if isoSize > usb_size:
-        return True
-    else:
-        return False
+
+    return bool(isoSize > usb_size)
 
 
 def mbusb_version():
@@ -336,12 +334,12 @@ def prepare_mbusb_host_dir():
         log("Removing junk files...")
         for files in os.listdir(os.path.join(home, "iso_cfg_ext_dir")):
             if os.path.isdir(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files))):
-                log (os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
+                log(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
                 os.chmod(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)), 0o777)
                 shutil.rmtree(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
             else:
                 try:
-                    log (os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
+                    log(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
                     os.chmod(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)), 0o777)
                     os.unlink(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))
                     os.remove(os.path.join(os.path.join(home, "iso_cfg_ext_dir", files)))

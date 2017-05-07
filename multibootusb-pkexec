@@ -1,6 +1,22 @@
 #!/bin/bash
+# Generic wrapper for locating multibootusb file and execute pkexec accordingly
+# Bin pat of this file and policy file have to match
+
 if [ $(which pkexec) ]; then
-    pkexec --disable-internal-agent "/usr/bin/multibootusb" "$@"
+    if [ -f /usr/bin/multibootusb ]; then
+        pkexec --disable-internal-agent "/usr/bin/multibootusb" "$@"
+    fi
+
+    if [ -f /usr/local/bin/multibootusb ]; then
+        pkexec --disable-internal-agent "/usr/local/bin/multibootusb" "$@"
+    fi
 else
-    /usr/bin/multibootusb "$@"
+    if [ -f /usr/bin/multibootusb ]; then
+        /usr/bin/multibootusb "$@"
+    fi
+
+    if [ -f /usr/local/bin/multibootusb ]; then
+        /usr/local/bin/multibootusb "$@"
+    fi
+
 fi

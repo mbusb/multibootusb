@@ -4,13 +4,17 @@
 # Purpose:  Main file which will determine if cli or gui is to be opened
 # Authors:  Sundar
 # Licence:  This file is a part of multibootusb package. You can redistribute it or modify
-# under the terms of GNU General Public License, v.2 or above
+#           under the terms of GNU General Public License, version 2 or above.
 
 import logging
 import getopt
 import sys
 import os
 import platform
+
+# The following line is required for distros based on rpm so as to avoid import errors when running from installed system
+sys.path.append('/usr/local/lib/python3.4/dist-packages')
+# print(sys.path)
 
 # Had trouble in importing scripts directory. Had to add few lines below to ensure it works on source as well as
 # post install
@@ -32,22 +36,60 @@ gui = True
 uninstall = False
 
 
+def running_from():
+    """
+    Print version and path location (installed or source code) info for debugging later.
+    """
+    if os.path.exists('scripts'):
+        gen.log('Running multibootusb version ' + gen.mbusb_version() + ' from source...')
+    else:
+        gen.log('Running multibootusb version ' + gen.mbusb_version() + ' from installed system...')
+
+
 def usage():
-    print('\n An advanced multiboot live usb creator using command line.')
-    print('\n Usage: python3 multibootusb [option(s)]\n')
-    print(' Options:\n')
-    print('  -h or --help        :   Print this help message and exit')
-    print('  -i or --iso         :   Path to ISO file')
-    print('  -t or --target      :   Path to target USB device partition (example /dev/sdb1)')
-    print('  -c or --command     :   Invoke command line usage. This option is must')
-    print('  -u or --uninstall   :   List and uninstall distro from an USB disk')
-    print('  -d or --debug       :   Enable debug messages (very verbose!)\n')
-    print(' Eexample for making a bootable USB from command line should look like this:\n')
-    print('\tpython3 multibootusb -c -i ../../favourite.iso -t /dev/sdb1 on Linux and \n')
-    print('\tpython3 multibootusb -c -i ../../favourite.iso -t G: on Windows\n')
-    print(' Example for uninstalling distro from an USB should look like this:\n')
-    print('\tpython3 multibootusb -c -u -t /dev/sdb1 on Linux and \n')
-    print('\tpython3 multibootusb -c -u -t G: on Windows\n')
+    print('''
+An advanced multiboot live usb creator which can be used from the command line
+or via a GUI.
+
+Usage: python3 multibootusb [option(s)]
+
+Options:
+  -h or --help        :   Print this help message and exit
+  -c or --command     :   Invoke command line usage.  This option is required;
+                          if omitted, the GUI will be launched.
+  -i or --iso         :   Path to ISO file()s.  If many ISOs are supplied,
+                          they should be separated by ',' with no spaces in
+                          between.
+  -t or --target      :   Path to target USB device partition (e.g. "/dev/sdb1").
+  -y or --yes         :   Default yes for user input during install.
+                          Will not wait for user.
+  -u or --uninstall   :   List and uninstall distro from an USB disk.
+  -d or --debug       :   Enable debug messages (very verbose!)
+
+Example for making a bootable USB from the command line:
+
+    Linux:
+        python3 multibootusb -c -i ../../favourite.iso -t /dev/sdb1
+
+    Windows:
+        python3 multibootusb -c -i ../../favourite.iso -t G:
+
+Example for uninstalling a distro from a USB:
+
+    Linux:
+        python3 multibootusb -c -u -t /dev/sdb1
+
+    Windows:
+        python3 multibootusb -c -u -t G:
+
+Example for installing multiple distros without user intervention:
+
+    Linux:
+        python3 multibootusb -c -y -i ../../favourite.iso,../../other-distro.iso -t /dev/sdb1
+
+    Windows:
+        python3 multibootusb -c -i ../../favourite.iso,../../other-distro.iso -t G:
+''')
     exit(2)
 
 
@@ -63,13 +105,14 @@ def start_gui():
 
 
 if __name__ == '__main__':
+    running_from()
     if platform.system() == 'Windows':
         if not admin.isUserAdmin():
             admin.runAsAdmin()
             sys.exit(0)
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'i:t:vhcud',
-                                   ['iso=', 'target=', 'version', 'help', 'command', 'uninstall', 'debug'])
+        opts, args = getopt.getopt(sys.argv[1:], 'i:t:yvhcud',
+                                   ['iso=', 'target=', 'yes', 'version', 'help', 'command', 'uninstall', 'debug'])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
@@ -81,7 +124,10 @@ if __name__ == '__main__':
             print_version()
             sys.exit()
         elif opt in ('-i', '--iso'):
-            config.image_path = arg
+            if ',' not in arg:
+                config.image_path = arg
+            else:
+                config.image_path = arg.split(',')
         elif opt in ('-t', '--target'):
             config.usb_disk = arg
         elif opt in ('-c', '--command'):
@@ -90,6 +136,8 @@ if __name__ == '__main__':
             uninstall = True
         elif opt in ('-d', '--debug'):
             config.debug = True
+        elif opt in ('-y', '--yes'):
+            config.yes = True
         else:
             gui = True
             #start_gui()

@@ -11,6 +11,7 @@ from . import config
 from . import iso
 from . import _7zip
 from . import gen
+from .usb import bytes2human
 
 
 def mbusb_update_grub_cfg():
@@ -141,9 +142,9 @@ def get_grub_cfg(iso_link, efi=True):
 
 
 def grub_custom_menu(mbus_grub_cfg_path, distro):
-    iso_size_mb = iso.iso_size(config.image_path) / (1024.0 * 1024.0)
+    iso_size_mb = bytes2human(iso.iso_size(config.image_path))
     gen.log('size of the ISO is ' + str(iso_size_mb))
-    if distro == 'sgrubd2' or distro == 'raw_iso':
+    if distro in ['sgrubd2', 'raw_iso']:
         grub_raw_iso(mbus_grub_cfg_path)
 
         '''

@@ -27,27 +27,6 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
         QtWidgets.QMainWindow.__init__(self)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-
-#     def on_Qemu_Browse_iso_Click(self):
-#         """
-#         Browse and choose an ISO.
-#         :return:
-#         """
-#         self.ui.lineEdit_2.clear()
-# 
-#         qemu = self.check_qemu_exist()
-# 
-#         if not qemu is None:
-#             qemu_iso_link = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', "",  "ISO Files (*.iso)")[0]
-#         else:
-#             log("QEMU does not exist.\nPlease install qemu package to avail this feature.")
-#             QtWidgets.QMessageBox.information(self, 'No QEMU...', 'Please install qemu package to avail this feature.')
-#             qemu_iso_link = None
-# 
-#         if not qemu_iso_link is None:
-#             self.ui.lineEdit_2.insert(qemu_iso_link)
-#         else:
-#             log ("File not selected.")
             
     def on_Qemu_Boot_iso_Click(self):
         """

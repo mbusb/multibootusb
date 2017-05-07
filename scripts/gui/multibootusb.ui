@@ -308,7 +308,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_multibootusb">
        <property name="enabled">
@@ -351,7 +351,7 @@
             </property>
             <property name="icon">
              <iconset>
-			  <normaloff>:/icon_uninstall</normaloff>:/icon_uninstall</iconset>
+              <normaloff>:/icon_uninstall</normaloff>:/icon_uninstall</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -374,7 +374,7 @@
             </property>
             <property name="icon">
              <iconset>
-			  <normaloff>:/icon_install</normaloff>:/icon_install</iconset>
+              <normaloff>:/icon_install</normaloff>:/icon_install</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -483,7 +483,7 @@
           <property name="bottomMargin">
            <number>5</number>
           </property>
-          <item row="1" column="2">
+          <item row="3" column="2">
            <spacer name="horizontalSpacer_7">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -496,14 +496,14 @@
             </property>
            </spacer>
           </item>
-          <item row="1" column="1">
+          <item row="3" column="1">
            <widget class="QPushButton" name="button_write_image_to_disk">
             <property name="text">
              <string>Write image to USB</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="3" colspan="2">
+          <item row="3" column="3" colspan="2">
            <widget class="QWidget" name="widget_7" native="true">
             <layout class="QVBoxLayout" name="verticalLayout_6">
              <property name="leftMargin">
@@ -521,7 +521,7 @@
             </layout>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="3" column="0">
            <spacer name="horizontalSpacer_5">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -534,8 +534,28 @@
             </property>
            </spacer>
           </item>
+          <item row="4" column="1">
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;WARNING!&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;This operation destroys &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#000000;&quot;&gt;ALL&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; data on the selected disk.&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Please select the destination disk carefully.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="1">
-           <spacer name="verticalSpacer_4">
+           <spacer name="verticalSpacer_2">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
@@ -548,7 +568,7 @@
            </spacer>
           </item>
           <item row="2" column="1">
-           <spacer name="verticalSpacer_5">
+           <spacer name="verticalSpacer_4">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
@@ -559,6 +579,16 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="3" column="0" colspan="3">
+           <widget class="QLabel" name="label_waning">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;WARNING&lt;/span&gt; : Any bootable USB made using&lt;span style=&quot; font-weight:600;&quot;&gt; ISO Imager will destroy all data &lt;/span&gt;on the selected USB disk. &lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;Use it at your own risk. Developers are not responsile for loss of any data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -935,7 +965,7 @@
      <x>0</x>
      <y>0</y>
      <width>629</width>
-     <height>19</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="nativeMenuBar">
