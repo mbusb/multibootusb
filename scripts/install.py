@@ -52,7 +52,7 @@ def install_distro():
         elif platform.system() == "Linux":
             log("Copying " + config.image_path + " to " + usb_mount)
             shutil.copy(config.image_path, usb_mount)
-    elif config.distro == "Windows" or config.distro == "alpine" or config.distro == 'pc-unlocker'\
+    elif config.distro == "Windows" or config.distro == 'pc-unlocker'\
             or config.distro == 'pc-tool' or config.distro == 'grub2only':
         log("Extracting iso to " + usb_mount)
         iso_extract_full(config.image_path, usb_mount)
@@ -112,6 +112,11 @@ def install_distro():
         if os.path.exists(os.path.join(usb_mount, 'system')):
             shutil.rmtree(os.path.join(usb_mount, 'system'))
             shutil.move(os.path.join(install_dir, 'system'), os.path.join(usb_mount))
+    elif config.distro == 'alpine':
+        iso_extract_full(config.image_path, install_dir)
+        if os.path.exists(os.path.join(usb_mount, 'apks')):
+            shutil.rmtree(os.path.join(usb_mount, 'apks'))
+        shutil.move(os.path.join(install_dir, 'apks'), os.path.join(usb_mount))
     else:
         iso.iso_extract_full(config.image_path, install_dir)
 

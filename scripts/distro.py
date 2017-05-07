@@ -140,9 +140,11 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return 'rising-av'
                         elif re.search(r'Avira Rescue System', string, re.I):
                             return 'Avira-RS'
-
+                        elif any("alpine-release" in s.lower() for s in iso_file_list):
+                            return 'alpine'
 
         distro = detect_iso_from_file_list(iso_link)
+
         if distro:
             return distro
             # FIXME: See the below comments.
