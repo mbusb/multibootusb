@@ -220,8 +220,8 @@ def copy_mbusb_dir_usb(usb_disk):
             log('Copying EFI directory to ' + usb_mount_path)
             shutil.copytree(resource_path(os.path.join("data", "EFI")), os.path.join(usb_mount_path, "EFI"))
             result = True
-        except:
-            log('EFI directory could not be copied to ' + usb_mount_path)
+        except Exception as e:
+            log(e)
             result = False
     else:
         log('EFI directory already exist. Not copying.')
