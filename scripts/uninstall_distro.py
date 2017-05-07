@@ -73,11 +73,14 @@ def delete_frm_file_list():
                     gen.log('Could not remove ldlinux.sys')
 
             if os.path.exists(os.path.join(usb_mount, f)):
-                if os.path.isfile(os.path.join(usb_mount, f)):
-                    gen.log("Removing " + (os.path.join(usb_mount, f)))
+
+                if os.path.isdir(os.path.join(usb_mount, f)):
+                    gen.log("Removing directory " + (os.path.join(usb_mount, f)))
+                    shutil.rmtree(os.path.join(usb_mount, f))
+
+                elif os.path.isfile(os.path.join(usb_mount, f)):
+                    gen.log("Removing file " + (os.path.join(usb_mount, f)))
                     os.remove(os.path.join(usb_mount, f))
-                elif os.path.isdir(os.path.join(usb_mount, f)):
-                     shutil.rmtree(os.path.join(usb_mount, f))
 
         if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "generic.cfg")):
             with open(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "generic.cfg"), "r") as generic_cfg:
@@ -116,11 +119,18 @@ def uninstall_distro():
         with open(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "iso_file_list.cfg"), "r") as f:
             config.iso_file_list = f.readlines()
 
+    for path, subdirs, files in os.walk(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name)):
+        for name in files:
+            if name.endswith('ldlinux.sys') or name.endswith('ldlinux.c32'):
+                os.chmod(os.path.join(path, name), 0o777)
+                os.unlink(os.path.join(path, name))
+
     if config.distro == "opensuse":
         if os.path.exists(os.path.join(usb_mount, config.uninstall_distro_dir_name + ".iso")):
             os.remove(os.path.join(usb_mount, config.uninstall_distro_dir_name + ".iso"))
     elif config.distro == "windows" or config.distro == "alpine" or config.distro == "generic":
         delete_frm_file_list()
+
     if config.distro == "ipfire":
         files = os.listdir(usb_mount)
         for f in files:
@@ -147,7 +157,7 @@ def uninstall_distro():
         gen.log('EFI image does not exist. Copying now...')
         shutil.copy2(gen.resource_path(os.path.join("data", "EFI", "BOOT", "bootx64.efi")),
                      os.path.join(config.usb_mount, 'EFI', 'BOOT'))
-    elif not gen.grub_efi_exist(efi_grub_img) is True:
+    elif not gen.grub_efi_exist(efi_grub_img):
         gen.log('EFI image overwritten by distro install. Replacing it now...')
         shutil.copy2(gen.resource_path(os.path.join("data", "EFI", "BOOT", "bootx64.efi")),
                      os.path.join(config.usb_mount, 'EFI', 'BOOT'))

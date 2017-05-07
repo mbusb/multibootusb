@@ -7,14 +7,12 @@
 # under the terms of GNU General Public License, v.2 or above
 
 import os
-import string
 import platform
 import re
 from .iso import *
 from .isodump3 import ISO9660
 from .gen import *
 from . import _7zip
-from . import config
 
 
 def distro(iso_cfg_ext_dir, iso_link):
@@ -23,8 +21,8 @@ def distro(iso_cfg_ext_dir, iso_link):
     :param iso_cfg_ext_dir: Directory where *.cfg files are extracted.
     :return: Detected distro name as string.
     """
-    iso9660fs = ISO9660(iso_link)
-    # iso_file_list = iso9660fs.readDir("/")
+#     iso9660fs = ISO9660(iso_link)
+#     iso_file_list = iso9660fs.readDir("/")
     iso_file_list = _7zip.list_iso(iso_link)
     if platform.system() == "Linux" or platform.system() == "Windows":
         for path, subdirs, files in os.walk(iso_cfg_ext_dir):
@@ -32,7 +30,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                 if name.endswith(('.cfg', '.CFG', '.txt', '.TXT', '.lst')):
                     try:
                         # errors='ignore' is required as some files also contain non utf character
-                        string = open(os.path.join(path, name),  errors='ignore').read()
+                        string = open(os.path.join(path, name), errors='ignore').read()
                     except IOError:
                         return "Read Error."
                     else:
@@ -73,7 +71,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "redhat"
                         elif re.search(
                                 r'slitaz|dban |ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|android-x86.png|'
-                                r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/|AVG Rescue CD|lkrn', string, re.I):
+                                r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/|AVG Rescue CD|AntivirusLiveCD|lkrn',
+                                string, re.I):
                             return "slitaz"
                         elif re.search(r'minimal Slackware|Slackware-HOWTO', string, re.I):
                             # for minimal slackware detection
@@ -137,21 +136,23 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return 'pc-tool'
                         elif re.search(r'vba32rescue', string, re.I):
                             return 'grub2only'
+                        elif re.search(r'BOOT_IMAGE=rising', string, re.I):
+                            return 'rising-av'
+                        elif re.search(r'Avira Rescue System', string, re.I):
+                            return 'Avira-RS'
 
 
         distro = detect_iso_from_file_list(iso_link)
         if distro:
             return distro
             # FIXME: See the below comments.
-            '''
-            else:
-                # FIXME: The idea of detecting as generic is to work like a unetbootin if other methods fails.
-                #  This simply extracts distro to root of the USB and install syslinux on isolinux.bin directory.
-                #  All works fine but unable to boot the distro successfully. Also, see the generic section from
-                #  syslinux, update_cfg and install_distro modules.
-                if self.isolinux_bin_exist():
-                    return "generic"
-            '''
+#             else:
+#                 # FIXME: The idea of detecting as generic is to work like a unetbootin if other methods fails.
+#                 #  This simply extracts distro to root of the USB and install syslinux on isolinux.bin directory.
+#                 #  All works fine but unable to boot the distro successfully. Also, see the generic section from
+#                 #  syslinux, update_cfg and install_distro modules.
+#                 if self.isolinux_bin_exist():
+#                     return "generic"
         else:
             return None
 

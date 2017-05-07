@@ -8,7 +8,9 @@
 
 import os
 import sys
-import urllib.request, urllib.error, urllib.parse
+import urllib.request
+import urllib.error
+import urllib.parse
 import subprocess
 
 
@@ -22,7 +24,7 @@ class Install():
 
     def mbusb(self):
         try:
-            from PyQt5 import QtGui
+#             from PyQt5 import QtGui
             if subprocess.call("python3 setup.py install --record ./.install_files.txt", shell=True) == 0:
                     print("Installation finished.")
                     print("Find multibootusb under system menu or run from terminal  using the following command...")
@@ -52,7 +54,8 @@ class Install():
                         print("You can uninstall multibootusb at any time using follwing command (with root/sudo previlage)")
                         print("\nsudo ./uninstall.sh\n")
 
-    def internet_on(self):
+    @staticmethod
+    def internet_on():
         try:
             ret = urllib.request.urlopen('https://www.google.com', timeout=1)
             print("Interconnection exist.")
@@ -64,7 +67,8 @@ class Install():
 
         return result
 
-    def supported_pac_manager(self):
+    @staticmethod
+    def supported_pac_manager():
         pac_managers = ["pacman", "yum", "apt-get", "zypper", "urpmi"]
         result = "0"
         for pac_man in pac_managers:
@@ -76,10 +80,12 @@ class Install():
             return False
 
 
-    def install_dependency_package(self):
+    @staticmethod
+    def install_dependency_package():
         if subprocess.call("which pacman", shell=True) == 0:
             subprocess.call("pacman -Sy --noconfirm", shell=True)
-            if subprocess.call("pacman -S --needed --noconfirm p7zip python-pyqt5 mtools python3-six parted util-linux python-dbus") == 0:  # Thank you Neitsab for "--needed"  argument.
+            # Thank you Neitsab for "--needed"  argument.
+            if subprocess.call("pacman -S --needed --noconfirm p7zip python-pyqt5 mtools python3-six parted util-linux python-dbus") == 0:
                 result = True
         elif subprocess.call("which yum", shell=True) == 0:
             subprocess.call("yum check-update", shell=True)
@@ -98,10 +104,7 @@ class Install():
             if subprocess.call("urpmi install -auto mtools util-linux p7zip python3-pyudev python3-six parted python3-qt5", shell=True) == 0:
                 result = True
 
-        if result is not True:
-            return False
-        else:
-            result
+        return bool(result)
 
 install = Install()
 

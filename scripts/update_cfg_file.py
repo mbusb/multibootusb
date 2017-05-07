@@ -26,10 +26,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
     usb_mount = usb_details['mount_point']
     usb_uuid = usb_details['uuid']
     usb_label = usb_details['label']
-    patch = None
-    iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
-    if isolinux_bin_exist(config.image_path):
-        isolinux_path = os.path.join(iso_cfg_ext_dir, isolinux_bin_path(iso_link)[1:])
+#     iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
     config.status_text = "Updating config files..."
     install_dir = os.path.join(usb_mount, "multibootusb", iso_basename(iso_link))
     log('Updating distro specific config files...')
@@ -52,6 +49,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'boot=casper cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid '
                                     'ignore_bootid root=UUID=' + usb_uuid + ' live-media-path=/multibootusb/'
                                     + iso_basename(iso_link) + '/casper', string)
+                    string = re.sub(r'live-media=\S*', 'live-media=/dev/disk/by-uuid/' + usb_uuid , string)
                     string = re.sub(r'ui gfxboot', '#ui gfxboot', string)
                     if persistence != 0:
                         string = re.sub(r'boot=casper', 'boot=casper persistent persistent-path=/multibootusb/' +
@@ -399,7 +397,7 @@ label hwinfo
 
 def update_menu_lst():
     sys_cfg_file = os.path.join(config.usb_mount, "multibootusb", "syslinux.cfg")
-    install_dir = os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path))
+#     install_dir = os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path))
     menu_lst = iso_menu_lst_path(config.image_path).replace("\\", "/")
     with open(sys_cfg_file, "a") as f:
         f.write("#start " + iso_basename(config.image_path) + "\n")

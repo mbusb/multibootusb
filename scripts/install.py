@@ -8,7 +8,6 @@
 
 import os
 import shutil
-import sys
 import platform
 import threading
 import subprocess
@@ -47,7 +46,7 @@ def install_distro():
 
     if config.distro == "opensuse":
         iso.iso_extract_file(config.image_path, install_dir, 'boot')
-        status_text = "Copying ISO..."
+        config.status_text = "Copying ISO..."
         if platform.system() == "Windows":
             subprocess.call(["xcopy", config.image_path, usb_mount], shell=True)  # Have to use xcopy as python file copy is dead slow.
         elif platform.system() == "Linux":
@@ -58,7 +57,10 @@ def install_distro():
         log("Extracting iso to " + usb_mount)
         iso_extract_full(config.image_path, usb_mount)
     elif config.distro == "trinity-rescue":
-        iso.iso_extract_file(config.image_path, usb_mount, '*trk3')
+        iso_extract_full(config.image_path, install_dir)
+        if os.path.exists(os.path.join(usb_mount, 'trk3')):
+            shutil.rmtree(os.path.join(usb_mount, 'trk3'))
+        shutil.move(os.path.join(install_dir, 'trk3'), os.path.join(usb_mount))
     elif config.distro == "ipfire":
         iso.iso_extract_file(config.image_path, usb_mount, '*.tlz')
         iso.iso_extract_file(config.image_path, usb_mount, 'distro.img')
@@ -80,6 +82,9 @@ def install_distro():
         #iso.iso_extract_full(config.image_path, usb_mount)
         config.status_text = "Copying ISO..."
         copy_iso(config.image_path, install_dir)
+    elif config.distro == "rising-av":
+        iso.iso_extract_file(config.image_path, install_dir, '*boot')
+        iso.iso_extract_file(config.image_path, usb_mount, '*rising')
     elif config.distro == 'sgrubd2':
         copy_iso(config.image_path, install_dir)
     elif config.distro == 'alt-linux':
@@ -95,6 +100,18 @@ def install_distro():
         iso_extract_full(config.image_path, usb_mount)
     elif config.distro == 'grub4dos_iso' or config.distro == 'raw_iso':
         copy_iso(config.image_path, install_dir)
+    elif config.distro == 'Avira-RS':
+        iso_extract_full(config.image_path, install_dir)
+        # we want following directories on root of the USB drive. Ensure the previous directories are removed before moving.
+        if os.path.exists(os.path.join(usb_mount, 'antivir')):
+            shutil.rmtree(os.path.join(usb_mount, 'antivir'))
+            shutil.move(os.path.join(install_dir, 'antivir'), os.path.join(usb_mount))
+        if os.path.exists(os.path.join(usb_mount, 'avupdate')):
+            shutil.rmtree(os.path.join(usb_mount, 'avupdate'))
+            shutil.move(os.path.join(install_dir, 'avupdate'), os.path.join(usb_mount))
+        if os.path.exists(os.path.join(usb_mount, 'system')):
+            shutil.rmtree(os.path.join(usb_mount, 'system'))
+            shutil.move(os.path.join(install_dir, 'system'), os.path.join(usb_mount))
     else:
         iso.iso_extract_full(config.image_path, install_dir)
 
@@ -137,7 +154,7 @@ def install_progress():
     thrd = threading.Thread(target=install_distro, name="install_progress")
     # thrd.daemon()
     # install_size = usb_size_used / 1024
-    install_size = iso_size(config.image_path) / 1024
+#     install_size = iso_size(config.image_path) / 1024
     final_size = (usb_size_used + iso_size(config.image_path)) + config.persistence
     thrd.start()
     pbar = progressbar.ProgressBar(maxval=100).start()  # bar = progressbar.ProgressBar(redirect_stdout=True)
@@ -162,7 +179,7 @@ def install_patch():
             os.sync()
         iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
         isolinux_path = os.path.join(iso_cfg_ext_dir, isolinux_bin_path(config.image_path))
-        iso_linux_bin_dir = isolinux_bin_dir(config.image_path)
+#         iso_linux_bin_dir = isolinux_bin_dir(config.image_path)
         config.syslinux_version = isolinux_version(isolinux_path)
         iso_file_list = iso.iso_file_list(config.image_path)
         os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path), isolinux_bin_dir(config.image_path))
