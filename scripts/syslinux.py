@@ -125,7 +125,7 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
             log('Distro uses really old isolinux. Installing version 3 instead of 2.')
             config.syslinux_version = '3'
 
-        if distro in ["generic", "alpine"]:
+        if distro in ["generic"]:
             install_dir = usb_mount
             distro_syslinux_install_dir = os.path.join(usb_mount, iso_linux_bin_dir.strip("/")).replace(usb_mount, "")
             distro_sys_install_bs = os.path.join(install_dir, iso_linux_bin_dir.strip("/"), distro + '.bs')

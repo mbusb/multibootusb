@@ -9,6 +9,7 @@
 from . import iso
 from . import config
 
+
 def pc_tool_config(syslinux=True, grub=False):
     """
     Menu entry for PC Tool ISO
@@ -32,3 +33,16 @@ INITRD /multibootusb/grub/core.img
 TEXT HELP
     Switch to GRUB2 to select boot options.
 ENDTEXT\n"""
+
+
+def rising(syslinux=True, grub=False):
+    """
+    Menu entry for Raising Anti-virus. Only grub2 menu is required. Syslinux menu is automatically added 
+    :param syslinux: 
+    :param grub: 
+    :return: 
+    """
+    if grub is True:
+        return """menuentry """ + iso.iso_basename(config.image_path) + """ {
+linux /multibootusb/linux/boot/isolinux/vmlinuz lang=us ramdisk_size=100000 init=/etc/init apm=power-off pnpbios=off vga=0x314 nomce quiet BOOT_IMAGE=rising 
+initrd /multibootusb/linux/boot/isolinux/ravroot.gz\n}"""

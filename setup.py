@@ -12,7 +12,15 @@ import os
 from scripts.gen import mbusb_version
 
 
+Version = mbusb_version()
+
+
 def get_data(_dir):
+    """
+    Get path to all files, including sub directories
+    :param _dir: Path to top level directory
+    :return: Path to files as list
+    """
     data = []
     for dirpath, dirnames, filenames in os.walk(_dir):
         for f in filenames:
@@ -20,8 +28,21 @@ def get_data(_dir):
             data.append(cfg_file)
     return data
 
-Version = mbusb_version()
-print(Version)
+
+def root_files(_dir):
+    """
+    Get path to all files of root directories
+    :param _dir: Path to a directory
+    :return: Path to files as list
+    """
+    data = []
+    for _file in os.listdir(_dir):
+        path = os.path.join(_dir, _file)
+        if not os.path.isdir(path):
+            data.append(path)
+    return data
+
+
 setup(
     name='multibootusb',
     version=Version,
@@ -55,6 +76,7 @@ setup(
                 ('/usr/share/multibootusb/data/multibootusb', ["data/multibootusb/menu.lst"]),
                 ('/usr/share/multibootusb/data/multibootusb', ["data/multibootusb/syslinux.cfg"]),
                 ('/usr/share/multibootusb/data/multibootusb', ["data/multibootusb/vesamenu.c32"]),
-                ('/usr/share/multibootusb/data/multibootusb/grub', get_data('data/multibootusb/grub')),
+                ('/usr/share/multibootusb/data/multibootusb/grub', root_files('data/multibootusb/grub')),
+                ('/usr/share/multibootusb/data/multibootusb/grub/i386-pc', get_data('data/multibootusb/grub')),
                 ('/usr/share/multibootusb/data/tools/syslinux', get_data('data/tools/syslinux'))]
 )

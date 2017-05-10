@@ -29,12 +29,12 @@ def extract_iso(src, dst, pattern=None, suppress_out=True):
     # 7z x -y -oC:\path_to_directory X:\path_to_iso_file.iso
     # 7z e archive.zip -oC:\path_to_directory *.cfg *.bin -r
     if platform.system() == 'Windows':
-        cli_option = ' -bb1'  # Linux does not accept this option (may be due to version diff).
+        cli_option = ' -ssc- -bb1'  # Linux does not accept this option (may be due to version diff).
         if suppress_out != '':
             # suppress_out = ' 2> nul'
             suppress_out = ''
     else:
-        cli_option = ''
+        cli_option = ' -ssc- '
         if suppress_out != '':
             suppress_out = ' 2> /dev/null'
 
@@ -47,7 +47,7 @@ def extract_iso(src, dst, pattern=None, suppress_out=True):
     if pattern is None:
         _cmd = _7zip + cli_option + ' x -y -o' + gen.quote(dst) + ' ' + gen.quote(src) + suppress_out
     else:
-        _cmd = _7zip + ' x -y ' + gen.quote(src) + ' -o' + dst + ' ' + gen.quote(pattern) + ' -r' + suppress_out
+        _cmd = _7zip + cli_option + ' x -y ' + gen.quote(src) + ' -o' + dst + ' ' + gen.quote(pattern) + ' -r' + suppress_out
     gen.log('Executing ==> ' + _cmd)
 
     config.status_text = 'Status: Extracting ' + os.path.basename(src).strip()
@@ -60,7 +60,7 @@ def list_iso(iso_link, suppress_out=True):
     List the content of ISO files. It does'nt work with non 'utf' characters (simply ignores them).
     :param iso_link:Path to ISO link
     :param suppress_out: Option to suppress output to stdout. Default True.
-    :return: Path to files as a list
+    :return: Path to files and directories as a list
     """
     if platform.system() == 'Windows':
         if suppress_out is True:
@@ -76,6 +76,12 @@ def list_iso(iso_link, suppress_out=True):
         _cmd = _7zip + ' l ' + gen.quote(iso_link) + suppress_out
         _cmd_out = subprocess.check_output(_cmd, stderr=subprocess.PIPE, shell=True).decode('utf-8', 'ignore').splitlines()
         for line in _cmd_out:
+            if '...' in line:
+                line = line.split()
+                _path = line[-1]
+                file_list.append(_path)
+        '''
+        for line in _cmd_out:
             line = line.split()
             if '.....' in line:
                 if gen.has_digit(line[2]) or gen.has_digit(line[4]):
@@ -85,6 +91,7 @@ def list_iso(iso_link, suppress_out=True):
                     else:
                         f_path = line[-1]
                         file_list.append(f_path)
+        '''
         return file_list
 
 

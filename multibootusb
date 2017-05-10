@@ -6,14 +6,21 @@
 # Licence:  This file is a part of multibootusb package. You can redistribute it or modify
 #           under the terms of GNU General Public License, version 2 or above.
 
+<<<<<<< HEAD
 import os
+=======
+>>>>>>> devel
 import getopt
 import sys
 import platform
 
-# The following line is required for distros based on rpm so as to avoid import errors when running from installed system
+# The following line is required for distros based on rpm so as to avoid import errors when running from
+# installed system
 sys.path.append('/usr/local/lib/python3.4/dist-packages')
-# print(sys.path)
+
+# Ensure that above issue doesn't occur on debian based distro as well
+if '/usr/lib/python3/dist-packages/scripts/' not in sys.path:
+    sys.path.append('/usr/lib/python3/dist-packages/scripts/')
 
 # Had trouble in importing scripts directory. Had to add few lines below to ensure it works on source as well as
 # post install
@@ -56,7 +63,7 @@ Options:
   -h or --help        :   Print this help message and exit
   -c or --command     :   Invoke command line usage.  This option is required;
                           if omitted, the GUI will be launched.
-  -i or --iso         :   Path to ISO file()s.  If many ISOs are supplied,
+  -i or --iso         :   Path to ISO file(s).  If many ISOs are supplied,
                           they should be separated by ',' with no spaces in
                           between.
   -t or --target      :   Path to target USB device partition (e.g. "/dev/sdb1").
@@ -104,7 +111,6 @@ def start_gui():
 
 
 if __name__ == '__main__':
-    running_from()
     if platform.system() == 'Windows':
         if not admin.isUserAdmin():
             admin.runAsAdmin()
@@ -164,7 +170,9 @@ if gui is False:
         log('\nOptions \'-i\' and \'-t\' must be supplied together. See the usage below.')
         usage()
     else:
+        running_from()
         cli_install_distro()
 
 elif gui is True:
+    running_from()
     start_gui()

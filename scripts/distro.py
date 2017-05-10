@@ -71,7 +71,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "redhat"
                         elif re.search(
                                 r'slitaz|dban |ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|android-x86.png|'
-                                r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/|AVG Rescue CD|lkrn', string, re.I):
+                                r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/|AVG Rescue CD|AntivirusLiveCD|lkrn',
+                                string, re.I):
                             return "slitaz"
                         elif re.search(r'minimal Slackware|Slackware-HOWTO', string, re.I):
                             # for minimal slackware detection
@@ -94,7 +95,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "porteus"
                         elif re.search(r'livecd=livecd|PCLinuxOS', string, re.I):
                             return "pclinuxos"
-                        elif re.search(r'looptype=squashfs', string, re.I):
+                        elif re.search(r'looptype=squashfs|http://dee.su/liberte', string, re.I):
                             return "gentoo"
                         elif re.search(r'finnix', string, re.I):
                             return "finnix"
@@ -135,9 +136,17 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return 'pc-tool'
                         elif re.search(r'vba32rescue', string, re.I):
                             return 'grub2only'
-
+                        elif re.search(r'BOOT_IMAGE=rising', string, re.I):
+                            return 'rising-av'
+                        elif re.search(r'Avira Rescue System', string, re.I):
+                            return 'Avira-RS'
+                        elif any("alpine-release" in s.lower() for s in iso_file_list):
+                            return 'alpine'
+                        elif re.search(r'BOOT_IMAGE=insert', string, re.I):
+                            return 'insert'
 
         distro = detect_iso_from_file_list(iso_link)
+
         if distro:
             return distro
             # FIXME: See the below comments.

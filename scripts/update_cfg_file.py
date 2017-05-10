@@ -49,6 +49,9 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'boot=casper cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid '
                                     'ignore_bootid root=UUID=' + usb_uuid + ' live-media-path=/multibootusb/'
                                     + iso_basename(iso_link) + '/casper', string)
+                    # Point to correct .seed file
+                    string = re.sub(r'/cdrom/preseed', '/preseed', string)
+                    string = re.sub(r'live-media=\S*', 'live-media=/dev/disk/by-uuid/' + usb_uuid, string)
                     string = re.sub(r'ui gfxboot', '#ui gfxboot', string)
                     if persistence != 0:
                         string = re.sub(r'boot=casper', 'boot=casper persistent persistent-path=/multibootusb/' +
@@ -130,6 +133,10 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                     string = re.sub(r'append ',
                                     'append real_root=' + usb_disk + ' slowusb subdir=/multibootusb/' +
                                     iso_basename(iso_link) + '/ ', string, flags=re.I)
+                    string = re.sub(r'slowusb', 'slowusb loop=/multibootusb/' +
+                                    iso_basename(iso_link) + '/liberte/boot/root-x86.sfs', string, flags=re.I)
+                    string = re.sub(r'cdroot_hash=\S*', '', string, flags=re.I)
+
                 elif distro == "systemrescuecd":
                     rows = []
                     subdir = '/multibootusb/' + iso_basename(iso_link)
@@ -219,6 +226,12 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                 elif distro == 'fsecure':
                     string = re.sub(r'APPEND ramdisk_size', 'APPEND noprompt ' + 'knoppix_dir=/multibootusb/' + iso_basename(iso_link)
                                     + '/KNOPPIX ramdisk_size', string)
+                elif distro == 'alpine':
+                    string = re.sub(r'modules', 'alpine_dev=usbdisk:vfat modules', string)
+                elif config.distro == 'trinity-rescue':
+                    # USB disk must have volume label to work properly
+                    string = re.sub(r'initrd=', 'vollabel=' + config.usb_label + ' initrd=', string)
+                    string = re.sub(r'root=\S*', 'root=/dev/ram0', string, flags=re.I)
 
                 config_file = open(cfg_file, "w")
                 config_file.write(string)
@@ -371,6 +384,9 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                     if config.syslinux_version == '3':
                         config_file.write("CONFIG /multibootusb/" + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '/isolinux.cfg\n')
                         config_file.write("APPEND /multibootusb/" + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '\n')
+                        config_file.write("# Delete or comment above two lines using # and remove # from below line if "
+                                          "you get not a COM module error.\n")
+                        config_file.write("#BOOT " + distro_sys_install_bs.replace("//", "/") + "\n")
                     else:
                         config_file.write("BOOT " + distro_sys_install_bs.replace("//", "/") + "\n")
 

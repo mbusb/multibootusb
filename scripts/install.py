@@ -52,12 +52,15 @@ def install_distro():
         elif platform.system() == "Linux":
             log("Copying " + config.image_path + " to " + usb_mount)
             shutil.copy(config.image_path, usb_mount)
-    elif config.distro == "Windows" or config.distro == "alpine" or config.distro == 'pc-unlocker'\
+    elif config.distro == "Windows" or config.distro == 'pc-unlocker'\
             or config.distro == 'pc-tool' or config.distro == 'grub2only':
         log("Extracting iso to " + usb_mount)
         iso_extract_full(config.image_path, usb_mount)
     elif config.distro == "trinity-rescue":
-        iso.iso_extract_file(config.image_path, usb_mount, '*trk3')
+        iso_extract_full(config.image_path, install_dir)
+        if os.path.exists(os.path.join(usb_mount, 'trk3')):
+            shutil.rmtree(os.path.join(usb_mount, 'trk3'))
+        shutil.move(os.path.join(install_dir, 'trk3'), os.path.join(usb_mount))
     elif config.distro == "ipfire":
         iso.iso_extract_file(config.image_path, usb_mount, '*.tlz')
         iso.iso_extract_file(config.image_path, usb_mount, 'distro.img')
@@ -79,6 +82,9 @@ def install_distro():
         #iso.iso_extract_full(config.image_path, usb_mount)
         config.status_text = "Copying ISO..."
         copy_iso(config.image_path, install_dir)
+    elif config.distro == "rising-av":
+        iso.iso_extract_file(config.image_path, install_dir, '*boot')
+        iso.iso_extract_file(config.image_path, usb_mount, '*rising')
     elif config.distro == 'sgrubd2':
         copy_iso(config.image_path, install_dir)
     elif config.distro == 'alt-linux':
@@ -94,6 +100,28 @@ def install_distro():
         iso_extract_full(config.image_path, usb_mount)
     elif config.distro == 'grub4dos_iso' or config.distro == 'raw_iso':
         copy_iso(config.image_path, install_dir)
+    elif config.distro == 'Avira-RS':
+        iso_extract_full(config.image_path, install_dir)
+        # we want following directories on root of the USB drive. Ensure the previous directories are removed before moving.
+        if os.path.exists(os.path.join(usb_mount, 'antivir')):
+            shutil.rmtree(os.path.join(usb_mount, 'antivir'))
+            shutil.move(os.path.join(install_dir, 'antivir'), os.path.join(usb_mount))
+        if os.path.exists(os.path.join(usb_mount, 'avupdate')):
+            shutil.rmtree(os.path.join(usb_mount, 'avupdate'))
+            shutil.move(os.path.join(install_dir, 'avupdate'), os.path.join(usb_mount))
+        if os.path.exists(os.path.join(usb_mount, 'system')):
+            shutil.rmtree(os.path.join(usb_mount, 'system'))
+            shutil.move(os.path.join(install_dir, 'system'), os.path.join(usb_mount))
+    elif config.distro == 'alpine':
+        iso_extract_full(config.image_path, install_dir)
+        if os.path.exists(os.path.join(usb_mount, 'apks')):
+            shutil.rmtree(os.path.join(usb_mount, 'apks'))
+        shutil.move(os.path.join(install_dir, 'apks'), os.path.join(usb_mount))
+    elif config.distro == 'insert':
+        iso_extract_full(config.image_path, install_dir)
+        if os.path.exists(os.path.join(usb_mount, 'INSERT')):
+            shutil.rmtree(os.path.join(usb_mount, 'INSERT'))
+        shutil.move(os.path.join(install_dir, 'INSERT'), os.path.join(usb_mount))
     else:
         iso.iso_extract_full(config.image_path, install_dir)
 
