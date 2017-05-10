@@ -155,6 +155,7 @@ def uninstall_distro():
     efi_grub_img = os.path.join(config.usb_mount, 'EFI', 'BOOT', 'bootx64.efi')
     if not os.path.exists(efi_grub_img):
         gen.log('EFI image does not exist. Copying now...')
+        os.makedirs(os.path.join(config.usb_mount, 'EFI', 'BOOT'), exist_ok=True)
         shutil.copy2(gen.resource_path(os.path.join("data", "EFI", "BOOT", "bootx64.efi")),
                      os.path.join(config.usb_mount, 'EFI', 'BOOT'))
     elif not gen.grub_efi_exist(efi_grub_img):

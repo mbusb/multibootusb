@@ -229,7 +229,7 @@ Are you SURE you want to enable it?",
         if os.path.exists(preference_file_path):
             dir_path = open(preference_file_path, 'r').read()
 
-        config.image_path = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', dir_path, 'ISO Files (*.iso)')[0]
+        config.image_path = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', dir_path, 'ISO Files (*.iso);; Zip Files(*.zip)')[0]
 
         if config.image_path:
             default_dir_path = os.path.dirname(config.image_path)

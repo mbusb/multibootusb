@@ -133,6 +133,10 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                     string = re.sub(r'append ',
                                     'append real_root=' + usb_disk + ' slowusb subdir=/multibootusb/' +
                                     iso_basename(iso_link) + '/ ', string, flags=re.I)
+                    string = re.sub(r'slowusb', 'slowusb loop=/multibootusb/' +
+                                    iso_basename(iso_link) + '/liberte/boot/root-x86.sfs', string, flags=re.I)
+                    string = re.sub(r'cdroot_hash=\S*', '', string, flags=re.I)
+
                 elif distro == "systemrescuecd":
                     rows = []
                     subdir = '/multibootusb/' + iso_basename(iso_link)
@@ -380,6 +384,9 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                     if config.syslinux_version == '3':
                         config_file.write("CONFIG /multibootusb/" + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '/isolinux.cfg\n')
                         config_file.write("APPEND /multibootusb/" + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '\n')
+                        config_file.write("# Delete or comment above two lines using # and remove # from below line if "
+                                          "you get not a COM module error.\n")
+                        config_file.write("#BOOT " + distro_sys_install_bs.replace("//", "/") + "\n")
                     else:
                         config_file.write("BOOT " + distro_sys_install_bs.replace("//", "/") + "\n")
 

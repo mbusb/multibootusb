@@ -95,7 +95,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "porteus"
                         elif re.search(r'livecd=livecd|PCLinuxOS', string, re.I):
                             return "pclinuxos"
-                        elif re.search(r'looptype=squashfs', string, re.I):
+                        elif re.search(r'looptype=squashfs|http://dee.su/liberte', string, re.I):
                             return "gentoo"
                         elif re.search(r'finnix', string, re.I):
                             return "finnix"
@@ -142,6 +142,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return 'Avira-RS'
                         elif any("alpine-release" in s.lower() for s in iso_file_list):
                             return 'alpine'
+                        elif re.search(r'BOOT_IMAGE=insert', string, re.I):
+                            return 'insert'
 
         distro = detect_iso_from_file_list(iso_link)
 

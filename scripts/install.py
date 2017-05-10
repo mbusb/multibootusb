@@ -117,6 +117,11 @@ def install_distro():
         if os.path.exists(os.path.join(usb_mount, 'apks')):
             shutil.rmtree(os.path.join(usb_mount, 'apks'))
         shutil.move(os.path.join(install_dir, 'apks'), os.path.join(usb_mount))
+    elif config.distro == 'insert':
+        iso_extract_full(config.image_path, install_dir)
+        if os.path.exists(os.path.join(usb_mount, 'INSERT')):
+            shutil.rmtree(os.path.join(usb_mount, 'INSERT'))
+        shutil.move(os.path.join(install_dir, 'INSERT'), os.path.join(usb_mount))
     else:
         iso.iso_extract_full(config.image_path, install_dir)
 
