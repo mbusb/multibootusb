@@ -552,7 +552,7 @@ Are you SURE you want to enable it?",
         msgBox.setInformativeText("Reboot to boot from USB or test it from <b>Boot ISO/USB</b> tab.");
         msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msgBox.setIcon(QtWidgets.QMessageBox.Information)
-        msgBox.exec()
+        msgBox.exec_()
 
         self.ui_enable_controls()
 
