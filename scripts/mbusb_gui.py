@@ -209,7 +209,7 @@ Are you SURE you want to enable it?",
         if os.path.exists(preference_file_path):
             dir_path = open(preference_file_path, 'r').read()
 
-        config.image_path = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', dir_path, 'ISO Files (*.iso);; Zip Files(*.zip)')[0]
+        config.image_path = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', dir_path, 'ISO Files (*.iso);; Zip Files(*.zip);; Img Files(*.img)')[0]
 
         if config.image_path:
             default_dir_path = os.path.dirname(config.image_path)
@@ -552,7 +552,7 @@ Are you SURE you want to enable it?",
         msgBox.setInformativeText("Reboot to boot from USB or test it from <b>Boot ISO/USB</b> tab.");
         msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msgBox.setIcon(QtWidgets.QMessageBox.Information)
-        msgBox.exec()
+        msgBox.exec_()
 
         self.ui_enable_controls()
 
@@ -797,8 +797,12 @@ def show_admin_info():
     """
     msg = QtWidgets.QMessageBox()
     msg.setIcon(QtWidgets.QMessageBox.Information)
-    msg.setText('Admin privilege is required to run multibootusb.\n If you are running from source try '
-                '\'sudo python3 ./multibootusb\'\n or you can try \'multibootusb-pkexec\' (post install)')
+    if os.path.exists('scripts'):
+        msg.setText('Admin privilege is required to run multibootusb.\n'
+                    'Try  \'sudo python3 ./multibootusb\'\n')
+    else:
+        msg.setText('Admin privilege is required to run multibootusb.\n'
+                    'Try  \'multibootusb-pkexec\'\n')
     msg.exec_()
 
 
@@ -807,12 +811,13 @@ def main_gui():
     #    ui_about = Ui_About()
     #    ui = Ui_MainWindow()
 
-    window = AppGui()
-    window.show()
-    window.setWindowTitle("MultiBootUSB - " + mbusb_version())
-    window.setWindowIcon(QtGui.QIcon(resource_path(os.path.join("data", "tools", "multibootusb.png"))))
+    if platform.system() == 'Linux' and os.getuid() != 0:
+        show_admin_info()
+        sys.exit(2)
 
-    if platform.system() == 'Linux':
-        if os.getuid() != 0:
-            show_admin_info()
+    else:
+        window = AppGui()
+        window.show()
+        window.setWindowTitle("MultiBootUSB - " + mbusb_version())
+        window.setWindowIcon(QtGui.QIcon(resource_path(os.path.join("data", "tools", "multibootusb.png"))))
     sys.exit(app.exec_())
