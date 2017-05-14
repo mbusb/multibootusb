@@ -110,7 +110,6 @@ def distro(iso_cfg_ext_dir, iso_link):
                         elif re.search(r'zenwalk|slack|salix', string, re.I) and re.search(r'live', string, re.I):
                             return "salix-live"
                         elif re.search(r'zenwalk|slack|salix', string, re.I):
-                            print(os.path.join(path, name))
                             return "zenwalk"
                         elif re.search(r'ubuntu server', string, re.I):
                             return "ubuntu-server"
@@ -157,6 +156,10 @@ def distro(iso_cfg_ext_dir, iso_link):
 #                 #  syslinux, update_cfg and install_distro modules.
 #                 if self.isolinux_bin_exist():
 #                     return "generic"
+        elif str(iso_link).lower().endswith('.iso'):
+            return 'memdisk_iso'
+        elif str(iso_link).lower().endswith('.img'):
+            return 'memdisk_img'
         else:
             return None
 

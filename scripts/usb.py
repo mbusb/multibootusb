@@ -102,15 +102,16 @@ def list_devices(fixed=False):
             context = pyudev.Context()
 
             for device in context.list_devices(subsystem='block', ID_BUS="usb"):
-                devices.append(str(device['DEVNAME']))
-                gen.log("\t" + device['DEVNAME'])
+                if device.get('ID_PART_TABLE_TYPE') is not None:
+                    devices.append(str(device.get('DEVNAME')))
+                    gen.log("\t" + device.get('DEVNAME'))
 
             if fixed is True:
+                devices = []
                 for device in context.list_devices(subsystem='block'):
                     if device.get('DEVTYPE') in ['disk', 'partition'] and device.get('ID_PART_TABLE_TYPE'):
-                        if device['DEVNAME'] not in devices:
-                            devices.append(str(device['DEVNAME']))
-                            gen.log("\t" + device['DEVNAME'])
+                        devices.append(str(device.get('DEVNAME')))
+                        gen.log("\t" + device.get('DEVNAME'))
 
         except Exception as e:
             gen.log(e)
@@ -273,12 +274,26 @@ def details_udisks2(usb_disk_part):
     """
     import dbus
     bus = dbus.SystemBus()
+
+    mount_point = ''
+    uuid = ''
+    file_system = ''
+    vendor = ''
+    model = ''
+    label = ''
+    devtype = "disk"
+
     bd = bus.get_object('org.freedesktop.UDisks2', '/org/freedesktop/UDisks2/block_devices%s'%usb_disk_part[4:])
     device = bd.Get('org.freedesktop.UDisks2.Block', 'Device', dbus_interface='org.freedesktop.DBus.Properties')
     device = bytearray(device).replace(b'\x00', b'').decode('utf-8')
-    uuid = bd.Get('org.freedesktop.UDisks2.Block', 'IdUUID', dbus_interface='org.freedesktop.DBus.Properties')
-    file_system = bd.Get('org.freedesktop.UDisks2.Block', 'IdType', dbus_interface='org.freedesktop.DBus.Properties')
-    mount_point = bd.Get('org.freedesktop.UDisks2.Filesystem', 'MountPoints', dbus_interface='org.freedesktop.DBus.Properties')
+    if device[-1].isdigit() is True:
+        uuid = bd.Get('org.freedesktop.UDisks2.Block', 'IdUUID', dbus_interface='org.freedesktop.DBus.Properties')
+        file_system = bd.Get('org.freedesktop.UDisks2.Block', 'IdType', dbus_interface='org.freedesktop.DBus.Properties')
+        mount_point = bd.Get('org.freedesktop.UDisks2.Filesystem', 'MountPoints', dbus_interface='org.freedesktop.DBus.Properties')
+        devtype = 'partition'
+    else:
+        devtype = 'disk'
+        file_system = 'No_File_System'
     if mount_point:
         # mount_point = str(bytearray(mount_point[0]).decode('utf-8').replace(b'\x00', b''))
         mount_point = bytearray(mount_point[0]).replace(b'\x00', b'').decode('utf-8')
@@ -312,7 +327,7 @@ def details_udisks2(usb_disk_part):
 
     return {'uuid': uuid, 'file_system': file_system, 'label': label, 'mount_point': mount_point,
             'size_total': size_total, 'size_used': size_used, 'size_free': size_free,
-            'vendor': vendor, 'model': model}
+            'vendor': vendor, 'model': model, 'devtype': devtype}
 
 
 def bytes2human(n):

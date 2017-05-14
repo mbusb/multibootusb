@@ -15,6 +15,7 @@ import string
 import zipfile
 import tempfile
 import re
+import ctypes
 
 
 def scripts_dir_path():
@@ -398,6 +399,58 @@ def write_to_file(filepath, text):
     """
     with open(filepath, 'w') as f:
         f.write(text.strip())
+
+
+class MemoryCheck():
+    """
+    Cross platform way to checks memory of a given system. Works on Linux and Windows.
+    psutil is a good option to get memory info. But version 5.0 and only will work.
+    Source: https://doeidoei.wordpress.com/2009/03/22/python-tip-3-checking-available-ram-with-python/
+    Call this class like this: 
+    mem_info = memoryCheck()
+    print(mem_info.value)
+    """
+
+    def __init__(self):
+
+        if platform.system() == 'Linux':
+            self.value = self.linuxRam()
+        elif platform.system() == 'Windows':
+            self.value = self.windowsRam()
+        else:
+            log("MemoryCheck Class will only work on Linux and Windows.")
+
+    def windowsRam(self):
+        """
+        Uses Windows API to check RAM
+        """
+        kernel32 = ctypes.windll.kernel32
+        c_ulong = ctypes.c_ulong
+
+        class MEMORYSTATUS(ctypes.Structure):
+            _fields_ = [
+                ("dwLength", c_ulong),
+                ("dwMemoryLoad", c_ulong),
+                ("dwTotalPhys", c_ulong),
+                ("dwAvailPhys", c_ulong),
+                ("dwTotalPageFile", c_ulong),
+                ("dwAvailPageFile", c_ulong),
+                ("dwTotalVirtual", c_ulong),
+                ("dwAvailVirtual", c_ulong)
+            ]
+
+        memoryStatus = MEMORYSTATUS()
+        memoryStatus.dwLength = ctypes.sizeof(MEMORYSTATUS)
+        kernel32.GlobalMemoryStatus(ctypes.byref(memoryStatus))
+
+        return int(memoryStatus.dwTotalPhys / 1024 ** 2)
+
+    def linuxRam(self):
+        """
+        Returns the RAM of a Linux system
+        """
+        totalMemory = os.popen("free -m").readlines()[1].split()[1]
+        return int(totalMemory)
 
 if __name__ == '__main__':
     log(quote("""Test-string"""))

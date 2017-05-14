@@ -74,7 +74,11 @@ def list_iso(iso_link, suppress_out=True):
     else:
         file_list = []
         _cmd = _7zip + ' l ' + gen.quote(iso_link) + suppress_out
-        _cmd_out = subprocess.check_output(_cmd, stderr=subprocess.PIPE, shell=True).decode('utf-8', 'ignore').splitlines()
+        try:
+            _cmd_out = subprocess.check_output(_cmd, stderr=subprocess.PIPE, shell=True).decode('utf-8', 'ignore').splitlines()
+        except Exception as e:
+            gen.log(e)
+            _cmd_out = ''
         for line in _cmd_out:
             if '...' in line:
                 line = line.split()

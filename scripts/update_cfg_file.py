@@ -366,6 +366,11 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
                 config_file.write(menus.pc_tool_config(syslinux=True, grub=False))
             elif distro == 'grub2only':
                 config_file.write(menus.grub2only())
+            elif distro == 'memdisk_iso':
+                print(menus.memdisk_iso_cfg(syslinux=True, grub=False))
+                config_file.write(menus.memdisk_iso_cfg(syslinux=True, grub=False))
+            elif distro == 'memdisk_img':
+                config_file.write(menus.memdisk_img_cfg(syslinux=True, grub=False))
             else:
                 if isolinux_bin_exist(config.image_path) is True:
                     if distro == "generic":
@@ -441,5 +446,5 @@ def update_grub4dos_iso_menu():
             f.write("LABEL " + iso_basename(config.image_path) + "\n")
             f.write("MENU LABEL " + iso_basename(config.image_path) + "\n")
             f.write("KERNEL grub.exe" + "\n")
-            f.write('APPEND --config-file=/multibootusb/' + iso_basename(config.image_path) + '/' + iso_name(config.image_path) + "\n")
+            f.write('APPEND --config-file=/multibootusb/' + iso_basename(config.image_path) + '/menu.lst'  + "\n")
             f.write("#end " + iso_basename(config.image_path) + "\n")
