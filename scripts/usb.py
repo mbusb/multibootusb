@@ -101,15 +101,13 @@ def list_devices(fixed=False):
                 from . import pyudev
             context = pyudev.Context()
 
-            for device in context.list_devices(subsystem='block', ID_BUS="usb"):
-                if device.get('ID_PART_TABLE_TYPE') is not None:
-                    devices.append(str(device.get('DEVNAME')))
-                    gen.log("\t" + device.get('DEVNAME'))
-
-            if fixed is True:
-                devices = []
-                for device in context.list_devices(subsystem='block'):
+            for device in context.list_devices(subsystem='block'):
+                if fixed is True:
                     if device.get('DEVTYPE') in ['disk', 'partition'] and device.get('ID_PART_TABLE_TYPE'):
+                        devices.append(str(device.get('DEVNAME')))
+                        gen.log("\t" + device.get('DEVNAME'))
+                else:
+                    if device.get('ID_BUS') in ['usb'] and device.get('ID_PART_TABLE_TYPE'):
                         devices.append(str(device.get('DEVNAME')))
                         gen.log("\t" + device.get('DEVNAME'))
 

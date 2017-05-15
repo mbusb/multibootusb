@@ -7,6 +7,7 @@
 # under the terms of GNU General Public License, v.2 or above
 
 import os
+import ctypes
 from . import usb
 from . import gen
 from .iso import *
@@ -14,6 +15,7 @@ from .uninstall_distro import *
 from .distro import *
 from .syslinux import *
 from .install import *
+from . import imager
 
 
 def read_input_uninstall():
@@ -25,6 +27,20 @@ def read_input_uninstall():
 
     return response
 
+
+def is_root():
+    """
+    Check if user has admin rights
+    :return: 
+    """
+    if platform.system() == 'Linux':
+        if os.getuid() == 0:
+            return True
+    elif platform.system() == 'Windows':
+        if ctypes.windll.shell32.IsUserAnAdmin() == 1:
+            return True
+
+    return False
 
 def cli_install_distro():
 #     if platform.system() == 'Linux':
@@ -114,3 +130,40 @@ def cli_uninstall_distro():
                     unin_distro()
     else:
         log('No distro installed on ' + config.usb_disk)
+
+
+def cli_dd():
+    """
+    Function to write ISO image directly to USB disk using dd
+    :return: 
+    """
+    if platform.system() == 'Linux':
+        if config.usb_disk[-1].isdigit() is True:
+            log('Selected USB is a disk partition. Please select the whole disk eg. \'/dev/sdb\'')
+            sys.exit(2)
+        elif is_root() is False:
+            log("You need to have root privileges to run this script.\nPlease try again using admin privilege (sudo).")
+            sys.exit(2)
+
+    if not os.path.exists(config.image_path):
+        log('ISO image path does not exist. Please correct the path.')
+        sys.exit(2)
+    else:
+        if config.yes is not True:
+            log('Initiating destructive writing process for ' + iso.iso_basename(config.image_path))
+            log('\nSelected ISO is          :' + quote(iso_name(config.image_path)))
+            log('Selected target device is  :' + quote(config.usb_disk))
+            log('Writing ISO directly to target USB disk ' + quote(config.usb_disk) + ' will DESTROY ALL DATA.' + '\n')
+            log('Please confirm the option.')
+            log('Y/y/Yes/yes/YES or N/n/No/no/NO')
+            if read_input_yes() is True:
+                if platform.system() == 'Linux':
+                        imager.dd_linux()
+                else:
+                    imager.dd_win()
+            else:
+                log('Operation cancelled by user. Exiting...')
+                sys.exit(2)
+        else:
+            log('\nAuto install is not recommended in direct writing method. Please choose without \'-y\' option.\n')
+            sys.exit(2)
