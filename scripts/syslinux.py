@@ -21,21 +21,68 @@ syslinux_fs = ["vfat", "ntfs", "FAT32", "NTFS"]
 mbr_bin = resource_path(os.path.join("data", "tools", "mbr.bin"))
 
 
+def gpt_part_table(usb_disk):
+    """
+    Check if selected USB contain GPT or MBR partition table
+    :return: True if GPT else False
+    """
+    if platform.system() == "Linux":
+        _cmd_out = subprocess.check_output("parted  " + usb_disk[:-1] + " print", shell=True)
+        if b'msdos' in _cmd_out:
+            return False
+        elif b'gpt' in _cmd_out:
+            return True
+    elif platform.system() == 'Windows':
+        _cmd_out = ''
+
+
+def get_mbr_bin_path(usb_disk):
+    """
+    Check if partition table type is mbr or gpr using parted command under Linux
+    :param usb_disk: path to whole USB disk '/dev/sdb'
+    :return: Path to mbr.bin for use
+    """
+    if platform.system() == "Linux":
+        if gpt_part_table(usb_disk) is False:
+            log('Using mbr.bin msdos mbr install.')
+            return resource_path(os.path.join("data", "tools", "mbr.bin"))
+        if gpt_part_table(usb_disk) is True:
+            log('Using gptmbr.bin for mbr install.')
+            return resource_path(os.path.join("data", "tools", "gptmbr.bin"))
+    elif platform.system() == 'Windows':
+        _cmd_out = ''
+
+    return False
+
+
 def set_boot_flag(usb_disk):
     if platform.system() == "Linux":
         log("\nChecking boot flag on " + usb_disk[:-1], '\n')
         cmd_out = subprocess.check_output("parted -m -s " + usb_disk[:-1] + " print", shell=True)
-        if b'boot' in cmd_out:
-            log("\nDisk " + usb_disk[:-1] + " already has boot flag.\n")
-            return True
-        else:
-            log("\nExecuting ==>  parted " + usb_disk[:-1] + " set 1 boot on", '\n')
-            if subprocess.call("parted " + usb_disk[:-1] + " set 1 boot on", shell=True) == 0:
-                log("\nBoot flag set to bootable " + usb_disk[:-1], '\n')
+        if gpt_part_table(usb_disk) is False:
+            if b'boot' in cmd_out:
+                log("\nDisk " + usb_disk[:-1] + " already has boot flag.\n")
                 return True
             else:
-                log("\nUnable to set boot flag on  " + usb_disk[:-1], '\n')
-                return False
+                log("\nExecuting ==>  parted " + usb_disk[:-1] + " set 1 boot on", '\n')
+                if subprocess.call("parted " + usb_disk[:-1] + " set 1 boot on", shell=True) == 0:
+                    log("\nBoot flag set to bootable " + usb_disk[:-1], '\n')
+                    return True
+                else:
+                    log("\nUnable to set boot flag on  " + usb_disk[:-1], '\n')
+                    return False
+        elif gpt_part_table(usb_disk) is True:
+            if b'legacy_boot' in cmd_out:
+                log("\nGPT Disk " + usb_disk[:-1] + " already has legacy_boot flag.\n")
+                return True
+            else:
+                log("\nExecuting ==>  parted " + usb_disk[:-1] + " set 1 legacy_boot on", '\n')
+                if subprocess.call("parted " + usb_disk[:-1] + " set 1 legacy_boot on", shell=True) == 0:
+                    log("\nBoot flag set to legacy_boot " + usb_disk[:-1], '\n')
+                    return True
+                else:
+                    log("\nUnable to set legacy_boot flag on  " + usb_disk[:-1], '\n')
+                    return False
 
 
 def syslinux_default(usb_disk):
@@ -48,6 +95,7 @@ def syslinux_default(usb_disk):
     usb_details = usb.details(usb_disk)
     usb_fs = usb_details['file_system']
     usb_mount = usb_details['mount_point']
+    mbr_bin = get_mbr_bin_path(usb_disk)
     mbr_install_cmd = 'dd bs=440 count=1 conv=notrunc if=' + mbr_bin + ' of=' + usb_disk[:-1]
     # log(usb_fs)
     if usb_fs in extlinux_fs:
@@ -78,6 +126,7 @@ def syslinux_default(usb_disk):
             if subprocess.call(syslinux_cmd, shell=True) == 0:
                 log("\nDefault syslinux install is success...\n")
                 config.status_text = 'Default syslinux successfully installed...'
+                log('\nExecuting ==> ' + mbr_install_cmd)
                 if subprocess.call(mbr_install_cmd, shell=True) == 0:
                     config.status_text = 'mbr install is success...'
                     log("\nmbr install is success...\n")
@@ -202,6 +251,50 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
                         log("\nBootsector copy is successful...\n")
                     else:
                         log("\nFailed to install syslinux on distro directory...\n")
+
+
+def replace_grub_binary():
+    """
+    This function checks if correct binary is installed on grub and EFI directory.
+    If mismatch is found between partition table and binary, replace it correct one.
+    Default binaries will work for msdos partition table and therefore need not be replaced.
+    :return: 
+    """
+    grub_efi_bin_path = os.path.join(config.usb_mount, 'EFI', 'BOOT', 'bootx64.efi')
+    grub_efi_bin_gpt_path = os.path.join(config.usb_mount, 'EFI', 'BOOT', 'bootx64-gpt.efi')
+    grub_efi_bin_msdos_path = os.path.join(config.usb_mount, 'EFI', 'BOOT', 'bootx64-msdos.efi')
+    core_img_bin_path = os.path.join(config.usb_mount, 'multibootusb', 'grub', 'core.img')
+    core_img_bin_msdos_path = os.path.join(config.usb_mount, 'multibootusb', 'grub', 'core-msdos.img')
+    core_img_bin_gpt_path = os.path.join(config.usb_mount, 'multibootusb', 'grub', 'core-gpt.img')
+
+    if platform.system() == 'Linux':
+        if gpt_part_table(config.usb_disk) is True:
+            log('Replacing efi binary with gpt compatible one...')
+            try:
+                shutil.copy(grub_efi_bin_gpt_path, grub_efi_bin_path)
+            except Exception as e:
+                log(e)
+                log('Failed to replace efi binary...')
+            log('Replacing core.img binary with gpt compatible one...')
+            try:
+                shutil.copy(core_img_bin_gpt_path, core_img_bin_path)
+            except Exception as e:
+                log(e)
+                log('Failed to replace efi binary...')
+        else:
+            log('Replacing efi binary with msdos compatible one...')
+            try:
+                shutil.copy(core_img_bin_gpt_path, core_img_bin_path)
+            except Exception as e:
+                log(e)
+                log('Failed to replace efi binary...')
+            log('Replacing efi binary with msdos compatible one...')
+            try:
+                shutil.copy(core_img_bin_msdos_path, core_img_bin_path)
+            except Exception as e:
+                log(e)
+                log('Failed to replace core.img binary...')
+
 
 if __name__ == '__main__':
     if os.geteuid() != 0:

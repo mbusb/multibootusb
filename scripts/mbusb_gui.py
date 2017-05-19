@@ -309,6 +309,7 @@ Are you SURE you want to enable it?",
         self.ui.statusbar.showMessage(str("Status: Installing Syslinux..."))
         syslinux_distro_dir(config.usb_disk, config.image_path, config.distro)
         syslinux_default(config.usb_disk)
+        replace_grub_binary()
         update_distro_cfg_files(config.image_path, config.usb_disk, config.distro, config.persistence)
         self.update_list_box(config.usb_disk)
         if sys.platform.startswith("linux"):
