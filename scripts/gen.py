@@ -229,6 +229,23 @@ def copy_mbusb_dir_usb(usb_disk):
     else:
         log('EFI directory already exist. Not copying.')
 
+    # For backward compatibility
+    if not os.path.exists(os.path.join(usb_mount_path, 'EFI', 'BOOT', 'bootx64-gpt.efi')):
+        shutil.copy(resource_path(os.path.join('data', 'EFI', 'BOOT', 'bootx64-gpt.efi')),
+                    os.path.join(usb_mount_path, 'EFI', 'BOOT', 'bootx64-gpt.efi'))
+
+    if not os.path.exists(os.path.join(usb_mount_path, 'EFI', 'BOOT', 'bootx64-msdos.efi')):
+        shutil.copy(resource_path(os.path.join('data', 'EFI', 'BOOT', 'bootx64-msdos.efi')),
+                    os.path.join(usb_mount_path, 'EFI', 'BOOT', 'bootx64-msdos.efi'))
+
+    if not os.path.exists(os.path.join(usb_mount_path, 'multibootusb', 'grub', 'core-gpt.img')):
+        shutil.copy(resource_path(os.path.join('data', 'multibootusb', 'grub', 'core-gpt.img')),
+                    os.path.join(usb_mount_path, 'multibootusb', 'grub', 'core-gpt.img'))
+
+    if not os.path.exists(os.path.join(usb_mount_path, 'multibootusb', 'grub', 'core-msdos.img')):
+        shutil.copy(resource_path(os.path.join('data', 'multibootusb', 'grub', 'core-msdos.img')),
+                    os.path.join(usb_mount_path, 'multibootusb', 'grub', 'core-msdos.img'))
+
     return result
 
 
