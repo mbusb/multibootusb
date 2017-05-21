@@ -423,6 +423,23 @@ def details(usb_disk_part):
         details = win_disk_details(usb_disk_part)
     return details
 
+
+def get_physical_disk_number(usb_disk):
+    """
+    Get the physical disk number as detected ny Windows.
+    :param usb_disk: USB disk (Like F:)
+    :return: Disk number.
+    """
+    import wmi
+    c = wmi.WMI()
+    for physical_disk in c.Win32_DiskDrive():
+        for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
+            for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
+                if logical_disk.Caption == usb_disk:
+                    # gen.log("Physical Device Number is " + partition.Caption[6:-14])
+                    return str(partition.Caption[6:-14])
+
+
 if __name__ == '__main__':
     usb_devices = list_devices()
     if usb_devices is not None:
