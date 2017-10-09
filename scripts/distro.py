@@ -32,7 +32,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                         # errors='ignore' is required as some files also contain non utf character
                         string = open(os.path.join(path, name), errors='ignore').read()
                     except IOError:
-                        return "Read Error."
+                        return "Ошибка чтения."
                     else:
                         if any("f4ubcd" in s.lower() for s in iso_file_list):
                             return "f4ubcd"
