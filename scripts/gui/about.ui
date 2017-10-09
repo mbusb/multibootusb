@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>About</class>
+ <class>О ПРограмме</class>
  <widget class="QDialog" name="About">
   <property name="geometry">
    <rect>
@@ -25,7 +25,7 @@
      <item row="1" column="1">
       <widget class="QLabel" name="label_6">
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;An advanced bootable usb creator with option to install/uninstall multiple distros.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;This software is written in Python and PyQt. &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Copyright  2010-2017  Sundar&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Author(s)&lt;/span&gt;: Sundar, Ian Bruce, LiQiong Lee and Alin Trăistaru (alindt)&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Licence&lt;/span&gt;: GPL version 2 or later&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Home page&lt;/span&gt;: &lt;a href=&quot; http://multibootusb.org&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://multibootusb.org&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Help/Email&lt;/span&gt;: feedback.multibootusb@gmail.com&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Source Code&lt;/span&gt;: &lt;a href=&quot;https://github.com/mbusb/multibootusb&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/mbusb/multibootusb&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Продвинутый инсрумент для создания загрузочного USB диска с возможностью установки и удаления различных дистрибутивов.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Эта программа написана на Python and PyQt. &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;Copyright  2010-2017  Sundar&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Автор (ы)&lt;/span&gt;: Sundar, Ian Bruce, LiQiong Lee и Alin Trăistaru (alindt)&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Лицензия&lt;/span&gt;: GPL версии 2 or или поздней&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Сайт программы (на английском)&lt;/span&gt;: &lt;a href=&quot; http://multibootusb.org&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://multibootusb.org&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Help/Email&lt;/span&gt;: feedback.multibootusb@gmail.com&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Исходный код&lt;/span&gt;: &lt;a href=&quot;https://github.com/mbusb/multibootusb&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/mbusb/multibootusb&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
