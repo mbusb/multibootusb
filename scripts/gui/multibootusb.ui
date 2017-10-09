@@ -57,7 +57,7 @@
              </size>
             </property>
             <property name="text">
-             <string>&lt;b&gt;Select USB disk&lt;/b&gt;</string>
+             <string>&lt;b&gt;Выберите USB диск&lt;/b&gt;</string>
             </property>
            </widget>
           </item>
@@ -67,21 +67,21 @@
           <item row="1" column="3">
            <widget class="QPushButton" name="button_detect_drives">
             <property name="text">
-             <string>Detect Drives</string>
+             <string>Определить диски</string>
             </property>
            </widget>
           </item>
           <item row="0" column="3">
            <widget class="QCheckBox" name="checkbox_all_drives">
             <property name="text">
-             <string>All Drives</string>
+             <string>Все диски</string>
             </property>
            </widget>
           </item>
           <item row="3" column="0" colspan="4">
            <widget class="QGroupBox" name="group_usb_details">
             <property name="title">
-             <string>USB Details</string>
+             <string>Детали о диске</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing</set>
@@ -99,7 +99,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="label_usb_dev">
                <property name="text">
-                <string>Drive:</string>
+                <string>Диск:</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -116,7 +116,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="label_usb_vendor">
                <property name="text">
-                <string>Vendor:</string>
+                <string>Производитель:</string>
                </property>
               </widget>
              </item>
@@ -130,7 +130,7 @@
              <item row="2" column="0">
               <widget class="QLabel" name="label_usb_model">
                <property name="text">
-                <string>Model:</string>
+                <string>Модель:</string>
                </property>
               </widget>
              </item>
@@ -147,7 +147,7 @@
                 <enum>QFrame::NoFrame</enum>
                </property>
                <property name="text">
-                <string>Size:</string>
+                <string>SРазмер:</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -164,7 +164,7 @@
              <item row="6" column="0">
               <widget class="QLabel" name="label_usb_mount">
                <property name="text">
-                <string>Mount:</string>
+                <string>Путь:</string>
                </property>
               </widget>
              </item>
@@ -178,7 +178,7 @@
              <item row="4" column="0">
               <widget class="QLabel" name="label_usb_type">
                <property name="text">
-                <string>Type:</string>
+                <string>Тип:</string>
                </property>
               </widget>
              </item>
@@ -192,7 +192,7 @@
              <item row="5" column="0">
               <widget class="QLabel" name="label_usb_fs">
                <property name="text">
-                <string>Filesystem:</string>
+                <string>Файловая система:</string>
                </property>
               </widget>
              </item>
@@ -219,7 +219,7 @@
           <item row="2" column="0" colspan="2">
            <widget class="QGroupBox" name="image_details_group">
             <property name="title">
-             <string>Image Details</string>
+             <string>Детали образа</string>
             </property>
             <layout class="QFormLayout" name="formLayout_2">
              <property name="labelAlignment">
@@ -228,7 +228,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="label_image_type">
                <property name="text">
-                <string>Type:</string>
+                <string>Тип:</string>
                </property>
               </widget>
              </item>
@@ -242,7 +242,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="label_image_size">
                <property name="text">
-                <string>Size:</string>
+                <string>Размер:</string>
                </property>
               </widget>
              </item>
@@ -256,7 +256,7 @@
              <item row="2" column="0">
               <widget class="QLabel" name="label_image_bootable">
                <property name="text">
-                <string>Boot:</string>
+                <string>Загрузочный:</string>
                </property>
               </widget>
              </item>
@@ -273,7 +273,7 @@
           <item row="0" column="1">
            <widget class="QPushButton" name="button_browse_image">
             <property name="text">
-             <string>Browse</string>
+             <string>Загрузить</string>
             </property>
             <property name="checkable">
              <bool>false</bool>
@@ -286,7 +286,7 @@
           <item row="0" column="0">
            <widget class="QLabel" name="label_select_image">
             <property name="text">
-             <string>&lt;b&gt;Select image&lt;/b&gt;</string>
+             <string>&lt;b&gt;Выберите образ&lt;/b&gt;</string>
             </property>
            </widget>
           </item>
@@ -347,7 +347,7 @@
           <item row="0" column="3">
            <widget class="QPushButton" name="button_uninstall_distro">
             <property name="text">
-             <string>Uninstall distro</string>
+             <string>Удалить дистрибуив</string>
             </property>
             <property name="icon">
              <iconset>
@@ -370,7 +370,7 @@
              </size>
             </property>
             <property name="text">
-             <string>Install distro</string>
+             <string>Установить дистрибутив</string>
             </property>
             <property name="icon">
              <iconset>
@@ -390,7 +390,7 @@
              <bool>false</bool>
             </property>
             <property name="toolTip">
-             <string>Choose Persistence size. Not all distros supports persistence...</string>
+             <string>Выберите размер Пользовательского раздела. Правда, не все системы его поддерживают...</string>
             </property>
             <property name="autoFillBackground">
              <bool>false</bool>
@@ -454,7 +454,7 @@
         <bool>true</bool>
        </property>
        <attribute name="title">
-        <string>Write Image to disk</string>
+        <string>Записать образ на диск</string>
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_7">
         <property name="leftMargin">
@@ -499,7 +499,7 @@
           <item row="3" column="1">
            <widget class="QPushButton" name="button_write_image_to_disk">
             <property name="text">
-             <string>Write image to USB</string>
+             <string>Записать образ на USB</string>
             </property>
            </widget>
           </item>
@@ -550,7 +550,7 @@
           <item row="1" column="1">
            <widget class="QLabel" name="label_6">
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;WARNING!&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;This operation destroys &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#000000;&quot;&gt;ALL&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; data on the selected disk.&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Please select the destination disk carefully.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:14pt; font-weight:600; color:#ff0000;&quot;&gt;ВНИМАНИЕ!&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Данное действие может уничтожить &lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#000000;&quot;&gt;ВСЕ&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; данные на выбранном диске.&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Пожалуйста, выбирайте диск внимательно.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -596,7 +596,7 @@
       </widget>
       <widget class="QWidget" name="tab_syslinux">
        <attribute name="title">
-        <string>Install Syslinux</string>
+        <string>Установить Syslinux</string>
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
@@ -607,7 +607,7 @@
              <bool>false</bool>
             </property>
             <property name="title">
-             <string>Install Syslinux</string>
+             <string>Установить Syslinux</string>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <item>
@@ -615,21 +615,21 @@
                <item row="0" column="0">
                 <widget class="QRadioButton" name="check_install_sys_only">
                  <property name="text">
-                  <string>Install only syslinu&amp;x (existing configurations will not be altered).</string>
+                  <string>Установить только syslinu&amp;x (текущие настройки затронуты не будут).</string>
                  </property>
                 </widget>
                </item>
                <item row="1" column="0">
                 <widget class="QRadioButton" name="check_install_sys_all">
                  <property name="text">
-                  <string>Install syslinux and copy all re&amp;quired files.</string>
+                  <string>Установить Syslinux и скопировать все&amp; необходимые файлы.</string>
                  </property>
                 </widget>
                </item>
                <item row="0" column="2" rowspan="2">
                 <widget class="QPushButton" name="button_install_syslinux">
                  <property name="text">
-                  <string>Install</string>
+                  <string>Установить</string>
                  </property>
                 </widget>
                </item>
@@ -682,7 +682,7 @@
                <item row="0" column="0">
                 <widget class="QLabel" name="label_2">
                  <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;Edit syslinux.cfg file using the default editor. &lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;Be &lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;CAREFUL&lt;/span&gt; while editing syslinux.cfg!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;Изменить файл syslinux.cfg редактором по-умолчанию. &lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;Будьте &lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;ОСТОРОЖНЫ&lt;/span&gt; при изменении syslinux.cfg!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                 </widget>
                </item>
@@ -726,7 +726,7 @@
       </widget>
       <widget class="QWidget" name="tab_testboot">
        <attribute name="title">
-        <string>Boot ISO/USB</string>
+        <string>Загрузить ISO/USB</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
@@ -743,7 +743,7 @@
              <string notr="true"/>
             </property>
             <property name="title">
-             <string>Boot USB :: Test bootable USB drive without reboot</string>
+             <string>Загрузить USB :: Проверить загрузочный USB диск без перезагрузки</string>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_4">
              <item>
@@ -752,7 +752,7 @@
                 <widget class="QComboBox" name="combo_usb_boot_ram">
                  <item>
                   <property name="text">
-                   <string>Default</string>
+                   <string>По-умолчанию</string>
                   </property>
                  </item>
                  <item>
@@ -785,7 +785,7 @@
                <item row="0" column="0">
                 <widget class="QLabel" name="label_4">
                  <property name="text">
-                  <string>Choose RAM size:</string>
+                  <string>выберите размер ОЗУ:</string>
                  </property>
                 </widget>
                </item>
@@ -805,7 +805,7 @@
                <item row="0" column="4">
                 <widget class="QPushButton" name="boot_usb_qemu">
                  <property name="text">
-                  <string>Boot &amp;USB</string>
+                  <string>Загрузить &amp;USB диск</string>
                  </property>
                 </widget>
                </item>
@@ -837,7 +837,7 @@
           <item row="0" column="0">
            <widget class="QGroupBox" name="groupBox_5">
             <property name="title">
-             <string>Boot ISO :: Test bootable ISOs without reboot</string>
+             <string>Загрузить ISO образ :: Проверить загрузочный ISO файл без перезагрузки</string>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_3">
              <item>
@@ -845,14 +845,14 @@
                <item row="0" column="0">
                 <widget class="QLabel" name="label_3">
                  <property name="text">
-                  <string>Choose RAM size:</string>
+                  <string>Выберите размер ОЗУ:</string>
                  </property>
                 </widget>
                </item>
                <item row="0" column="4">
                 <widget class="QPushButton" name="boot_iso_qemu">
                  <property name="text">
-                  <string>Boot &amp;ISO</string>
+                  <string>Загрузить &amp;образ ISO</string>
                  </property>
                 </widget>
                </item>
@@ -873,7 +873,7 @@
                 <widget class="QComboBox" name="combo_iso_boot_ram">
                  <item>
                   <property name="text">
-                   <string>Default</string>
+                   <string>По-умолчанию</string>
                   </property>
                  </item>
                  <item>
@@ -973,13 +973,13 @@
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>&amp;File</string>
+     <string>&amp;Файл</string>
     </property>
     <addaction name="action_Quit"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
-     <string>&amp;Help</string>
+     <string>&amp;Справка</string>
     </property>
     <addaction name="action_About"/>
    </widget>
@@ -989,12 +989,12 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_Quit">
    <property name="text">
-    <string>&amp;Quit</string>
+    <string>&amp;Выйти</string>
    </property>
   </action>
   <action name="action_About">
    <property name="text">
-    <string>&amp;About</string>
+    <string>&amp;О программе</string>
    </property>
   </action>
  </widget>
