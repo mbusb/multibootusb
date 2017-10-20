@@ -13,6 +13,7 @@ import signal
 from PyQt5 import QtCore, QtGui, QtWidgets
 import subprocess
 import time
+import webbrowser
 from scripts.gui.ui_multibootusb import Ui_MainWindow
 from scripts.gui.ui_about import Ui_About
 from . import usb
@@ -130,7 +131,7 @@ Are you SURE you want to enable it?",
         about.setWindowTitle("About MultiBootUSB - " + mbusb_version())
         about.setWindowIcon(QtGui.QIcon(resource_path(os.path.join("data", "tools", "multibootusb.png"))))
         about.ui.button_close.clicked.connect(about.close)
-
+        about.ui.label_6.linkActivated.connect(webbrowser.open_new_tab)
         about.exec_()
 
     def onComboChange(self):
