@@ -219,7 +219,11 @@ def details_udev(usb_disk_part):
         gen.log("ERROR: Unknown disk/partition (%s)" % str(usb_disk_part))
         return None
 
-    fdisk_cmd_out = subprocess.check_output('fdisk -l ' + usb_disk_part, shell=True)
+    try:
+        fdisk_cmd_out = subprocess.check_output('fdisk -l ' + usb_disk_part, shell=True)
+    except subprocess.CalledProcessError:
+        gen.log("ERROR: fdisk failed on disk/partition (%s)" % str(usb_disk_part))
+        return None
 
     if b'Extended' in fdisk_cmd_out:
         mount_point = ''
