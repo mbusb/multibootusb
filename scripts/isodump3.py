@@ -106,7 +106,10 @@ class ISO9660:
             f = open(isofile, 'rb')
         except(IOError):
             sys.stderr.write("can't open {0}".format(isofile))
-            sys.exit(-1)
+            raise
+
+        if os.path.getsize(isofile) == 0:
+            raise IOError("File {0} appears to be empty".format(isofile))
 
         self.isoFile = f
         self.priVol = None
