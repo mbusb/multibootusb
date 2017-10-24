@@ -44,21 +44,21 @@ E_FAILURE = -1
 E_DEVICEFILE = -2  # can't write device file
 
 class PrimaryVolume(Structure):
-   def  __init__(self):
-       self.sysIdentifier = ""
-       self.volIdentifier = ""
-       self.volSize   = 0
-       self.volSeq    = 0
-       self.blockSize = 0
-       self.ptSize    = 0
-       self.ptLRd     = 0
-       self.fsVer     = 0
-       self.rootLoc   = 0
-       self.rootTotal = 0
+    def  __init__(self):
+        self.sysIdentifier = ""
+        self.volIdentifier = ""
+        self.volSize   = 0
+        self.volSeq    = 0
+        self.blockSize = 0
+        self.ptSize    = 0
+        self.ptLRd     = 0
+        self.fsVer     = 0
+        self.rootLoc   = 0
+        self.rootTotal = 0
 
 class Rrip(Structure):
     def __init__(self):
-        self.offset  =  -1
+        self.offset  = -1
         self.altname = ""
         self.devH    =  0
         self.devL    =  0
@@ -106,7 +106,10 @@ class ISO9660:
             f = open(isofile, 'rb')
         except(IOError):
             sys.stderr.write("can't open {0}".format(isofile))
-            sys.exit(-1)
+            raise
+
+        if os.path.getsize(isofile) == 0:
+            raise IOError("File {0} appears to be empty".format(isofile))
 
         self.isoFile = f
         self.priVol = None
@@ -803,4 +806,3 @@ if __name__ == '__main__':
         else:
             gen.log("writeDir(%s)->(%s) with pattern(%s)"%(isodir, o_path, pattern))
             sys.exit(iso9660fs.writeDir(isodir, o_path, pattern, r, True))
-
