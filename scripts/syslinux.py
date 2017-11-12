@@ -16,8 +16,8 @@ from . import config
 
 extlinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "extlinux4")
 syslinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux4")
-extlinux_fs = ["ext2", "ext3", "ext4", "Btrfs", "ntfs", "NTFS"]
-syslinux_fs = ["vfat", "FAT32"]
+extlinux_fs = ["ext2", "ext3", "ext4", "Btrfs"]
+syslinux_fs = ["vfat", "ntfs", "FAT32", "NTFS"]
 mbr_bin = resource_path(os.path.join("data", "tools", "mbr.bin"))
 win_gdisk = resource_path(os.path.join('data', 'tools', 'gdisk', 'gdisk.exe'))
 
