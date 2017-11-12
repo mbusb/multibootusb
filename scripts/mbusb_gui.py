@@ -217,6 +217,22 @@ Are you SURE you want to enable it?",
                                                                   'Img Files(*.img);; All Files(*.*)')[0]
 
         if config.image_path:
+            # sanity checks
+            if not is_readable(config.image_path):
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "ISO Not readable",
+                    "Sorry, the file \"{0}\" is not readable.".format(config.image_path)
+                )
+                return
+            if iso_size(config.image_path) == 0:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "ISO is an empty file",
+                    "Sorry, the file \"{0}\" contains no data.".format(config.image_path)
+                )
+                return
+
             default_dir_path = os.path.dirname(config.image_path)
             gen.write_to_file(preference_file_path, default_dir_path)
 
