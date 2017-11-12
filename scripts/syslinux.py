@@ -35,32 +35,10 @@ def gpt_part_table(usb_disk):
         elif b'gpt' in _cmd_out:
             return True
     elif platform.system() == 'Windows':
-        gdisk_command = win_gdisk + ' -l //./physicaldrive' + win_usb_disk_no
-        #_cmd_out = subprocess.check_output(win_gdisk + ' -l //./physicaldrive' + win_usb_disk_no, shell=True)
-        p = subprocess.Popen(gdisk_command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                             universal_newlines=True)
-
-        for line in p.stdout:
-            if 'Found valid MBR and GPT' in line:
-                # gdisks wait for user input. Probably this is a MBR disk.
-                p.stdin.write('1\n')
-                return False
-            elif 'using GPT' in line:
-                # Probably GPT disk.
-                return True
-            elif 'Found invalid GPT and valid MBR' in line:
-                return False
-            elif 'MBR only' in line:
-                return False
-
-        if p.poll() is None:
-            p.terminate()
-        '''
-        if b'using GPT' in _cmd_out:
+        if config.usb_gpt is True:
             return True
-        elif b'MBR only' in _cmd_out:
+        elif config.usb_gpt is False:
             return False
-        '''
 
 
 def get_mbr_bin_path(usb_disk):
@@ -69,10 +47,10 @@ def get_mbr_bin_path(usb_disk):
     :param usb_disk: path to whole USB disk '/dev/sdb'
     :return: Path to mbr.bin for use
     """
-    if gpt_part_table(usb_disk) is False:
+    if config.usb_gpt is False:
         log('Using mbr.bin msdos mbr install.')
         return resource_path(os.path.join("data", "tools", "mbr.bin"))
-    if gpt_part_table(usb_disk) is True:
+    elif config.usb_gpt is True:
         log('Using gptmbr.bin for mbr install.')
         return resource_path(os.path.join("data", "tools", "gptmbr.bin"))
 
@@ -171,9 +149,13 @@ def syslinux_default(usb_disk):
 
         elif platform.system() == "Windows":
             syslinux = resource_path(os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux4.exe"))
-            log('Executing ==>' + syslinux + ' -maf -d multibootusb ' + usb_disk)
             config.status_text = 'Installing default syslinux version 4...'
-            syslinux_cmd = syslinux + ' -maf -d multibootusb ' + usb_disk
+            # syslinux_cmd = syslinux + ' -maf -d multibootusb ' + usb_disk
+            if config.usb_gpt is False:
+                syslinux_cmd = syslinux + ' -maf -d multibootusb ' + usb_disk
+            else:
+                syslinux_cmd = syslinux + ' -af -d multibootusb ' + usb_disk
+            log('Executing ==> ' + syslinux_cmd)
             '''
             if gpt_part_table(config.usb_disk) is False:
                 syslinux_cmd = syslinux + ' -maf -d multibootusb ' + usb_disk
@@ -183,15 +165,19 @@ def syslinux_default(usb_disk):
             if subprocess.call(syslinux_cmd, shell=True) == 0:
                 config.status_text = 'Default syslinux successfully installed...'
                 log("\nDefault syslinux install is success...\n")
-                '''
                 # We will need to flash gptmbr.bin only for GPT disk. As of version 8.9.0 this corrupts the gpt disk.
                 # Therefore not included for BIOS booting. GPT disk may work on UEFI system. 
-                if gpt_part_table(config.usb_disk) is True:
+                # if gpt_part_table(config.usb_disk) is True:
+                '''
+                if config.usb_gpt is False:
                     log('\nExecuting ==> ' + mbr_install_cmd)
                     if subprocess.call(mbr_install_cmd, shell=True) == 0:
-                        log("\ngptmbr install is success...\n")
+                        log("\nmbr install is success...\n")
                         return True
+                else:
+                    log('Disk uses GPT and mbr install is not required...')
                 '''
+
             else:
                 log("\nFailed to install default syslinux...\n")
                 config.status_text = 'Failed to install default syslinux...'
@@ -331,7 +317,8 @@ def replace_grub_binary():
         else:
             log('Replacing efi binary with msdos compatible one...')
             try:
-                shutil.copy(core_img_bin_gpt_path, core_img_bin_path)
+                # shutil.copy(core_img_bin_gpt_path, core_img_bin_path)
+                shutil.copy(grub_efi_bin_msdos_path, grub_efi_bin_path)
             except Exception as e:
                 log(e)
                 log('Failed to replace efi binary...')

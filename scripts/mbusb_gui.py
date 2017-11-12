@@ -157,6 +157,9 @@ Are you SURE you want to enable it?",
             self.ui.usb_type.setText(config.usb_details.get('devtype', ""))
             self.ui.usb_fs.setText(config.usb_details.get('file_system', ""))
 
+            # Get the GPT status of the disk and store it on a variable
+            usb.gpt_device(config.usb_disk)
+
             self.update_list_box(config.usb_disk)
             self.ui_update_persistence()
         else:

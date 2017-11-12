@@ -13,6 +13,7 @@ import shutil
 import collections
 import ctypes
 import subprocess
+from . import config
 from . import gen
 if platform.system() == 'Linux':
     from . import udisks
@@ -349,6 +350,36 @@ def bytes2human(n):
     return "%sB" % n
 
 
+def gpt_device(dev_name):
+    """
+    Find if the device inserted is GPT or not. We will just change the variable parameter in config file for later use
+    :param dev_name:
+    :return: True if GPT else False
+    """
+    if platform.system() == 'Windows':
+        diskpart_cmd = 'diskpart.exe /s ' + os.path.join('data', 'tools', 'gdisk', 'list-disk.txt')
+        dev_no = get_physical_disk_number(dev_name)
+        cmd_out = subprocess.check_output(diskpart_cmd)
+        cmd_spt = cmd_out.split(b'\r')
+        for line in cmd_spt:
+            line = line.decode('utf-8')
+            if 'Disk ' + dev_no in line:
+                if '*' not in line.split()[-1]:
+                    config.usb_gpt = False
+                    gen.log('Device ' + dev_name + ' is a MBR disk...')
+                    return False
+                else:
+                    config.usb_gpt = True
+                    gen.log('Device ' + dev_name + ' is a GPT disk...')
+                    return False
+    if platform.system() == "Linux":
+        _cmd_out = subprocess.check_output("parted  " + dev_name[:-1] + " print", shell=True)
+        if b'msdos' in _cmd_out:
+            return False
+        elif b'gpt' in _cmd_out:
+            return True
+
+
 def win_disk_details(disk_drive):
     """
     Populate and get details of an USB disk under windows. Minimum required windows version is Vista.
@@ -421,6 +452,7 @@ def details(usb_disk_part):
             details = details_udisks2(usb_disk_part)
     elif platform.system() == 'Windows':
         details = win_disk_details(usb_disk_part)
+
     return details
 
 
