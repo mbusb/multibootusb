@@ -74,24 +74,17 @@ def list_iso(iso_link, suppress_out=True):
     else:
         file_list = []
         _cmd = _7zip + ' l ' + gen.quote(iso_link) + suppress_out
-        _cmd_out = subprocess.check_output(_cmd, stderr=subprocess.PIPE, shell=True).decode('utf-8', 'ignore').splitlines()
+        try:
+            _cmd_out = subprocess.check_output(_cmd, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL,
+                                               shell=True).decode('utf-8', 'ignore').splitlines()
+        except Exception as e:
+            gen.log(e)
+            _cmd_out = ''
         for line in _cmd_out:
             if '...' in line:
                 line = line.split()
                 _path = line[-1]
                 file_list.append(_path)
-        '''
-        for line in _cmd_out:
-            line = line.split()
-            if '.....' in line:
-                if gen.has_digit(line[2]) or gen.has_digit(line[4]):
-                    if len(line) > 6:
-                        f_path = " ".join(line[5:])
-                        file_list.append(f_path)
-                    else:
-                        f_path = line[-1]
-                        file_list.append(f_path)
-        '''
         return file_list
 
 

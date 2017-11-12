@@ -71,8 +71,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "redhat"
                         elif re.search(
                                 r'slitaz|dban |ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|android-x86.png|'
-                                r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/|AVG Rescue CD|AntivirusLiveCD|lkrn',
-                                string, re.I):
+                                r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/|AVG Rescue CD|AntivirusLiveCD|'
+                                r'lkrn|Nanolinux', string, re.I):
                             return "slitaz"
                         elif re.search(r'minimal Slackware|Slackware-HOWTO', string, re.I):
                             # for minimal slackware detection
@@ -110,7 +110,6 @@ def distro(iso_cfg_ext_dir, iso_link):
                         elif re.search(r'zenwalk|slack|salix', string, re.I) and re.search(r'live', string, re.I):
                             return "salix-live"
                         elif re.search(r'zenwalk|slack|salix', string, re.I):
-                            print(os.path.join(path, name))
                             return "zenwalk"
                         elif re.search(r'ubuntu server', string, re.I):
                             return "ubuntu-server"
@@ -157,6 +156,10 @@ def distro(iso_cfg_ext_dir, iso_link):
 #                 #  syslinux, update_cfg and install_distro modules.
 #                 if self.isolinux_bin_exist():
 #                     return "generic"
+        elif str(iso_link).lower().endswith('.iso'):
+            return 'memdisk_iso'
+        elif str(iso_link).lower().endswith('.img'):
+            return 'memdisk_img'
         else:
             return None
 

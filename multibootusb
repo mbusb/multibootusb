@@ -66,6 +66,7 @@ Options:
   -y or --yes         :   Default yes for user input during install.
                           Will not wait for user.
   -u or --uninstall   :   List and uninstall distro from an USB disk.
+  -r or --raw         :   Write ISO image diretly to USB disk. Will destroy data.
   -d or --debug       :   Enable debug messages (very verbose!)
 
 Example for making a bootable USB from the command line:
@@ -91,8 +92,16 @@ Example for installing multiple distros without user intervention:
 
     Windows:
         python3 multibootusb -c -i ../../favourite.iso,../../other-distro.iso -t G:
+        
+Example for writing ISO image to target USB disk (will destroy data on USB disk):
+
+    Linux:
+        python3 multibootusb -c -r -i ../../favourite.iso -t /dev/sdb
+
+    Windows:
+        python3 multibootusb -c -i -r ../../favourite.iso -t G:
 ''')
-    exit(2)
+    sys.exit(2)
 
 
 def start_gui():
@@ -112,8 +121,9 @@ if __name__ == '__main__':
             admin.runAsAdmin()
             sys.exit(0)
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'i:t:yvhcud',
-                                   ['iso=', 'target=', 'yes', 'version', 'help', 'command', 'uninstall', 'debug'])
+        opts, args = getopt.getopt(sys.argv[1:], 'i:t:yvhcudrs',
+                                   ['iso=', 'target=', 'yes', 'version', 'help', 'command', 'uninstall', 'debug',
+                                    'raw', 'syslinux'])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
@@ -139,6 +149,10 @@ if __name__ == '__main__':
             config.debug = True
         elif opt in ('-y', '--yes'):
             config.yes = True
+        elif opt in ('-r', '--raw'):
+            config.cli_dd = True
+        elif opt in ('-s', '--syslinux'):
+            config.cli_syslinux = True
         else:
             gui = True
             #start_gui()
@@ -162,9 +176,13 @@ if gui is False:
     elif config.image_path is '' and config.usb_disk is '':
         log('\nNo option provided. See the usage below.')
         usage()
+    elif config.cli_syslinux is True and config.usb_disk is not '':
+        cli_install_syslinux()
     elif config.image_path is '' or config.usb_disk is '':
         log('\nOptions \'-i\' and \'-t\' must be supplied together. See the usage below.')
         usage()
+    elif config.cli_dd is True:
+        cli_dd()
     else:
         running_from()
         cli_install_distro()

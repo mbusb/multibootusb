@@ -90,6 +90,10 @@ def mbusb_update_grub_cfg():
                 elif config.distro == 'ReactOS':
                     f.write('     menuentry ' + iso.iso_basename(config.image_path) +
                             ' {multiboot /loader/setupldr.sys}' + "\n")
+                elif config.distro == 'memdisk_img':
+                    f.write(menus.memdisk_img_cfg(syslinux=False, grub=True))
+                elif config.distro == 'memdisk_iso':
+                    f.write(menus.memdisk_iso_cfg(syslinux=False, grub=True))
                 elif config.distro == 'memtest':
                     f.write('     menuentry ' + iso.iso_basename(config.image_path) +
                             ' {linux16 ' + '/multibootusb/' + iso.iso_basename(config.image_path) + '/BISOLINUX/MEMTEST}' + "\n")

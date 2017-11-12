@@ -13,6 +13,7 @@ import shutil
 import collections
 import ctypes
 import subprocess
+from . import config
 from . import gen
 if platform.system() == 'Linux':
     from . import udisks
@@ -101,16 +102,15 @@ def list_devices(fixed=False):
                 from . import pyudev
             context = pyudev.Context()
 
-            for device in context.list_devices(subsystem='block', ID_BUS="usb"):
-                devices.append(str(device['DEVNAME']))
-                gen.log("\t" + device['DEVNAME'])
-
-            if fixed is True:
-                for device in context.list_devices(subsystem='block'):
+            for device in context.list_devices(subsystem='block'):
+                if fixed is True:
                     if device.get('DEVTYPE') in ['disk', 'partition'] and device.get('ID_PART_TABLE_TYPE'):
-                        if device['DEVNAME'] not in devices:
-                            devices.append(str(device['DEVNAME']))
-                            gen.log("\t" + device['DEVNAME'])
+                        devices.append(str(device.get('DEVNAME')))
+                        gen.log("\t" + device.get('DEVNAME'))
+                else:
+                    if device.get('ID_BUS') in ['usb'] and device.get('ID_PART_TABLE_TYPE'):
+                        devices.append(str(device.get('DEVNAME')))
+                        gen.log("\t" + device.get('DEVNAME'))
 
         except Exception as e:
             gen.log(e)
@@ -277,12 +277,26 @@ def details_udisks2(usb_disk_part):
     """
     import dbus
     bus = dbus.SystemBus()
+
+    mount_point = ''
+    uuid = ''
+    file_system = ''
+    vendor = ''
+    model = ''
+    label = ''
+    devtype = "disk"
+
     bd = bus.get_object('org.freedesktop.UDisks2', '/org/freedesktop/UDisks2/block_devices%s'%usb_disk_part[4:])
     device = bd.Get('org.freedesktop.UDisks2.Block', 'Device', dbus_interface='org.freedesktop.DBus.Properties')
     device = bytearray(device).replace(b'\x00', b'').decode('utf-8')
-    uuid = bd.Get('org.freedesktop.UDisks2.Block', 'IdUUID', dbus_interface='org.freedesktop.DBus.Properties')
-    file_system = bd.Get('org.freedesktop.UDisks2.Block', 'IdType', dbus_interface='org.freedesktop.DBus.Properties')
-    mount_point = bd.Get('org.freedesktop.UDisks2.Filesystem', 'MountPoints', dbus_interface='org.freedesktop.DBus.Properties')
+    if device[-1].isdigit() is True:
+        uuid = bd.Get('org.freedesktop.UDisks2.Block', 'IdUUID', dbus_interface='org.freedesktop.DBus.Properties')
+        file_system = bd.Get('org.freedesktop.UDisks2.Block', 'IdType', dbus_interface='org.freedesktop.DBus.Properties')
+        mount_point = bd.Get('org.freedesktop.UDisks2.Filesystem', 'MountPoints', dbus_interface='org.freedesktop.DBus.Properties')
+        devtype = 'partition'
+    else:
+        devtype = 'disk'
+        file_system = 'No_File_System'
     if mount_point:
         # mount_point = str(bytearray(mount_point[0]).decode('utf-8').replace(b'\x00', b''))
         mount_point = bytearray(mount_point[0]).replace(b'\x00', b'').decode('utf-8')
@@ -316,7 +330,7 @@ def details_udisks2(usb_disk_part):
 
     return {'uuid': uuid, 'file_system': file_system, 'label': label, 'mount_point': mount_point,
             'size_total': size_total, 'size_used': size_used, 'size_free': size_free,
-            'vendor': vendor, 'model': model}
+            'vendor': vendor, 'model': model, 'devtype': devtype}
 
 
 def bytes2human(n):
@@ -338,6 +352,36 @@ def bytes2human(n):
             value = float(n) / prefix[s]
             return '%.1f%s' % (value, s)
     return "%sB" % n
+
+
+def gpt_device(dev_name):
+    """
+    Find if the device inserted is GPT or not. We will just change the variable parameter in config file for later use
+    :param dev_name:
+    :return: True if GPT else False
+    """
+    if platform.system() == 'Windows':
+        diskpart_cmd = 'diskpart.exe /s ' + os.path.join('data', 'tools', 'gdisk', 'list-disk.txt')
+        dev_no = get_physical_disk_number(dev_name)
+        cmd_out = subprocess.check_output(diskpart_cmd)
+        cmd_spt = cmd_out.split(b'\r')
+        for line in cmd_spt:
+            line = line.decode('utf-8')
+            if 'Disk ' + dev_no in line:
+                if '*' not in line.split()[-1]:
+                    config.usb_gpt = False
+                    gen.log('Device ' + dev_name + ' is a MBR disk...')
+                    return False
+                else:
+                    config.usb_gpt = True
+                    gen.log('Device ' + dev_name + ' is a GPT disk...')
+                    return False
+    if platform.system() == "Linux":
+        _cmd_out = subprocess.check_output("parted  " + dev_name[:-1] + " print", shell=True)
+        if b'msdos' in _cmd_out:
+            return False
+        elif b'gpt' in _cmd_out:
+            return True
 
 
 def win_disk_details(disk_drive):
@@ -412,7 +456,25 @@ def details(usb_disk_part):
             details = details_udisks2(usb_disk_part)
     elif platform.system() == 'Windows':
         details = win_disk_details(usb_disk_part)
+
     return details
+
+
+def get_physical_disk_number(usb_disk):
+    """
+    Get the physical disk number as detected ny Windows.
+    :param usb_disk: USB disk (Like F:)
+    :return: Disk number.
+    """
+    import wmi
+    c = wmi.WMI()
+    for physical_disk in c.Win32_DiskDrive():
+        for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
+            for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
+                if logical_disk.Caption == usb_disk:
+                    # gen.log("Physical Device Number is " + partition.Caption[6:-14])
+                    return str(partition.Caption[6:-14])
+
 
 if __name__ == '__main__':
     usb_devices = list_devices()

@@ -60,12 +60,20 @@ def iso_size(iso_link):
     return os.path.getsize(iso_link)
 
 
+def is_readable(iso_link):
+    return os.access(iso_link, os.R_OK)
+
+
 def is_bootable(iso_link):
     """
     Check if an ISO has the ability to boot.
     :return: True if ISO is bootable and False if not.
     """
-    iso9660fs = ISO9660(iso_link)
+    try:
+        iso9660fs = ISO9660(iso_link)
+    except IOError as e:
+        log(str(e))
+        raise
     isBootable = iso9660fs.checkISOBootable()
     return bool(isBootable)
 

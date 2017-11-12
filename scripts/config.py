@@ -26,7 +26,9 @@ iso_file_list = ''
 iso_bin_dir = ''
 process_exist = None
 yes = False
-
+cli_dd = False
+cli_syslinux = False
+usb_gpt = ''
 
 imager_iso_link = ""
 imager_usb_disk_selected = ""

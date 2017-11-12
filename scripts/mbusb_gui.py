@@ -158,6 +158,9 @@ Are you SURE you want to enable it?",
             self.ui.usb_type.setText(config.usb_details.get('devtype', ""))
             self.ui.usb_fs.setText(config.usb_details.get('file_system', ""))
 
+            # Get the GPT status of the disk and store it on a variable
+            usb.gpt_device(config.usb_disk)
+
             self.update_list_box(config.usb_disk)
             self.ui_update_persistence()
         else:
@@ -210,9 +213,27 @@ Are you SURE you want to enable it?",
         if os.path.exists(preference_file_path):
             dir_path = open(preference_file_path, 'r').read()
 
-        config.image_path = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', dir_path, 'ISO Files (*.iso);; Zip Files(*.zip)')[0]
+        config.image_path = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', dir_path,
+                                                                  'ISO Files (*.iso);; Zip Files(*.zip);; '
+                                                                  'Img Files(*.img);; All Files(*.*)')[0]
 
         if config.image_path:
+            # sanity checks
+            if not is_readable(config.image_path):
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "ISO Not readable",
+                    "Sorry, the file \"{0}\" is not readable.".format(config.image_path)
+                )
+                return
+            if iso_size(config.image_path) == 0:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "ISO is an empty file",
+                    "Sorry, the file \"{0}\" contains no data.".format(config.image_path)
+                )
+                return
+
             default_dir_path = os.path.dirname(config.image_path)
             gen.write_to_file(preference_file_path, default_dir_path)
 
@@ -308,6 +329,7 @@ Are you SURE you want to enable it?",
         self.ui.statusbar.showMessage(str("Status: Installing Syslinux..."))
         syslinux_distro_dir(config.usb_disk, config.image_path, config.distro)
         syslinux_default(config.usb_disk)
+        replace_grub_binary()
         update_distro_cfg_files(config.image_path, config.usb_disk, config.distro, config.persistence)
         self.update_list_box(config.usb_disk)
         if sys.platform.startswith("linux"):
@@ -798,8 +820,12 @@ def show_admin_info():
     """
     msg = QtWidgets.QMessageBox()
     msg.setIcon(QtWidgets.QMessageBox.Information)
-    msg.setText('Admin privilege is required to run multibootusb.\n If you are running from source try '
-                '\'sudo python3 ./multibootusb\'\n or you can try \'multibootusb-pkexec\' (post install)')
+    if os.path.exists('scripts'):
+        msg.setText('Admin privilege is required to run multibootusb.\n'
+                    'Try  \'sudo python3 ./multibootusb\'\n')
+    else:
+        msg.setText('Admin privilege is required to run multibootusb.\n'
+                    'Try  \'multibootusb-pkexec\'\n')
     msg.exec_()
 
 
@@ -808,12 +834,13 @@ def main_gui():
     #    ui_about = Ui_About()
     #    ui = Ui_MainWindow()
 
-    window = AppGui()
-    window.show()
-    window.setWindowTitle("MultiBootUSB - " + mbusb_version())
-    window.setWindowIcon(QtGui.QIcon(resource_path(os.path.join("data", "tools", "multibootusb.png"))))
+    if platform.system() == 'Linux' and os.getuid() != 0:
+        show_admin_info()
+        sys.exit(2)
 
-    if platform.system() == 'Linux':
-        if os.getuid() != 0:
-            show_admin_info()
+    else:
+        window = AppGui()
+        window.show()
+        window.setWindowTitle("MultiBootUSB - " + mbusb_version())
+        window.setWindowIcon(QtGui.QIcon(resource_path(os.path.join("data", "tools", "multibootusb.png"))))
     sys.exit(app.exec_())

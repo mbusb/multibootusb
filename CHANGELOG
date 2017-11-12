@@ -1,3 +1,17 @@
+Version - 8.9.0
+---------------
+* Support for GPT based USB disks. BIOS mode works only under USB created under Linux. UEFI for on Windows and Linux
+* Added command line option to install sysinux on multibootusb director (use -s or --syslinux)
+* Added command line option to direct ISO writing to USB disk (use -r or --raw)
+* Boot ISO and IMG directly using memdisk
+* Added feature for selecting ISO, IMG, Zip and all files options in file chooser dialog
+* Corrected path to menu.lst file for distrs based on grub4dos
+* Fix for crash when multicard reader is inserted on the system without a SD card
+* Correctly detect USB disk information using udisk2-dbus without crash under Linux
+* Fixed an issue where using a path with spaces would cause a qemu boot error
+* If distro is not supported, ISO is automatically added using memdisk. You can uninstall later if it does not work
+* Added Nano Linux
+
 Version - 8.8.0
 ---------------
 * Fix for crash when listing fixed partition
