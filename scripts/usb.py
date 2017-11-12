@@ -377,10 +377,17 @@ def gpt_device(dev_name):
                     gen.log('Device ' + dev_name + ' is a GPT disk...')
                     return False
     if platform.system() == "Linux":
-        _cmd_out = subprocess.check_output("parted  " + dev_name[:-1] + " print", shell=True)
+        if gen.has_digit(dev_name):
+            _cmd_out = subprocess.check_output("parted  " + dev_name[:-1] + " print", shell=True)
+        else:
+            _cmd_out = subprocess.check_output("parted  " + dev_name + " print", shell=True)
         if b'msdos' in _cmd_out:
+            config.usb_gpt = False
+            gen.log('Device ' + dev_name + ' is a MBR disk...')
             return False
         elif b'gpt' in _cmd_out:
+            config.usb_gpt = True
+            gen.log('Device ' + dev_name + ' is a GPT disk...')
             return True
 
 

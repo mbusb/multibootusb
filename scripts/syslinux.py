@@ -27,7 +27,6 @@ def gpt_part_table(usb_disk):
     Check if selected USB contain GPT or MBR partition table
     :return: True if GPT else False
     """
-    win_usb_disk_no = str(usb.get_physical_disk_number(config.usb_disk))
     if platform.system() == "Linux":
         _cmd_out = subprocess.check_output("parted  " + usb_disk[:-1] + " print", shell=True)
         if b'msdos' in _cmd_out:
@@ -35,6 +34,7 @@ def gpt_part_table(usb_disk):
         elif b'gpt' in _cmd_out:
             return True
     elif platform.system() == 'Windows':
+        win_usb_disk_no = str(usb.get_physical_disk_number(config.usb_disk))
         if config.usb_gpt is True:
             return True
         elif config.usb_gpt is False:
