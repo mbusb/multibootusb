@@ -529,14 +529,23 @@ Are you SURE you want to enable it?",
                                                               "No space available on " + config.usb_disk)
                             self.ui_enable_controls()
                         else:
-                            reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
-                                                                   'Selected USB disk: %s\n' % config.usb_disk +
-                                                                   'USB mount point: %s\n' % config.usb_mount +
-                                                                   'Selected distro: %s\n\n' % iso_name(
-                                                                       config.image_path) +
-                                                                   'Proceed with installation?',
-                                                                   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                                                                   QtWidgets.QMessageBox.No)
+                            if config.distro == 'memdisk_iso':
+                                reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
+                                                                       'The ISO sleceted is not supported at the moment.\n'
+                                                                       'You can try booting ISO using memdisk.\n'
+                                                                       'Distro can be uninstalled anytime from main menu.\n\n'
+                                                                       'Proceed with installation?',
+                                                                       QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                                       QtWidgets.QMessageBox.No)
+                            else:
+                                reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
+                                                                       'Selected USB disk: %s\n' % config.usb_disk +
+                                                                       'USB mount point: %s\n' % config.usb_mount +
+                                                                       'Selected distro: %s\n\n' % iso_name(
+                                                                           config.image_path) +
+                                                                       'Proceed with installation?',
+                                                                       QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                                       QtWidgets.QMessageBox.No)
 
                             if reply == QtWidgets.QMessageBox.Yes:
                                 self.ui.slider_persistence.setEnabled(False)
