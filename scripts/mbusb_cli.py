@@ -16,6 +16,7 @@ from .distro import *
 from .syslinux import *
 from .install import *
 from . import imager
+from . import syslinux
 
 
 def read_input_uninstall():
@@ -99,6 +100,7 @@ def iso_install(iso_image):
                     install_progress()
                     syslinux_distro_dir(config.usb_disk, iso_image, _distro)
                     syslinux_default(config.usb_disk)
+                    replace_grub_binary()
                     update_distro_cfg_files(iso_image, config.usb_disk, _distro)
                     log('Finished installing ' + iso.iso_basename(iso_image))
                 else:
@@ -110,6 +112,7 @@ def iso_install(iso_image):
                 install_progress()
                 syslinux_distro_dir(config.usb_disk, iso_image, _distro)
                 syslinux_default(config.usb_disk)
+                replace_grub_binary()
                 update_distro_cfg_files(iso_image, config.usb_disk, _distro)
                 log('Finished installing ' + iso.iso_basename(iso_image))
         else:
@@ -167,3 +170,40 @@ def cli_dd():
         else:
             log('\nAuto install is not recommended in direct writing method. Please choose without \'-y\' option.\n')
             sys.exit(2)
+
+
+def cli_install_syslinux():
+    """
+    Install syslinux on a target USB disk. It will installed on 'multibootusb' directory
+    :return: 
+    """
+    if platform.system() == 'Linux':
+        if config.usb_disk[-1].isdigit() is not True:
+            log('Selected USB disk is not a partition. Please enter the partition eg. \'/dev/sdb1\'')
+            sys.exit(2)
+        elif is_root() is False:
+            log("You need to have root privileges to run this script.\nPlease try again using admin privilege (sudo).")
+            sys.exit(2)
+
+    if config.yes is not True:
+        log('\nInitiating process for installing syslinux on ' + config.usb_disk)
+        log('Selected target device is  : ' + quote(config.usb_disk))
+        log('Syslinux install directory :  \'multibootusb\'\n')
+        log('Please confirm the option.')
+        log('Y/y/Yes/yes/YES or N/n/No/no/NO')
+        if read_input_yes() is True:
+            if syslinux.syslinux_default(config.usb_disk) is True:
+                log('Syslinux successfully installed on ' + config.usb_disk)
+            else:
+                log('Failed to install syslinux on ' + config.usb_disk)
+        else:
+            log('Operation cancelled by user. Exiting...')
+            sys.exit(2)
+    else:
+        log('\nSkipping user input and installing syslinux on ' + config.usb_disk)
+        if syslinux.syslinux_default(config.usb_disk) is True:
+            log('Syslinux successfully installed on ' + config.usb_disk)
+        else:
+            log('Failed to install syslinux on ' + config.usb_disk)
+        sys.exit(2)
+

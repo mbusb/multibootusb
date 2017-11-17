@@ -13,6 +13,7 @@ import signal
 from PyQt5 import QtCore, QtGui, QtWidgets
 import subprocess
 import time
+import webbrowser
 from scripts.gui.ui_multibootusb import Ui_MainWindow
 from scripts.gui.ui_about import Ui_About
 from . import usb
@@ -130,7 +131,7 @@ Are you SURE you want to enable it?",
         about.setWindowTitle("About MultiBootUSB - " + mbusb_version())
         about.setWindowIcon(QtGui.QIcon(resource_path(os.path.join("data", "tools", "multibootusb.png"))))
         about.ui.button_close.clicked.connect(about.close)
-
+        about.ui.label_6.linkActivated.connect(webbrowser.open_new_tab)
         about.exec_()
 
     def onComboChange(self):
@@ -156,6 +157,9 @@ Are you SURE you want to enable it?",
             self.ui.usb_mount.setText(config.usb_details.get('mount_point', ""))
             self.ui.usb_type.setText(config.usb_details.get('devtype', ""))
             self.ui.usb_fs.setText(config.usb_details.get('file_system', ""))
+
+            # Get the GPT status of the disk and store it on a variable
+            usb.gpt_device(config.usb_disk)
 
             self.update_list_box(config.usb_disk)
             self.ui_update_persistence()
@@ -214,6 +218,22 @@ Are you SURE you want to enable it?",
                                                                   'Img Files(*.img);; All Files(*.*)')[0]
 
         if config.image_path:
+            # sanity checks
+            if not is_readable(config.image_path):
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "ISO Not readable",
+                    "Sorry, the file \"{0}\" is not readable.".format(config.image_path)
+                )
+                return
+            if iso_size(config.image_path) == 0:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "ISO is an empty file",
+                    "Sorry, the file \"{0}\" contains no data.".format(config.image_path)
+                )
+                return
+
             default_dir_path = os.path.dirname(config.image_path)
             gen.write_to_file(preference_file_path, default_dir_path)
 
@@ -309,6 +329,7 @@ Are you SURE you want to enable it?",
         self.ui.statusbar.showMessage(str("Status: Installing Syslinux..."))
         syslinux_distro_dir(config.usb_disk, config.image_path, config.distro)
         syslinux_default(config.usb_disk)
+        replace_grub_binary()
         update_distro_cfg_files(config.image_path, config.usb_disk, config.distro, config.persistence)
         self.update_list_box(config.usb_disk)
         if sys.platform.startswith("linux"):
@@ -508,14 +529,23 @@ Are you SURE you want to enable it?",
                                                               "No space available on " + config.usb_disk)
                             self.ui_enable_controls()
                         else:
-                            reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
-                                                                   'Selected USB disk: %s\n' % config.usb_disk +
-                                                                   'USB mount point: %s\n' % config.usb_mount +
-                                                                   'Selected distro: %s\n\n' % iso_name(
-                                                                       config.image_path) +
-                                                                   'Proceed with installation?',
-                                                                   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                                                                   QtWidgets.QMessageBox.No)
+                            if config.distro == 'memdisk_iso':
+                                reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
+                                                                       'The ISO sleceted is not supported at the moment.\n'
+                                                                       'You can try booting ISO using memdisk.\n'
+                                                                       'Distro can be uninstalled anytime from main menu.\n\n'
+                                                                       'Proceed with installation?',
+                                                                       QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                                       QtWidgets.QMessageBox.No)
+                            else:
+                                reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
+                                                                       'Selected USB disk: %s\n' % config.usb_disk +
+                                                                       'USB mount point: %s\n' % config.usb_mount +
+                                                                       'Selected distro: %s\n\n' % iso_name(
+                                                                           config.image_path) +
+                                                                       'Proceed with installation?',
+                                                                       QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                                       QtWidgets.QMessageBox.No)
 
                             if reply == QtWidgets.QMessageBox.Yes:
                                 self.ui.slider_persistence.setEnabled(False)

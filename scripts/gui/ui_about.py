@@ -48,7 +48,7 @@ class Ui_About(object):
     def retranslateUi(self, About):
         _translate = QtCore.QCoreApplication.translate
         About.setWindowTitle(_translate("About", "Dialog"))
-        self.label_6.setText(_translate("About", "<html><head/><body><p align=\"center\">An advanced bootable usb creator with option to install/uninstall multiple distros.</p><p align=\"center\">This software is written in Python and PyQt. </p><p align=\"center\">Copyright  2010-2017  Sundar</p><p align=\"center\"><span style=\" font-weight:600;\">Author(s)</span>: Sundar, Ian Bruce, LiQiong Lee and Alin Trăistaru (alindt)</p><p align=\"center\"><span style=\" font-weight:600;\">Licence</span>: GPL version 2 or later</p><p align=\"center\"><span style=\" font-weight:600;\">Home page</span>: <a href=\" http://multibootusb.org\"><span style=\" text-decoration: underline; color:#0000ff;\">http://multibootusb.org</span></a></p><p align=\"center\"><span style=\" font-weight:600;\">Help/Email</span>: feedback.multibootusb@gmail.com</p><p align=\"center\"><span style=\" font-weight:600;\">Source Code</span>: <a href=\"https://github.com/mbusb/multibootusb\"><span style=\" text-decoration: underline; color:#0000ff;\">https://github.com/mbusb/multibootusb</span></a></p><p><br/></p></body></html>"))
+        self.label_6.setText(_translate("About", "<html><head/><body><p align=\"center\">An advanced bootable usb creator with option to install/uninstall multiple distros.</p><p align=\"center\">This software is written in Python and PyQt. </p><p align=\"center\">Copyright  2010-2017  Sundar</p><p align=\"center\"><span style=\" font-weight:600;\">Author(s)</span>: Sundar, Ian Bruce, LiQiong Lee and Alin Trăistaru (alindt)</p><p align=\"center\"><span style=\" font-weight:600;\">Licence</span>: GPL version 2 or later</p><p align=\"center\"><span style=\" font-weight:600;\">Home page</span>: <a href=\"http://multibootusb.org\"><span style=\" text-decoration: underline; color:#0000ff;\">http://multibootusb.org</span></a></p><p align=\"center\"><span style=\" font-weight:600;\">Help/Email</span>: feedback.multibootusb@gmail.com</p><p align=\"center\"><span style=\" font-weight:600;\">Source Code</span>: <a href=\"https://github.com/mbusb/multibootusb\"><span style=\" text-decoration: underline; color:#0000ff;\">https://github.com/mbusb/multibootusb</span></a></p><p><br/></p></body></html>"))
         self.button_close.setText(_translate("About", "Close"))
 
 
@@ -60,4 +60,3 @@ if __name__ == "__main__":
     ui.setupUi(About)
     About.show()
     sys.exit(app.exec_())
-

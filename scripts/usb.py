@@ -13,6 +13,7 @@ import shutil
 import collections
 import ctypes
 import subprocess
+from . import config
 from . import gen
 if platform.system() == 'Linux':
     from . import udisks
@@ -218,7 +219,11 @@ def details_udev(usb_disk_part):
         gen.log("ERROR: Unknown disk/partition (%s)" % str(usb_disk_part))
         return None
 
-    fdisk_cmd_out = subprocess.check_output('fdisk -l ' + usb_disk_part, shell=True)
+    try:
+        fdisk_cmd_out = subprocess.check_output('fdisk -l ' + usb_disk_part, shell=True)
+    except subprocess.CalledProcessError:
+        gen.log("ERROR: fdisk failed on disk/partition (%s)" % str(usb_disk_part))
+        return None
 
     if b'Extended' in fdisk_cmd_out:
         mount_point = ''
@@ -349,6 +354,43 @@ def bytes2human(n):
     return "%sB" % n
 
 
+def gpt_device(dev_name):
+    """
+    Find if the device inserted is GPT or not. We will just change the variable parameter in config file for later use
+    :param dev_name:
+    :return: True if GPT else False
+    """
+    if platform.system() == 'Windows':
+        diskpart_cmd = 'diskpart.exe /s ' + os.path.join('data', 'tools', 'gdisk', 'list-disk.txt')
+        dev_no = get_physical_disk_number(dev_name)
+        cmd_out = subprocess.check_output(diskpart_cmd)
+        cmd_spt = cmd_out.split(b'\r')
+        for line in cmd_spt:
+            line = line.decode('utf-8')
+            if 'Disk ' + dev_no in line:
+                if '*' not in line.split()[-1]:
+                    config.usb_gpt = False
+                    gen.log('Device ' + dev_name + ' is a MBR disk...')
+                    return False
+                else:
+                    config.usb_gpt = True
+                    gen.log('Device ' + dev_name + ' is a GPT disk...')
+                    return False
+    if platform.system() == "Linux":
+        if gen.has_digit(dev_name):
+            _cmd_out = subprocess.check_output("parted  " + dev_name[:-1] + " print", shell=True)
+        else:
+            _cmd_out = subprocess.check_output("parted  " + dev_name + " print", shell=True)
+        if b'msdos' in _cmd_out:
+            config.usb_gpt = False
+            gen.log('Device ' + dev_name + ' is a MBR disk...')
+            return False
+        elif b'gpt' in _cmd_out:
+            config.usb_gpt = True
+            gen.log('Device ' + dev_name + ' is a GPT disk...')
+            return True
+
+
 def win_disk_details(disk_drive):
     """
     Populate and get details of an USB disk under windows. Minimum required windows version is Vista.
@@ -421,7 +463,25 @@ def details(usb_disk_part):
             details = details_udisks2(usb_disk_part)
     elif platform.system() == 'Windows':
         details = win_disk_details(usb_disk_part)
+
     return details
+
+
+def get_physical_disk_number(usb_disk):
+    """
+    Get the physical disk number as detected ny Windows.
+    :param usb_disk: USB disk (Like F:)
+    :return: Disk number.
+    """
+    import wmi
+    c = wmi.WMI()
+    for physical_disk in c.Win32_DiskDrive():
+        for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
+            for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
+                if logical_disk.Caption == usb_disk:
+                    # gen.log("Physical Device Number is " + partition.Caption[6:-14])
+                    return str(partition.Caption[6:-14])
+
 
 if __name__ == '__main__':
     usb_devices = list_devices()
