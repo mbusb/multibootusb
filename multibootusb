@@ -67,6 +67,7 @@ Options:
                           Will not wait for user.
   -u or --uninstall   :   List and uninstall distro from an USB disk.
   -r or --raw         :   Write ISO image diretly to USB disk. Will destroy data.
+  -s or --syslinux    :   Install syslinux to target USB disk default directory.
   -d or --debug       :   Enable debug messages (very verbose!)
 
 Example for making a bootable USB from the command line:
@@ -100,6 +101,14 @@ Example for writing ISO image to target USB disk (will destroy data on USB disk)
 
     Windows:
         python3 multibootusb -c -r -i ../../favourite.iso -t G:
+
+Example for installing syslinux to target USB disk:
+
+    Linux:
+        python3 multibootusb -c -s -t /dev/sdb1
+
+    Windows:
+        python3 multibootusb -c -s -t G:
 ''')
     sys.exit(2)
 
