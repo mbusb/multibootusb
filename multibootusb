@@ -13,6 +13,7 @@ import platform
 # The following line is required for distros based on rpm so as to avoid import errors when running from
 # installed system
 sys.path.append('/usr/local/lib/python3.4/dist-packages')
+sys.path.append('/usr/local/lib/python3.5/dist-packages')  # for version 8.9.0 onwards
 
 # Ensure that above issue doesn't occur on debian based distro as well
 if '/usr/lib/python3/dist-packages/scripts/' not in sys.path:
