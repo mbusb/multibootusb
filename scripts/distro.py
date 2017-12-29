@@ -67,6 +67,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "knoppix"
                         elif re.search(r'root=live:CDLABEL=', string, re.I) or re.search(r'root=live:LABEL=', string, re.I):
                             return "fedora"
+                        elif re.search(r'redcore', string, re.I):
+                            return "fedora"
                         elif re.search(r'redhat', string, re.I):
                             return "redhat"
                         elif re.search(
