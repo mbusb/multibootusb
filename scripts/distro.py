@@ -74,7 +74,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                         elif re.search(
                                 r'slitaz|dban |ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|android-x86.png|'
                                 r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/|AVG Rescue CD|AntivirusLiveCD|'
-                                r'lkrn|Nanolinux', string, re.I):
+                                r'lkrn|Nanolinux|OSForensics', string, re.I):
                             return "slitaz"
                         elif re.search(r'minimal Slackware|Slackware-HOWTO', string, re.I):
                             # for minimal slackware detection
