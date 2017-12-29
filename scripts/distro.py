@@ -103,7 +103,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "finnix"
                         elif re.search(r'wifiway', string, re.I):
                             return "wifiway"
-                        elif re.search(r'puppy|quirky|fatdog|slacko', string, re.I):
+                        elif re.search(r'puppy|quirky|fatdog|slacko|xenialpup', string, re.I):
                             return "puppy"
                         elif re.search(r'ipcop', string, re.I):
                             return "ipcop"
