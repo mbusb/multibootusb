@@ -245,6 +245,15 @@ def copy_mbusb_dir_usb(usb_disk):
     if not os.path.exists(os.path.join(usb_mount_path, 'multibootusb', 'grub', 'core-msdos.img')):
         shutil.copy(resource_path(os.path.join('data', 'multibootusb', 'grub', 'core-msdos.img')),
                     os.path.join(usb_mount_path, 'multibootusb', 'grub', 'core-msdos.img'))
+    
+    if not os.path.exists(os.path.join(usb_mount_path, 'multibootusb', 'grub', 'x86_64-efi')):
+        log("New EFI modules does not exist. Copying now.")
+        shutil.copytree(resource_path(os.path.join('data', 'multibootusb', 'grub', 'x86_64-efi')),
+                    os.path.join(usb_mount_path, 'multibootusb', 'grub', 'x86_64-efi'))
+        log("Replacing gpt efi binary with latest one.")
+        os.remove(os.path.join(usb_mount_path, 'EFI', 'BOOT', 'bootx64-gpt.efi'))
+        shutil.copy(resource_path(os.path.join('data', 'EFI', 'BOOT', 'bootx64-gpt.efi')),
+                    os.path.join(usb_mount_path, 'EFI', 'BOOT', 'bootx64-gpt.efi'))
 
     return result
 
