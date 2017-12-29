@@ -101,7 +101,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "finnix"
                         elif re.search(r'wifiway', string, re.I):
                             return "wifiway"
-                        elif re.search(r'puppy|quirky|fatdog', string, re.I):
+                        elif re.search(r'puppy|quirky|fatdog|slacko', string, re.I):
                             return "puppy"
                         elif re.search(r'ipcop', string, re.I):
                             return "ipcop"
@@ -109,7 +109,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "ipfire"
                         elif re.search(r'zenwalk|slack|salix', string, re.I) and re.search(r'live', string, re.I):
                             return "salix-live"
-                        elif re.search(r'zenwalk|slack|salix', string, re.I):
+                        elif re.search(r'zenwalk|slack|salix', string, re.I) and not re.search(r'slacko', string, re.I):
                             return "zenwalk"
                         elif re.search(r'ubuntu server', string, re.I):
                             return "ubuntu-server"
