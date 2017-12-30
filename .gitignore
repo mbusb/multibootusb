@@ -107,3 +107,9 @@ mbusb_te*py
 text.txt
 text.py
 *~
+
+# Created by eclipse/liclpise
+.project
+.pydevproject
+.settings*
+.directory

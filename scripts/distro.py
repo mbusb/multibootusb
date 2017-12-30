@@ -67,12 +67,14 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "knoppix"
                         elif re.search(r'root=live:CDLABEL=', string, re.I) or re.search(r'root=live:LABEL=', string, re.I):
                             return "fedora"
+                        elif re.search(r'redcore', string, re.I):
+                            return "fedora"
                         elif re.search(r'redhat', string, re.I):
                             return "redhat"
                         elif re.search(
                                 r'slitaz|dban |ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|android-x86.png|'
                                 r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/|AVG Rescue CD|AntivirusLiveCD|'
-                                r'lkrn|Nanolinux', string, re.I):
+                                r'lkrn|Nanolinux|OSForensics', string, re.I):
                             return "slitaz"
                         elif re.search(r'minimal Slackware|Slackware-HOWTO', string, re.I):
                             # for minimal slackware detection
@@ -101,7 +103,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "finnix"
                         elif re.search(r'wifiway', string, re.I):
                             return "wifiway"
-                        elif re.search(r'puppy|quirky|fatdog', string, re.I):
+                        elif re.search(r'puppy|quirky|fatdog|slacko|xenialpup', string, re.I):
                             return "puppy"
                         elif re.search(r'ipcop', string, re.I):
                             return "ipcop"
@@ -109,7 +111,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "ipfire"
                         elif re.search(r'zenwalk|slack|salix', string, re.I) and re.search(r'live', string, re.I):
                             return "salix-live"
-                        elif re.search(r'zenwalk|slack|salix', string, re.I):
+                        elif re.search(r'zenwalk|slack|salix', string, re.I) and not re.search(r'slacko', string, re.I):
                             return "zenwalk"
                         elif re.search(r'ubuntu server', string, re.I):
                             return "ubuntu-server"

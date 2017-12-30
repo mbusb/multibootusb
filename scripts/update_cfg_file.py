@@ -102,6 +102,18 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                         flags=re.I)
                     string = re.sub(r'initrd=', 'directory=/multibootusb/' + iso_basename(iso_link) + '/ initrd=',
                                     string)
+                    string = re.sub(r'linux_64=\"', 'linux_64=\"/multibootusb/' + iso_basename(iso_link), string,
+                                        flags=re.I)
+                    string = re.sub(r'linux_32=\"', 'linux_32=\"/multibootusb/' + iso_basename(iso_link), string,
+                                        flags=re.I)
+                    string = re.sub(r'initrd_img=\"', 'linux_32=\"/multibootusb/' + iso_basename(iso_link), string,
+                                        flags=re.I)
+                    string = re.sub(r'initrd_img32=\"', 'initrd_img32=\"/multibootusb/' + iso_basename(iso_link), string,
+                                        flags=re.I)
+                    string = re.sub(r'default_settings=\"', 'default_settings=\"directory=/multibootusb/' + iso_basename(iso_link) + ' ', string,
+                                        flags=re.I)
+                    string = re.sub(r'live_settings=\"', 'live_settings=\"directory=/multibootusb/' + iso_basename(iso_link) + ' ', string,
+                                        flags=re.I)
                 elif distro == "ubcd":
                     string = re.sub(r'iso_filename=\S*', 'directory=/multibootusb/' + iso_basename(iso_link),
                                     string, flags=re.I)

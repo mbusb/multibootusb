@@ -1,3 +1,24 @@
+Version - 9.0.0
+---------------
+* Improved UEFI support
+* New efi binary based on latest grub2 source
+* Added grub2 efi modules
+* Fix for crash when Windows language is non English
+* Fis for rpm based packaeges which crashes when running the programme
+* Improved the GPT detection under Windows
+* Corrected partedmagic path issues
+* Improved GPT detection under Linux
+* Check for root privilege when using CLI
+* Fix crash when installing ISO from CLI due to GPT check
+* Fix crash when installing syslinux from CLI due to GPT check
+* Install extlinux under Linux for NTFS filesystem
+* Correct usage instructions in help text
+* Added option to choose install distro using memdisk
+* Added Xenial Puppy
+* Added OSFclone
+* Added Redcore Linux
+* Added Slacko Puppy
+
 Version - 8.9.0
 ---------------
 * Support for GPT based USB disks. BIOS mode works only under USB created under Linux. UEFI for on Windows and Linux
