@@ -361,9 +361,12 @@ def gpt_device(dev_name):
     :return: True if GPT else False
     """
     if platform.system() == 'Windows':
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         diskpart_cmd = 'wmic partition get name, type'
         dev_no = get_physical_disk_number(dev_name)
-        cmd_out = subprocess.check_output(diskpart_cmd)
+        cmd_out = subprocess.check_output(diskpart_cmd, subprocess.SW_HIDE, startupinfo=startupinfo)
+        gen.log(cmd_out)
         cmd_spt = cmd_out.split(b'\r')
         for line in cmd_spt:
             line = line.decode('utf-8')
