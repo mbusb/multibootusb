@@ -13,7 +13,6 @@ import urllib.error
 import urllib.parse
 import subprocess
 
-
 if not os.getuid() == 0:
     print("You must run this file with admin privilege.")
     print("Try sudo ./install.py")
