@@ -45,18 +45,7 @@ MultiBootUSB allows you to do the following:
 
 ---
 
-
-How to uninstall?
------------------
-You can uninstall multibootusb at any time using the "uninstall.py" script provided with multibootusb.
-
-```
-cd multibootusb
-chmod +x ./uninstall.py
-sudo ./uninstall.py
-```
-
-For the rest of operations you can refer to the [Guide](http://multibootusb.org/page_guide/) section of [http://multibootusb.org](http://multibootusb.org) 
+For the rest of the guide please refer [Guide](http://multibootusb.org/page_guide/) section of [http://multibootusb.org](http://multibootusb.org)
 
 Website:
 --------
