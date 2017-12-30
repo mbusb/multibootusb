@@ -8,6 +8,7 @@
 
 import os
 import ctypes
+import platform
 from . import usb
 from . import gen
 from .iso import *
@@ -29,29 +30,23 @@ def read_input_uninstall():
     return response
 
 
-def is_root():
+def check_admin():
     """
     Check if user has admin rights
     :return: 
     """
     if platform.system() == 'Linux':
-        if os.getuid() == 0:
-            return True
+        if os.getuid() != 0:
+            exit("You need to have root privileges to run this application."
+                 "\nPlease try again using 'sudo'. Exiting.")
     elif platform.system() == 'Windows':
-        if ctypes.windll.shell32.IsUserAnAdmin() == 1:
-            return True
+        if ctypes.windll.shell32.IsUserAnAdmin() != 1:
+            exit("You need to have admin privileges to run this application."
+                 "\nPlease open command window with admin rights. Exiting.")
 
     return False
 
 def cli_install_distro():
-#     if platform.system() == 'Linux':
-#         if os.getuid() != 0:
-#             exit("You need to have root privileges to run this script.\nPlease try again using 'sudo'. Exiting.")
-#     elif platform.system() == 'Windows':
-#
-#         if admin.isUserAdmin():
-#             admin.elevate()
-
     log('Starting multibootusb from Command line...')
     if usb.is_block(config.usb_disk) is False:
         log(config.usb_disk + ' is not a valid device partition...')
@@ -64,6 +59,8 @@ def cli_install_distro():
         config.usb_mount = usb_details['mount_point']
         config.usb_uuid = usb_details['uuid']
         config.usb_label = usb_details['label']
+        # Get the GPT status of the disk and store it on a variable
+        usb.gpt_device(config.usb_disk)
         prepare_mbusb_host_dir()
         if isinstance(config.image_path, str) is True:
             iso_install(config.image_path)
@@ -144,9 +141,6 @@ def cli_dd():
         if config.usb_disk[-1].isdigit() is True:
             log('Selected USB is a disk partition. Please select the whole disk eg. \'/dev/sdb\'')
             sys.exit(2)
-        elif is_root() is False:
-            log("You need to have root privileges to run this script.\nPlease try again using admin privilege (sudo).")
-            sys.exit(2)
 
     if not os.path.exists(config.image_path):
         log('ISO image path does not exist. Please correct the path.')
@@ -174,21 +168,19 @@ def cli_dd():
 
 def cli_install_syslinux():
     """
-    Install syslinux on a target USB disk. It will installed on 'multibootusb' directory
+    Install syslinux on a target USB disk. It will be installed on 'multibootusb' directory
     :return: 
     """
+    usb.gpt_device(config.usb_disk)
     if platform.system() == 'Linux':
         if config.usb_disk[-1].isdigit() is not True:
             log('Selected USB disk is not a partition. Please enter the partition eg. \'/dev/sdb1\'')
-            sys.exit(2)
-        elif is_root() is False:
-            log("You need to have root privileges to run this script.\nPlease try again using admin privilege (sudo).")
             sys.exit(2)
 
     if config.yes is not True:
         log('\nInitiating process for installing syslinux on ' + config.usb_disk)
         log('Selected target device is  : ' + quote(config.usb_disk))
-        log('Syslinux install directory :  \'multibootusb\'\n')
+        log('Syslinux install directory :  ' + quote('multibootusb'))
         log('Please confirm the option.')
         log('Y/y/Yes/yes/YES or N/n/No/no/NO')
         if read_input_yes() is True:

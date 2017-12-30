@@ -13,6 +13,7 @@ import platform
 # The following line is required for distros based on rpm so as to avoid import errors when running from
 # installed system
 sys.path.append('/usr/local/lib/python3.4/dist-packages')
+sys.path.append('/usr/local/lib/python3.5/dist-packages')  # for version 8.9.0 onwards
 
 # Ensure that above issue doesn't occur on debian based distro as well
 if '/usr/lib/python3/dist-packages/scripts/' not in sys.path:
@@ -67,6 +68,7 @@ Options:
                           Will not wait for user.
   -u or --uninstall   :   List and uninstall distro from an USB disk.
   -r or --raw         :   Write ISO image diretly to USB disk. Will destroy data.
+  -s or --syslinux    :   Install syslinux to target USB disk default directory.
   -d or --debug       :   Enable debug messages (very verbose!)
 
 Example for making a bootable USB from the command line:
@@ -91,7 +93,7 @@ Example for installing multiple distros without user intervention:
         python3 multibootusb -c -y -i ../../favourite.iso,../../other-distro.iso -t /dev/sdb1
 
     Windows:
-        python3 multibootusb -c -i ../../favourite.iso,../../other-distro.iso -t G:
+        python3 multibootusb -c -y -i ../../favourite.iso,../../other-distro.iso -t G:
         
 Example for writing ISO image to target USB disk (will destroy data on USB disk):
 
@@ -99,7 +101,15 @@ Example for writing ISO image to target USB disk (will destroy data on USB disk)
         python3 multibootusb -c -r -i ../../favourite.iso -t /dev/sdb
 
     Windows:
-        python3 multibootusb -c -i -r ../../favourite.iso -t G:
+        python3 multibootusb -c -r -i ../../favourite.iso -t G:
+
+Example for installing syslinux to target USB disk:
+
+    Linux:
+        python3 multibootusb -c -s -t /dev/sdb1
+
+    Windows:
+        python3 multibootusb -c -s -t G:
 ''')
     sys.exit(2)
 
@@ -167,6 +177,7 @@ if config.debug is True:
 
 
 if gui is False:
+    check_admin()
     if uninstall is True and config.usb_disk is not '':
         cli_uninstall_distro()
     elif uninstall is True and config.usb_disk is '':
