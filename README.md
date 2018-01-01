@@ -41,30 +41,11 @@ MultiBootUSB allows you to do the following:
     
     **Using source code method:**
     
-    * The install.py script provided with multibootusb should take care of all dependencies and install multibootusb.
-    Assuming you have downloaded the package named **multibootusb.tar.gz** in your home directory, issue the following commands to install multibootusb:
-
-```sh
-    tar -xf ./multibootusb.tar.gz
-    cd multibootusb
-    chmod +x ./install.py   
-    sudo ./install.py
-``` 
+    * Please follow the instructions provided [here](http://multibootusb.org/page_faq/#your-package-for-my-favourite-distro-never-worked-for-me-what-can-i-do-now)
 
 ---
 
-
-How to uninstall?
------------------
-You can uninstall multibootusb at any time using the "uninstall.py" script provided with multibootusb.
-
-```
-cd multibootusb
-chmod +x ./uninstall.py
-sudo ./uninstall.py
-```
-
-For the rest of operations you can refer to the [Guide](http://multibootusb.org/page_guide/) section of [http://multibootusb.org](http://multibootusb.org) 
+For the rest of the guide please refer [Guide](http://multibootusb.org/page_guide/) section of [http://multibootusb.org](http://multibootusb.org)
 
 Website:
 --------

@@ -409,6 +409,9 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
 
             config_file.write("#end " + iso_basename(iso_link) + "\n")
             config_file.close()
+            # Update extlinux.cfg file by copying updated syslinux.cfg
+            shutil.copy(os.path.join(usb_mount, 'multibootusb', 'syslinux.cfg'),
+                        os.path.join(usb_mount, 'multibootusb', 'extlinux.cfg'))
 
 
 def kaspersky_config(distro):
