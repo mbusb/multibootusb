@@ -1,0 +1,4 @@
+The menu entries for 106 distros are taken from http://mbusb.aguslr.com/ project, written by Agus Lopez.
+The project contribution is deeply acknowledged.
+
+All the code available under each sub directories are released under GPL v.3 
