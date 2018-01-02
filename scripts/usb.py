@@ -364,14 +364,15 @@ def gpt_device(dev_name):
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         diskpart_cmd = 'wmic partition get name, type'
-        dev_no = get_physical_disk_number(dev_name)
+        # We have to check using byte code else it crashes when system language is other than English
+        dev_no = get_physical_disk_number(dev_name).encode()
         cmd_out = subprocess.check_output(diskpart_cmd, subprocess.SW_HIDE, startupinfo=startupinfo)
         gen.log(cmd_out)
         cmd_spt = cmd_out.split(b'\r')
         for line in cmd_spt:
-            line = line.decode('utf-8')
-            if '#' + dev_no + ',' in line:
-                if 'GPT' not in line:
+            # line = line('utf-8')
+            if b'#' + dev_no + b',' in line:
+                if b'GPT' not in line:
                     config.usb_gpt = False
                     gen.log('Device ' + dev_name + ' is a MBR disk...')
                     return False
