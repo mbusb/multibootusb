@@ -77,6 +77,8 @@ setup(
                 ('/usr/share/multibootusb/data/multibootusb', ["data/multibootusb/syslinux.cfg"]),
                 ('/usr/share/multibootusb/data/multibootusb', ["data/multibootusb/vesamenu.c32"]),
                 ('/usr/share/multibootusb/data/multibootusb/grub', root_files('data/multibootusb/grub')),
-                ('/usr/share/multibootusb/data/multibootusb/grub/i386-pc', get_data('data/multibootusb/grub')),
+                ('/usr/share/multibootusb/data/multibootusb/grub/i386-pc', get_data('data/multibootusb/grub/i386-pc')),
+                ('/usr/share/multibootusb/data/multibootusb/grub/x86_64-efi', get_data('data/multibootusb/grub/x86_64-efi')),
+                ('/usr/share/multibootusb/data/multibootusb/grub/menus', get_data('data/multibootusb/grub/menus')),
                 ('/usr/share/multibootusb/data/tools/syslinux', get_data('data/tools/syslinux'))]
 )
