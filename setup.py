@@ -10,6 +10,7 @@ from distutils.core import setup
 #from setuptools import setup, find_packages
 import os
 from scripts.gen import mbusb_version
+import shutil
 
 
 Version = mbusb_version()
@@ -48,7 +49,8 @@ setup(
     version=Version,
     packages=['scripts', 'scripts.pyudev', 'scripts.pyudev.device', 'scripts.pyudev._ctypeslib', 'scripts.pyudev._os',
               'scripts.gui', 'scripts.progressbar'],
-    #packages=find_packages(),
+    # packages=find_packages(),
+    include_package_data=True,
     scripts=['multibootusb', 'multibootusb-pkexec'],
     platforms=['Linux'],
     url='http://multibootusb.org/',
@@ -56,7 +58,8 @@ setup(
     author='Sundar',
     author_email='feedback.multibootusb@gmail.com',
     description='Create multi boot live Linux on a USB disk...',
-    long_description='multibootusb is an advanced cross-platform application for installing/uninstalling Linux operating systems on to a single USB flash drives.',
+    long_description='multibootusb is an advanced cross-platform application for installing/uninstalling Linux operating \
+                      systems on to a single USB flash drives.',
     data_files=[("/usr/share/applications", ["data/multibootusb.desktop"]),
                 ('/usr/share/pixmaps', ["data/tools/multibootusb.png"]),
                 ('/usr/share/polkit-1/actions/', ['org.debian.pkexec.run-multibootusb.policy']),
@@ -79,6 +82,5 @@ setup(
                 ('/usr/share/multibootusb/data/multibootusb/grub', root_files('data/multibootusb/grub')),
                 ('/usr/share/multibootusb/data/multibootusb/grub/i386-pc', get_data('data/multibootusb/grub/i386-pc')),
                 ('/usr/share/multibootusb/data/multibootusb/grub/x86_64-efi', get_data('data/multibootusb/grub/x86_64-efi')),
-                ('/usr/share/multibootusb/data/multibootusb/grub/menus', get_data('data/multibootusb/grub/menus')),
                 ('/usr/share/multibootusb/data/tools/syslinux', get_data('data/tools/syslinux'))]
 )

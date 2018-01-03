@@ -264,6 +264,13 @@ def copy_mbusb_dir_usb(usb_disk):
     if not os.path.exists(os.path.join(usb_mount_path, 'multibootusb', 'iso')):
         os.makedirs(os.path.join(usb_mount_path, 'multibootusb', 'iso'))
 
+    # Update the menu files from resource path to USB directory.
+    try:
+        with zipfile.ZipFile(resource_path(os.path.join('data', 'multibootusb', 'grub', 'menus.zip')), "r") as z:
+            z.extractall(os.path.join(usb_mount_path, 'multibootusb', 'grub', 'menus'))
+    except:
+        log('Unable to extract menu files to USB disk.')
+
     return result
 
 
