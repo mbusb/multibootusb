@@ -229,6 +229,7 @@ def copy_mbusb_dir_usb(usb_disk):
     else:
         log('EFI directory already exist. Not copying.')
 
+    '''
     # For backward compatibility
     if not os.path.exists(os.path.join(usb_mount_path, 'EFI', 'BOOT', 'bootx64-gpt.efi')):
         shutil.copy(resource_path(os.path.join('data', 'EFI', 'BOOT', 'bootx64-gpt.efi')),
@@ -254,6 +255,14 @@ def copy_mbusb_dir_usb(usb_disk):
         os.remove(os.path.join(usb_mount_path, 'EFI', 'BOOT', 'bootx64-gpt.efi'))
         shutil.copy(resource_path(os.path.join('data', 'EFI', 'BOOT', 'bootx64-gpt.efi')),
                     os.path.join(usb_mount_path, 'EFI', 'BOOT', 'bootx64-gpt.efi'))
+    '''
+    # Warn users about older version
+    if not os.path.exists(os.path.join(usb_mount_path, 'multibootusb', 'grub', 'x86_64-efi')):
+        log("You have created live usb using old version of multibootusb.")
+        log("Please remove EFI and multibootusb directory and reinstall distros again.")
+    # Ensue that we have iso directory. Implemented from version 9.0.1
+    if not os.path.exists(os.path.join(usb_mount_path, 'multibootusb', 'iso')):
+        os.makedirs(os.path.join(usb_mount_path, 'multibootusb', 'iso'))
 
     return result
 
