@@ -48,7 +48,7 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
                 else:
                     ram = ""
 
-                cmd = qemu + ram + ' -boot d' + ' -cdrom "' + str(qemu_iso_link) + '"'
+                cmd = qemu + ram + ' -enable-kvm -boot d' + ' -cdrom "' + str(qemu_iso_link) + '"'
                 try:
                     log("Executing ==> " + cmd)
                     subprocess.Popen(cmd, shell=True)
@@ -98,7 +98,7 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
                     os.chdir(parent_dir)
 
                 elif platform.system() == "Linux":
-                    cmd = qemu + ' -hda "' + qemu_usb_disk + '"' + ram + ' -vga std'
+                    cmd = qemu + ' -enable-kvm -hda "' + qemu_usb_disk + '"' + ram + ' -vga std'
                     try:
                         log('Executing ==> ' + cmd)
                         subprocess.Popen(cmd, shell=True)

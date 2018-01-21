@@ -22,7 +22,7 @@ def scripts_dir_path():
     return os.path.dirname(os.path.realpath(__file__))
 
 
-def log(message, info=True, error=False, debug=False):
+def log(message, info=True, error=False, debug=False, _print=True):
     """
     Dirty function to log messages to file and also print on screen.
     :param message:
@@ -43,7 +43,8 @@ def log(message, info=True, error=False, debug=False):
                         format='%(asctime)s.%(msecs)03d %(name)s %(levelname)s %(message)s',
                         datefmt='%H:%M:%S',
                         level=logging.DEBUG)
-    print(message)
+    if _print is True:
+        print(message)
 
     # remove ANSI color codes from logs
     # message_clean = re.compile(r'\x1b[^m]*m').sub('', message)
