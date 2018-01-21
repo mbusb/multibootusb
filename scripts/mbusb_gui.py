@@ -350,7 +350,11 @@ Are you SURE you want to enable it?",
         """
 
         self.ui_disable_controls()
-        if platform.system() == "Linux" or platform.system() == "Windows":
+        if not config.usb_disk:
+            log("ERROR Syslinux Install :  No USB device found.")
+            QtWidgets.QMessageBox.information(self, "No Device...",
+                                              "No USB device found.\n\nInsert USB and use Refresh USB button to detect USB.")
+        elif platform.system() == "Linux" or platform.system() == "Windows":
             if self.ui.check_install_sys_all.isChecked() or self.ui.check_install_sys_only.isChecked():
                 if platform.system() == 'Linux' and config.usb_disk[-1].isdigit() is False:
                     gen.log('Selected USB is a disk. Please select a disk partition from the drop down list')

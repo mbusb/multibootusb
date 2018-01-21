@@ -361,25 +361,35 @@ def gpt_device(dev_name):
     :return: True if GPT else False
     """
     if platform.system() == 'Windows':
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        diskpart_cmd = 'wmic partition get name, type'
-        # We have to check using byte code else it crashes when system language is other than English
-        dev_no = get_physical_disk_number(dev_name).encode()
-        cmd_out = subprocess.check_output(diskpart_cmd, subprocess.SW_HIDE, startupinfo=startupinfo)
-        gen.log(cmd_out)
-        cmd_spt = cmd_out.split(b'\r')
-        for line in cmd_spt:
-            # line = line('utf-8')
-            if b'#' + dev_no + b',' in line:
-                if b'GPT' not in line:
-                    config.usb_gpt = False
-                    gen.log('Device ' + dev_name + ' is a MBR disk...')
-                    return False
-                else:
-                    config.usb_gpt = True
-                    gen.log('Device ' + dev_name + ' is a GPT disk...')
-                    return True
+        try:
+            try:
+                from subprocess import DEVNULL
+            except ImportError:
+                DEVNULL = os.open(os.devnull, os.O_RDWR)
+            # DEVNULL = os.open(os.devnull, os.O_RDWR)
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            diskpart_cmd = 'wmic partition get name, type'
+            # We have to check using byte code else it crashes when system language is other than English
+            dev_no = get_physical_disk_number(dev_name).encode()
+            # Below line fails on onefile windows binary
+            # cmd_out = subprocess.check_output(diskpart_cmd, subprocess.SW_HIDE, startupinfo=startupinfo, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
+            cmd_out = subprocess.check_output(diskpart_cmd, subprocess.SW_HIDE, startupinfo=startupinfo, stdin=DEVNULL, stderr=DEVNULL)
+            gen.log(cmd_out)
+            cmd_spt = cmd_out.split(b'\r')
+            for line in cmd_spt:
+                # line = line('utf-8')
+                if b'#' + dev_no + b',' in line:
+                    if b'GPT' not in line:
+                        config.usb_gpt = False
+                        gen.log('Device ' + dev_name + ' is a MBR disk...')
+                        return False
+                    else:
+                        config.usb_gpt = True
+                        gen.log('Device ' + dev_name + ' is a GPT disk...')
+                        return True
+        except Exception as e:
+            gen.log(e)
                     
     if platform.system() == "Linux":
         if gen.has_digit(dev_name):
