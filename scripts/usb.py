@@ -365,13 +365,13 @@ def gpt_device(dev_name):
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         diskpart_cmd = 'wmic partition get name, type'
         # We have to check using byte code else it crashes when system language is other than English
-        dev_no = get_physical_disk_number(dev_name).encode()
+        dev_no = gen.get_physical_disk_number(dev_name)
         cmd_out = subprocess.check_output(diskpart_cmd, subprocess.SW_HIDE, startupinfo=startupinfo)
         gen.log(cmd_out)
         cmd_spt = cmd_out.split(b'\r')
         for line in cmd_spt:
             # line = line('utf-8')
-            if b'#' + dev_no + b',' in line:
+            if b'#%d,' % dev_no in line:
                 if b'GPT' not in line:
                     config.usb_gpt = False
                     gen.log('Device ' + dev_name + ' is a MBR disk...')
@@ -470,22 +470,6 @@ def details(usb_disk_part):
         details = win_disk_details(usb_disk_part)
 
     return details
-
-
-def get_physical_disk_number(usb_disk):
-    """
-    Get the physical disk number as detected ny Windows.
-    :param usb_disk: USB disk (Like F:)
-    :return: Disk number.
-    """
-    import wmi
-    c = wmi.WMI()
-    for physical_disk in c.Win32_DiskDrive():
-        for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
-            for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
-                if logical_disk.Caption == usb_disk:
-                    # gen.log("Physical Device Number is " + partition.Caption[6:-14])
-                    return str(partition.Caption[6:-14])
 
 
 if __name__ == '__main__':

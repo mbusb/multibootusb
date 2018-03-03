@@ -39,7 +39,6 @@ def gpt_part_table(usb_disk):
         elif b'gpt' in _cmd_out:
             return True
     elif platform.system() == 'Windows':
-        win_usb_disk_no = str(usb.get_physical_disk_number(config.usb_disk))
         if config.usb_gpt is True:
             return True
         elif config.usb_gpt is False:
@@ -107,10 +106,10 @@ def syslinux_default(usb_disk):
     if platform.system() == 'Linux':
         mbr_install_cmd = 'dd bs=440 count=1 conv=notrunc if=' + mbr_bin + ' of=' + usb_disk[:-1]
     else:
-        win_usb_disk_no = str(usb.get_physical_disk_number(config.usb_disk))
+        win_usb_disk_no = get_physical_disk_number(config.usb_disk)
         _windd = resource_path(os.path.join("data", "tools", "dd", "dd.exe"))
         _input = "if=" + mbr_bin
-        _output = 'of=\\\.\\physicaldrive' + win_usb_disk_no
+        _output = 'of=\\\.\\physicaldrive' + str(win_usb_disk_no)
         mbr_install_cmd = _windd + ' ' + _input + ' ' + _output + ' count=1'
 
     if usb_fs in extlinux_fs:
