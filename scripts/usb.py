@@ -361,26 +361,12 @@ def gpt_device(dev_name):
     :return: True if GPT else False
     """
     if platform.system() == 'Windows':
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        diskpart_cmd = 'wmic partition get name, type'
-        # We have to check using byte code else it crashes when system language is other than English
-        dev_no = gen.get_physical_disk_number(dev_name)
-        cmd_out = subprocess.check_output(diskpart_cmd, subprocess.SW_HIDE, startupinfo=startupinfo)
-        gen.log(cmd_out)
-        cmd_spt = cmd_out.split(b'\r')
-        for line in cmd_spt:
-            # line = line('utf-8')
-            if b'#%d,' % dev_no in line:
-                if b'GPT' not in line:
-                    config.usb_gpt = False
-                    gen.log('Device ' + dev_name + ' is a MBR disk...')
-                    return False
-                else:
-                    config.usb_gpt = True
-                    gen.log('Device ' + dev_name + ' is a GPT disk...')
-                    return True
-                    
+        partition, disk = gen.wmi_get_drive_info(dev_name)
+        is_gpt = partition.Type.startswith('GPT:')
+        gen.log('Device %s is a %s disk...' %
+                (dev_name, is_gpt and 'GPT' or 'MBR'))
+        config.usb_gpt = is_gpt
+        return is_gpt
     if platform.system() == "Linux":
         if gen.has_digit(dev_name):
             _cmd_out = subprocess.check_output("parted  " + dev_name[:-1] + " print", shell=True)

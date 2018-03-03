@@ -494,12 +494,7 @@ class MemoryCheck():
         totalMemory = os.popen("free -m").readlines()[1].split()[1]
         return int(totalMemory)
 
-def get_physical_disk_number(usb_disk):
-    """
-    Get the physical disk number as detected ny Windows.
-    :param usb_disk: USB disk (Like F:)
-    :return: Disk number.
-    """
+def wmi_get_drive_info(usb_disk):
     assert platform.system() == 'Windows'
     import wmi
     c = wmi.WMI()
@@ -508,10 +503,18 @@ def get_physical_disk_number(usb_disk):
         # Here, 'disk' is a windows logical drive rather than a physical drive
         for disk in logical_disks:
             if disk.Caption == usb_disk:
-                log("Physical Device Number is %d" % partition.DiskIndex)
-                return partition.DiskIndex
-    raise RuntimeError('Failed to obtain device number for drive ' + usb_disk)
-
+                return (partition, disk)
+    raise RuntimeError('Failed to obtain drive information ' + usb_disk)
+    
+def get_physical_disk_number(usb_disk):
+    """
+    Get the physical disk number as detected ny Windows.
+    :param usb_disk: USB disk (Like F:)
+    :return: Disk number.
+    """
+    partition, logical_disk = wmi_get_drive_info(usb_disk)
+    log("Physical Device Number is %d" % partition.DiskIndex)
+    return partition.DiskIndex
 
 if __name__ == '__main__':
     log(quote("""Test-string"""))
