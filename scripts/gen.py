@@ -503,12 +503,13 @@ def get_physical_disk_number(usb_disk):
     assert platform.system() == 'Windows'
     import wmi
     c = wmi.WMI()
-    for physical_disk in c.Win32_DiskDrive():
-        for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
-            for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
-                if logical_disk.Caption == usb_disk:
-                    log("Physical Device Number is %d" % physical_disk.Index)
-                    return physical_disk.Index
+    for partition in c.Win32_DiskPartition():
+        logical_disks = partition.associators("Win32_LogicalDiskToPartition")
+        # Here, 'disk' is a windows logical drive rather than a physical drive
+        for disk in logical_disks:
+            if disk.Caption == usb_disk:
+                log("Physical Device Number is %d" % partition.DiskIndex)
+                return partition.DiskIndex
     raise RuntimeError('Failed to obtain device number for drive ' + usb_disk)
 
 
