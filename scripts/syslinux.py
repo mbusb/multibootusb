@@ -297,42 +297,32 @@ def replace_grub_binary():
     Default binaries will work for msdos partition table and therefore need not be replaced.
     :return: 
     """
-    grub_efi_bin_path = os.path.join(config.usb_mount, 'EFI', 'BOOT', 'bootx64.efi')
-    grub_efi_bin_gpt_path = os.path.join(config.usb_mount, 'EFI', 'BOOT', 'bootx64-gpt.efi')
-    grub_efi_bin_msdos_path = os.path.join(config.usb_mount, 'EFI', 'BOOT', 'bootx64-msdos.efi')
-    core_img_bin_path = os.path.join(config.usb_mount, 'multibootusb', 'grub', 'core.img')
-    core_img_bin_msdos_path = os.path.join(config.usb_mount, 'multibootusb', 'grub', 'core-msdos.img')
-    core_img_bin_gpt_path = os.path.join(config.usb_mount, 'multibootusb', 'grub', 'core-gpt.img')
 
-    if platform.system() in ['Linux', 'Windows']:
-        if gpt_part_table(config.usb_disk) is True:
-            log('Replacing efi binary with gpt compatible one...')
-            try:
-                shutil.copy(grub_efi_bin_gpt_path, grub_efi_bin_path)
-            except Exception as e:
-                log(e)
-                log('Failed to replace efi binary...')
-            log('Replacing core.img binary with gpt compatible one...')
-            try:
-                shutil.copy(core_img_bin_gpt_path, core_img_bin_path)
-            except Exception as e:
-                log(e)
-                log('Failed to replace efi binary...')
-        else:
-            log('Replacing efi binary with msdos compatible one...')
-            try:
-                # shutil.copy(core_img_bin_gpt_path, core_img_bin_path)
-                shutil.copy(grub_efi_bin_msdos_path, grub_efi_bin_path)
-            except Exception as e:
-                log(e)
-                log('Failed to replace efi binary...')
-            try:
-                log('Replacing core.img with msdos compatible one...')
-                shutil.copy(core_img_bin_msdos_path, core_img_bin_path)
-            except Exception as e:
-                log(e)
-                log('Failed to replace core.img binary...')
+    # There used to be msdos/gpt specific files installed and relevant
+    # ones were copied to target files. But those specific files were
+    # removed by commit ec0f8d95f98f65541c8734623d97f4bd3cbecf0f.
+    # Therefore, as of commit d3c7aa7dc72b3d442c854a6a89071d3f5995ec27,
+    # code segment below is effectively no-op.
 
+    if platform.system() not in ['Linux', 'Windows']:
+        return
+
+    ptype =  gpt_part_table(config.usb_disk) and '-gpt.' or '-msdos.'
+
+    for dir_, fname in [
+            (os.path.join(config.usb_mount, 'EFI', 'BOOT'), 'bootx64.efi'),
+            (os.path.join(config.usb_mount, 'multibootusb', 'grub'), 'grub.img')
+            ]:
+        base, ext = fname.split('.')
+        src = os.path.join(dir_, base + ptype + ext)
+        dst = os.path.join(dir_, fname)
+        if os.path.exists(src):
+            try:
+                log('Replacing %s with %s...' % (dst, src))
+                shutil.copy(src, dst)
+            except Exception as e:
+                log(e)
+                log('Failed to replace %s with %s...' % (dst, src))
 
 if __name__ == '__main__':
     if os.geteuid() != 0:
