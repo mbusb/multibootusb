@@ -1,3 +1,9 @@
+Version - 9.1.0
+---------------
+* Included missing EFI modules
+* Fix for application crashing crashing on windows system 
+* New option to boot distros directly from ISOs. To availe this option, you need to copy ISO files in /multibootusb/iso
+
 Version - 9.0.0
 ---------------
 * Improved UEFI support

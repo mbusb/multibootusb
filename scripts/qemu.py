@@ -85,10 +85,11 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
                     ram = ""
 
                 if platform.system() == "Windows":
-                    disk_number = self.get_physical_disk_number(qemu_usb_disk)
+                    disk_number = get_physical_disk_number(qemu_usb_disk)
                     parent_dir = os.getcwd()
                     os.chdir(resource_path(os.path.join("data", "tools", "qemu")))
-                    cmd = quote(qemu) + ' -L . -boot c' + ram + ' -hda //./PhysicalDrive' + disk_number
+                    cmd = quote(qemu) + ' -L . -boot c' + ram \
+                          + ' -hda //./PhysicalDrive' + str(disk_number)
 
                     try:
                         log("Executing ==>  " + cmd)
@@ -156,21 +157,3 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
 
         return qemu
 
-    @staticmethod
-    def get_physical_disk_number(usb_disk):
-        """
-        Get the physical disk number as detected ny Windows.
-        :param usb_disk: USB disk (Like F:)
-        :return: Disk number.
-        """
-        import wmi
-        c = wmi.WMI()
-        for physical_disk in c.Win32_DiskDrive():
-            for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
-                for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
-                    if logical_disk.Caption == usb_disk:
-#                         log physical_disk.Caption
-#                         log partition.Caption
-#                         log logical_disk.Caption
-                        log("Physical Device Number is " + partition.Caption[6:-14])
-                        return str(partition.Caption[6:-14])

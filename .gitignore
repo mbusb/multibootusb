@@ -95,6 +95,9 @@ ENV/
 # Source file
 multibootusb*.tar.gz
 
+# Temp files
+data/multibootusb/grub/menus.zip
+
 # Setup file
 
 multibootusb*.exe
