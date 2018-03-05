@@ -1,0 +1,13 @@
+{
+  "Windows": 
+    {"pyinstaller_path": "C:\\Users\\shinj\\AppData\\Local\\Programs\\Python\\Python36\\Scripts\\pyinstaller-script.py",
+     "release_dir": "C:\\Users\\shinj\\Documents\\src\\multibootusb\\release",
+     "nsis": "\"C:\\Program Files (x86)\\NSIS\\makensis.exe\""
+    },
+  "Linux":
+    {"pyinstaller_path": "/media/sundar/Data/multibootusb/pyinstaller/pyinstaller.py",
+     "release_dir": "/media/sundar/Data/multibootusb/release",
+     "debian_bin_path": "/usr/bin/multibootusb",
+     "rpm_bin_path": "/usr/local/bin/multibootusb"
+    }
+}

@@ -116,3 +116,6 @@ text.py
 .pydevproject
 .settings*
 .directory
+
+# External path setting file for build_pkg script.
+build_pkg_path.json
