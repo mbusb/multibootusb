@@ -106,7 +106,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                         flags=re.I)
                     string = re.sub(r'linux_32=\"', 'linux_32=\"/multibootusb/' + iso_basename(iso_link), string,
                                         flags=re.I)
-                    string = re.sub(r'initrd_img=\"', 'linux_32=\"/multibootusb/' + iso_basename(iso_link), string,
+                    string = re.sub(r'initrd_img=\"', 'initrd_img=\"/multibootusb/' + iso_basename(iso_link), string,
                                         flags=re.I)
                     string = re.sub(r'initrd_img32=\"', 'initrd_img32=\"/multibootusb/' + iso_basename(iso_link), string,
                                         flags=re.I)

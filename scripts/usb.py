@@ -361,36 +361,12 @@ def gpt_device(dev_name):
     :return: True if GPT else False
     """
     if platform.system() == 'Windows':
-        try:
-            try:
-                from subprocess import DEVNULL
-            except ImportError:
-                DEVNULL = os.open(os.devnull, os.O_RDWR)
-            # DEVNULL = os.open(os.devnull, os.O_RDWR)
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            diskpart_cmd = 'wmic partition get name, type'
-            # We have to check using byte code else it crashes when system language is other than English
-            dev_no = get_physical_disk_number(dev_name).encode()
-            # Below line fails on onefile windows binary
-            # cmd_out = subprocess.check_output(diskpart_cmd, subprocess.SW_HIDE, startupinfo=startupinfo, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
-            cmd_out = subprocess.check_output(diskpart_cmd, subprocess.SW_HIDE, startupinfo=startupinfo, stdin=DEVNULL, stderr=DEVNULL)
-            gen.log(cmd_out)
-            cmd_spt = cmd_out.split(b'\r')
-            for line in cmd_spt:
-                # line = line('utf-8')
-                if b'#' + dev_no + b',' in line:
-                    if b'GPT' not in line:
-                        config.usb_gpt = False
-                        gen.log('Device ' + dev_name + ' is a MBR disk...')
-                        return False
-                    else:
-                        config.usb_gpt = True
-                        gen.log('Device ' + dev_name + ' is a GPT disk...')
-                        return True
-        except Exception as e:
-            gen.log(e)
-                    
+        partition, disk = gen.wmi_get_drive_info(dev_name)
+        is_gpt = partition.Type.startswith('GPT:')
+        gen.log('Device %s is a %s disk...' %
+                (dev_name, is_gpt and 'GPT' or 'MBR'))
+        config.usb_gpt = is_gpt
+        return is_gpt
     if platform.system() == "Linux":
         if gen.has_digit(dev_name):
             _cmd_out = subprocess.check_output("parted  " + dev_name[:-1] + " print", shell=True)
@@ -480,22 +456,6 @@ def details(usb_disk_part):
         details = win_disk_details(usb_disk_part)
 
     return details
-
-
-def get_physical_disk_number(usb_disk):
-    """
-    Get the physical disk number as detected ny Windows.
-    :param usb_disk: USB disk (Like F:)
-    :return: Disk number.
-    """
-    import wmi
-    c = wmi.WMI()
-    for physical_disk in c.Win32_DiskDrive():
-        for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
-            for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
-                if logical_disk.Caption == usb_disk:
-                    # gen.log("Physical Device Number is " + partition.Caption[6:-14])
-                    return str(partition.Caption[6:-14])
 
 
 if __name__ == '__main__':

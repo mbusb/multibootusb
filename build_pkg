@@ -309,7 +309,14 @@ def usage():
 
     sys.exit(-1)
 
+
 if __name__ == '__main__':
+    # Ensure to pack all menus to packaging directory
+    if os.path.exists(os.path.join('data', 'multibootusb', 'grub', 'menus.zip')):
+        os.remove(os.path.join('data', 'multibootusb', 'grub', 'menus.zip'))
+        shutil.make_archive(os.path.join('data', 'multibootusb', 'grub', 'menus'),
+                            'zip', os.path.join('data', 'multibootusb', 'grub', 'menus'))
+
     if platform.system() == 'Linux':
         print('Converting line ending to Linux for proper functioning.')
         os.system('dos2unix multibootusb')

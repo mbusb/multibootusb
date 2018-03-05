@@ -265,6 +265,13 @@ def copy_mbusb_dir_usb(usb_disk):
     if not os.path.exists(os.path.join(usb_mount_path, 'multibootusb', 'iso')):
         os.makedirs(os.path.join(usb_mount_path, 'multibootusb', 'iso'))
 
+    # Update the menu files from resource path to USB directory.
+    try:
+        with zipfile.ZipFile(resource_path(os.path.join('data', 'multibootusb', 'grub', 'menus.zip')), "r") as z:
+            z.extractall(os.path.join(usb_mount_path, 'multibootusb', 'grub', 'menus'))
+    except:
+        log('Unable to extract menu files to USB disk.')
+
     return result
 
 
@@ -487,6 +494,28 @@ class MemoryCheck():
         """
         totalMemory = os.popen("free -m").readlines()[1].split()[1]
         return int(totalMemory)
+
+def wmi_get_drive_info(usb_disk):
+    assert platform.system() == 'Windows'
+    import wmi
+    c = wmi.WMI()
+    for partition in c.Win32_DiskPartition():
+        logical_disks = partition.associators("Win32_LogicalDiskToPartition")
+        # Here, 'disk' is a windows logical drive rather than a physical drive
+        for disk in logical_disks:
+            if disk.Caption == usb_disk:
+                return (partition, disk)
+    raise RuntimeError('Failed to obtain drive information ' + usb_disk)
+    
+def get_physical_disk_number(usb_disk):
+    """
+    Get the physical disk number as detected ny Windows.
+    :param usb_disk: USB disk (Like F:)
+    :return: Disk number.
+    """
+    partition, logical_disk = wmi_get_drive_info(usb_disk)
+    log("Physical Device Number is %d" % partition.DiskIndex)
+    return partition.DiskIndex
 
 if __name__ == '__main__':
     log(quote("""Test-string"""))
