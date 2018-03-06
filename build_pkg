@@ -38,7 +38,7 @@ if platform.system() == "Windows":
     d = load_path_setting('build_pkg_path.json')
     if d is None:
         d = {
-            'pyinstaller_path': 'D:\multibootusb\pyinstaller\pyinstaller.py',
+            'pyinstaller_path': 'D:\\multibootusb\\pyinstaller\\pyinstaller.py',
             'release_dir':      'D:\\multibootusb\\release',
             'nsis': '\"C:\\Program Files (x86)\\NSIS\\makensis.exe\"'
             }
