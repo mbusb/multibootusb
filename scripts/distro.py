@@ -49,7 +49,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                         elif re.search(r'mgalive', string, re.I):  # mounting fat filesystem hard coded in to initrd.
                             # Can be modified only under linux.
                             return "mageialive"
-                        elif re.search(r'archisolabel|misolabel', string, re.I):
+                        elif re.search(r'archisolabel|misolabel|parabolaisolabel', string, re.I):
                             return "arch"
                         elif re.search(r'chakraisolabel', string, re.I):
                             return "chakra"

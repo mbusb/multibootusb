@@ -37,7 +37,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                 try:
                     string = open(cfg_file, errors='ignore').read()
                 except IOError:
-                    log("Unable to read ", cfg_file)
+                    log("Unable to read %s" % cfg_file)
                 else:
                     if not distro == "generic":
                         replace_text = r'\1/multibootusb/' + iso_basename(iso_link) + '/'

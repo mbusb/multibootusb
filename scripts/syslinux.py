@@ -181,6 +181,7 @@ def syslinux_default(usb_disk):
                 else:
                     log('Disk uses GPT and mbr install is not required...')
                 '''
+                return True
 
             else:
                 log("\nFailed to install default syslinux...\n")

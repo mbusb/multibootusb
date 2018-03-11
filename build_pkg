@@ -21,14 +21,29 @@ import subprocess
 import sys
 import platform
 import re
+import json
+
+def load_path_setting(src_json_file):
+    if not os.path.exists(src_json_file):
+        return None
+    with open(src_json_file) as f:
+        platform2settings = json.load(f)
+    return platform2settings[platform.system()]
 
 
 ####################################################################################################
-#  Change the below variables to suit your needs.
+#  Change the below variables to suit your needs
+#  or create 'build_pkg_path.json' file.
 if platform.system() == "Windows":
-    pyinstaller_path = 'D:\multibootusb\pyinstaller\pyinstaller.py'
-    release_dir = 'D:\\multibootusb\\release'
-    nsis = '\"C:\\Program Files (x86)\\NSIS\\makensis.exe\"'
+    d = load_path_setting('build_pkg_path.json')
+    if d is None:
+        d = {
+            'pyinstaller_path': 'D:\\multibootusb\\pyinstaller\\pyinstaller.py',
+            'release_dir':      'D:\\multibootusb\\release',
+            'nsis': '\"C:\\Program Files (x86)\\NSIS\\makensis.exe\"'
+            }
+    pyinstaller_path, release_dir, nsis = [
+        d[x] for x in ['pyinstaller_path', 'release_dir', 'nsis']]
 else:
     from os.path import expanduser
     home = expanduser("~")
@@ -37,6 +52,20 @@ else:
     release_dir = "/media/sundar/Data/multibootusb/release"
     debian_bin_path = '/usr/bin/multibootusb'
     rpm_bin_path = '/usr/local/bin/multibootusb'
+
+    # Let's keep the following block disabled until somebody tests it out.
+    #
+    # d = load_path_setting('build_pkg_path.json')
+    # if d is None:
+    #    d = {
+    #        'pyinstaller_path': '/media/sundar/Data/multibootusb/pyinstaller/pyinstaller.py',
+    #        'release_dir': '/media/sundar/Data/multibootusb/release',
+    #        'debian_bin_path': '/usr/bin/multibootusb',
+    #        'rpm_bin_path': '/usr/local/bin/multibootusb'
+    #        }
+    # pyinstaller_path, release_dir, debian_bin_path, rpm_bin_path = [
+    #     d[x] for x in ['pyinstaller_path', 'release_dir',
+    #                    'debian_bin_path', 'rpm_bin_path']]
 
 sourceforge_release_path = "multibootusb@frs.sourceforge.net:/home/frs/project/multibootusb/"
 ####################################################################################################

@@ -19,6 +19,13 @@ sys.path.append('/usr/local/lib/python3.5/dist-packages')  # for version 8.9.0 o
 if '/usr/lib/python3/dist-packages/scripts/' not in sys.path:
     sys.path.append('/usr/lib/python3/dist-packages/scripts/')
 
+# May users install multibootusb on python 2.7 and report as multibootusb issue
+# We need to know which version are they using so the below lines are required.
+# We need to do this here otherwise it failes on import error
+python_version = sys.version
+_platform = platform.platform()
+print('Using python version ', python_version, 'on platform', _platform)
+
 # Had trouble in importing scripts directory. Had to add few lines below to ensure it works on source as well as
 # post install
 try:
@@ -43,6 +50,7 @@ def running_from():
     """
     Print version and path location (installed or source code) info for debugging later.
     """
+    gen.log('Using python version ' + python_version + 'on platform ' + _platform, _print=False)
     if os.path.exists('scripts'):
         gen.log('Running multibootusb version ' + gen.mbusb_version() + ' from source...')
     else:
