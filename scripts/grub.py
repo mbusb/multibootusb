@@ -205,9 +205,6 @@ def string_in_file(_file, search_text):
 def write_to_file(file_path, _strings):
 
     try:
-        if not os.path.exists(file_path):
-            open(file_path, 'a').close()
-
         with open(file_path, 'a') as f:
             f.write(_strings + '\n')
     except:
