@@ -264,90 +264,95 @@ def iso2grub2(iso_dir):
         for f in filenames:
             # We will strict to only files ending with '.cfg' extension. This is the file extension isolinux or syslinux
             #  recommends for writing configurations
-            if f.endswith((".cfg", ".CFG")):
-                cfg_file_path = os.path.join(dirpath, f)
-                # We will omit the grub directory
-                if 'grub' not in cfg_file_path:
-                    # we will use only files containing strings which can be converted to grub2 cfg style
-                    with open(cfg_file_path, "r", errors='ignore') as f:
-                        data = f.read()
-                    if 'menu label' in data or 'label' in data:
-                        if 1: # Here for keeping the indentation level
-                            # Make sure that lines with menu label, kernel and append are available for processing
-                            ext_text = re.finditer('^(menu label|label)(.*?)(?=^(menu label|label))', data, re.I|re.DOTALL|re.MULTILINE)
-                            if ext_text:
-                                for m in ext_text:
-                                    menuentry = ''
-#                                     kernel = ''
-                                    kernel_line = ''
-                                    boot_options = ''
-                                    initrd_line = ''
-#                                     initrd = ''
+            if not f.endswith((".cfg", ".CFG")):
+                continue
+            cfg_file_path = os.path.join(dirpath, f)
+            # We will omit the grub directory
+            if 'grub' in cfg_file_path:
+                continue
+            # we will use only files containing strings which can be converted to grub2 cfg style
+            with open(cfg_file_path, "r", errors='ignore') as f:
+                data = f.read()
+            if not ('menu label' in data or 'label' in data):
+                continue
+            # Make sure that lines with menu label, kernel and append are available for processing
+            ext_text = re.finditer('^(menu label|label)(.*?)(?=^(menu label|label))', data, re.I|re.DOTALL|re.MULTILINE)
+            if not ext_text:
+                continue
 
-                                    # Extract line containing 'menu label' and convert to menu entry of grub2
-                                    if 'menu label' in m.group().lower():
-                                        menu_line = re.search('menu label(.*)\s', m.group(), re.I).group()
-                                        menuentry = 'menuentry ' + gen.quote(re.sub(r'menu label', '', menu_line, re.I, ).strip())
-                                        # Ensure that we do not have caps menu label in the menuentry
-                                        menuentry = menuentry.replace('MENU LABEL', '')
+            for m in ext_text:
+                menuentry = ''
+              # kernel = ''
+                kernel_line = ''
+                boot_options = ''
+                initrd_line = ''
+              # initrd = ''
 
-                                    elif 'label ' in m.group().lower():
-                                        # Probably config does not use 'menu label' line. Just line containing 'label'
-                                        #  and convert to menu entry of grub2
-                                        menu_line = re.search('^label(.*)\s', m.group(), re.I).group()
-                                        menuentry = 'menuentry ' + gen.quote(re.sub(r'label', '', menu_line, re.I, ).strip())
-                                        # Ensure that we do not have caps label in the menuentry
-                                        menuentry = menuentry.replace('LABEL', '')
+                # Extract line containing 'menu label' and convert to menu entry of grub2
+                matched = m.group().lower()
+                if 'menu label' in matched:
+                    menu_line = re.search('menu label(.*)\s', m.group(), re.I).group()
+                    menuentry = 'menuentry ' + gen.quote(re.sub(r'menu label', '', menu_line, re.I, ).strip())
+                    # Ensure that we do not have caps menu label in the menuentry
+                    menuentry = menuentry.replace('MENU LABEL', '')
 
-                                    # Extract kernel line and change to linux line of grub2
-                                    if 'kernel' in m.group().lower() or 'linux' in m.group().lower():
-                                        kernel_text = re.findall('((kernel|linux)[= ].*?[ \s])', m.group(), re.I)
-                                        match_count = len(re.findall('((kernel|linux)[= ].*?[ \s])', m.group(), re.I))
-                                        if match_count is 1:
-                                            kernel_line = extract_kernel_line(kernel_text[0][1], kernel_text[0][0], iso_bin_dir)
-                                        elif match_count > 2:
-                                            for _lines in kernel_text:
-                                                kernel_line = extract_kernel_line(_lines[0][1], _lines[0][0],
-                                                                                  iso_bin_dir)
-                                                if kernel_line == '':
-                                                    continue
-                                                else:
-                                                    break
+                elif 'label ' in matched:
+                    # Probably config does not use 'menu label' line. Just line containing 'label'
+                    #  and convert to menu entry of grub2
+                    menu_line = re.search('^label(.*)\s', m.group(), re.I).group()
+                    menuentry = 'menuentry ' + gen.quote(re.sub(r'label', '', menu_line, re.I, ).strip())
+                    # Ensure that we do not have caps label in the menuentry
+                    menuentry = menuentry.replace('LABEL', '')
 
-                                    if 'initrd' in m.group().lower():
-                                        initrd_text = re.findall('((initrd)[= ].*?[ \s])', m.group(), re.I)
-                                        match_count = len(re.findall('((initrd)[= ].*?[ \s])', m.group(), re.I))
-                                        if match_count is 1:
-                                            initrd_line = extract_kernel_line(initrd_text[0][1], initrd_text[0][0], iso_bin_dir)
-                                        elif match_count > 2:
-                                            for _lines in initrd_text:
-                                                initrd_line = extract_kernel_line(_lines[0][1], _lines[0][0],
-                                                                                  iso_bin_dir)
-                                                if initrd_line == '':
-                                                    continue
-                                                else:
-                                                    break
+                # Extract kernel line and change to linux line of grub2
+                if 'kernel' in matched or 'linux' in matched:
+                    kernel_text = re.findall('((kernel|linux)[= ].*?[ \s])', m.group(), re.I)
+                    match_count = len(re.findall('((kernel|linux)[= ].*?[ \s])', m.group(), re.I))
+                    if match_count is 1:
+                        kernel_line = extract_kernel_line(kernel_text[0][1], kernel_text[0][0], iso_bin_dir)
+                    elif match_count > 2:
+                        for _lines in kernel_text:
+                            kernel_line = extract_kernel_line(_lines[0][1], _lines[0][0],
+                                                              iso_bin_dir)
+                            if kernel_line == '':
+                                continue
+                            else:
+                                break
 
-                                    if 'append' in m.group().lower():
-                                        append_line = re.search('append (.*)\s', m.group(), re.I).group()
-                                        boot_options = re.sub(r'((initrd[= ])(.*?)[ ])', '', append_line, re.I, flags=re.DOTALL)
-                                        boot_options = re.sub(r'append', '', boot_options, re.I).strip()
-                                        boot_options = boot_options.replace('APPEND', '')
+                if 'initrd' in matched:
+                    initrd_text = re.findall('((initrd)[= ].*?[ \s])', m.group(), re.I)
+                    match_count = len(re.findall('((initrd)[= ].*?[ \s])', m.group(), re.I))
+                    if match_count is 1:
+                        initrd_line = extract_kernel_line(initrd_text[0][1], initrd_text[0][0], iso_bin_dir)
+                    elif match_count > 2:
+                        for _lines in initrd_text:
+                            initrd_line = extract_kernel_line(_lines[0][1], _lines[0][0],
+                                                              iso_bin_dir)
+                            if initrd_line == '':
+                                continue
+                            else:
+                                break
 
-                                    if kernel_line.strip():
-                                        linux = kernel_line.strip() + ' ' + boot_options.strip().strip()
-                                    else:
-                                        linux = ''
+                if 'append' in matched:
+                    append_line = re.search('append (.*)\s', m.group(), re.I).group()
+                    boot_options = re.sub(r'((initrd[= ])(.*?)[ ])', '', append_line, re.I, flags=re.DOTALL)
+                    boot_options = re.sub(r'append', '', boot_options, re.I).strip()
+                    boot_options = boot_options.replace('APPEND', '')
 
-                                    if menuentry.strip() and linux.strip() and initrd_line.strip():
-                                        write_to_file(grub_file_path, menuentry + '{')
-                                        write_to_file(grub_file_path, '    ' + linux)
-                                        write_to_file(grub_file_path, '    ' + initrd_line)
-                                        write_to_file(grub_file_path, '}\n')
-                                    elif menuentry.strip() and linux.strip():
-                                        write_to_file(grub_file_path, menuentry + '{')
-                                        write_to_file(grub_file_path, '    ' + linux)
-                                        write_to_file(grub_file_path, '}\n')
+                if kernel_line.strip():
+                    linux = kernel_line.strip() + ' ' + boot_options.strip().strip()
+                else:
+                    linux = ''
+
+                if menuentry.strip() and linux.strip() and initrd_line.strip():
+                    write_to_file(grub_file_path, menuentry + '{')
+                    write_to_file(grub_file_path, '    ' + linux)
+                    write_to_file(grub_file_path, '    ' + initrd_line)
+                    write_to_file(grub_file_path, '}\n')
+                elif menuentry.strip() and linux.strip():
+                    write_to_file(grub_file_path, menuentry + '{')
+                    write_to_file(grub_file_path, '    ' + linux)
+                    write_to_file(grub_file_path, '}\n')
 
     if os.path.exists(grub_file_path):
         gen.log(
