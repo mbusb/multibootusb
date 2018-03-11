@@ -191,17 +191,6 @@ def grub_raw_iso(mbus_grub_cfg_path):
     return menu_entry
 
 
-def string_in_file(_file, search_text):
-    """
-    Search if string exist in a file.
-    :param _file: Path to file
-    :param search_text: String to be searched
-    :return: True if string is found
-    """
-    if search_text in open(_file).read().lower():
-        return True
-
-
 def write_to_file(file_path, _strings):
 
     try:
@@ -280,11 +269,12 @@ def iso2grub2(iso_dir):
                 # We will omit the grub directory
                 if 'grub' not in cfg_file_path:
                     # we will use only files containing strings which can be converted to grub2 cfg style
-                    if string_in_file(cfg_file_path, 'menu label') or string_in_file(cfg_file_path, 'label'):
-                        with open(cfg_file_path, "r", errors='ignore') as cfg_file_str:
-                            data = cfg_file_str.read()
+                    with open(cfg_file_path, "r", errors='ignore') as f:
+                        data = f.read()
+                    if 'menu label' in data or 'label' in data:
+                        if 1: # Here for keeping the indentation level
                             # Make sure that lines with menu label, kernel and append are available for processing
-                            ext_text = re.finditer('(menu label|label)(.*?)(?=(menu label|label))', data, re.I|re.DOTALL)
+                            ext_text = re.finditer('^(menu label|label)(.*?)(?=^(menu label|label))', data, re.I|re.DOTALL|re.MULTILINE)
                             if ext_text:
                                 for m in ext_text:
                                     menuentry = ''
