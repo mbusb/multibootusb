@@ -273,8 +273,6 @@ def iso2grub2(iso_dir):
             # we will use only files containing strings which can be converted to grub2 cfg style
             with open(cfg_file_path, "r", errors='ignore') as f:
                 data = f.read()
-            if not ('menu label' in data or 'label' in data):
-                continue
             # Make sure that lines with menu label, kernel and append are available for processing
             ext_text = re.finditer('^(menu label|label)(.*?)(?=^(menu label|label))', data, re.I|re.DOTALL|re.MULTILINE)
             if not ext_text:
