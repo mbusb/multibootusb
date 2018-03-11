@@ -193,30 +193,34 @@ def install_patch():
 #         iso_linux_bin_dir = isolinux_bin_dir(config.image_path)
         config.syslinux_version = isolinux_version(isolinux_path)
         iso_file_list = iso.iso_file_list(config.image_path)
-        os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path), isolinux_bin_dir(config.image_path))
-        if any("makeboot.sh" in s.lower() for s in iso_file_list):
-            for module in os.listdir(os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path),
-                                                  isolinux_bin_dir(config.image_path))):
-                if module.endswith(".c32"):
-                    if os.path.exists(os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path),
-                                                   isolinux_bin_dir(config.image_path), module)):
-                        try:
-                            os.remove(os.path.join(config.usb_mount, "multibootusb",
-                                                   iso_basename(config.image_path), isolinux_bin_dir(config.image_path), module))
-                            log("Copying " +  module)
-                            log((resource_path(
-                                os.path.join(multibootusb_host_dir(), "syslinux", "modules", config.syslinux_version, module)),
-                                        os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path),
-                                                     isolinux_bin_dir(config.image_path), module)))
-                            shutil.copy(resource_path(
-                                os.path.join(multibootusb_host_dir(), "syslinux", "modules", config.syslinux_version, module)),
-                                        os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path),
-                                                     isolinux_bin_dir(config.image_path), module))
-                        except Exception as err:
-                            log(err)
-                            log("Could not copy " + module)
-        else:
+
+        if not any(s.strip().lower().endswith("makeboot.sh")
+                   for s in iso_file_list):
             log('Patch not required...')
+            return
+
+        # Replace modules files extracted from iso with corresponding
+        # version provided by multibootusb.
+        distro_install_dir = os.path.join(config.usb_mount, "multibootusb",
+                                          iso_basename(config.image_path))
+        isolinux_bin_dir_ = os.path.join(
+            distro_install_dir, isolinux_bin_dir(config.image_path))
+        modules_src_dir = os.path.join(
+            multibootusb_host_dir(), "syslinux", "modules",
+            config.syslinux_version)
+        for module in os.listdir(isolinux_bin_dir_):
+            if not module.endswith(".c32"):
+                continue
+            fpath = os.path.join(isolinux_bin_dir_, module)
+            try:
+                os.remove(fpath)
+                src_module_path = os.path.join(modules_src_dir, module)
+                log("Copying " +  module)
+                log((src_module_path, fpath))
+                shutil.copy(src_module_path, fpath)
+            except Exception as err:
+                log(err)
+                log("Could not copy " + module)
 
 
 if __name__ == '__main__':
