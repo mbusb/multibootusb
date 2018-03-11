@@ -75,17 +75,11 @@ def resource_path(relativePath):
             #basePath = os.path.abspath(".")
             basePath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-    if os.path.exists(os.path.join(basePath, relativePath)):
-        path = os.path.join(basePath, relativePath)
-        return path
-    elif not os.path.exists(os.path.join(basePath, relativePath)):
-        if os.path.exists(os.path.join(os.path.abspath("."), relativePath)):
-            basePath = os.path.abspath(".")
-        elif os.path.exists(os.path.join(os.path.abspath(".."), relativePath)):
-            basePath = os.path.abspath("..")
-        path = os.path.join(basePath, relativePath)
-        return path
-
+    for dir_ in [basePath, os.path.abspath('.'), os.path.abspath('..')]:
+        fullpath = os.path.join(dir_, relativePath)
+        if os.path.exists(fullpath):
+            return fullpath
+    log("Could not find resource '%s'." % relativePath)
 
 def print_version():
     """
