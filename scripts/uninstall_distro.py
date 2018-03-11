@@ -115,20 +115,26 @@ def uninstall_distro():
         if usb_mount:
             subprocess.call("chattr -i -R %s/* 2>/dev/null" % usb_mount, shell=True)
 
-    if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "iso_file_list.cfg")):
-        with open(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "iso_file_list.cfg"), "r") as f:
+    uninstall_distro_dir_name = os.path.join(
+        usb_mount, "multibootusb", config.uninstall_distro_dir_name)
+    uninstall_distro_iso_name = os.path.join(
+        usb_mount, config.uninstall_distro_dir_name) + '.iso'
+    filelist_fname = os.path.join(uninstall_distro_dir_name,
+                                  "iso_file_list.cfg")
+    if os.path.exists(filelist_fname):
+        with open(filelist_fname, "r") as f:
             config.iso_file_list = f.readlines()
 
-    for path, subdirs, files in os.walk(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name)):
+    for path, subdirs, files in os.walk(uninstall_distro_dir_name):
         for name in files:
-            if name.endswith('ldlinux.sys') or name.endswith('ldlinux.c32'):
+            if name.endswith(('ldlinux.sys', 'ldlinux.c32')):
                 os.chmod(os.path.join(path, name), 0o777)
                 os.unlink(os.path.join(path, name))
 
     if config.distro == "opensuse":
-        if os.path.exists(os.path.join(usb_mount, config.uninstall_distro_dir_name + ".iso")):
-            os.remove(os.path.join(usb_mount, config.uninstall_distro_dir_name + ".iso"))
-    elif config.distro == "windows" or config.distro == "alpine" or config.distro == "generic":
+        if os.path.exists(uninstall_distro_iso_name):
+            os.remove(uninstall_distro_iso_name)
+    elif config.distro in ["windows", "alpine", "generic"]:
         delete_frm_file_list()
 
     if config.distro == "ipfire":
@@ -141,10 +147,10 @@ def uninstall_distro():
     elif config.distro == "trinity-rescue":
         shutil.rmtree(os.path.join(usb_mount, "trk3"))
 
-    if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name)):
+    if os.path.exists(uninstall_distro_dir_name):
         if platform.system() == 'Linux':
             os.sync()
-        shutil.rmtree(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name))
+        shutil.rmtree(uninstall_distro_dir_name)
 
     delete_frm_file_list()
 
