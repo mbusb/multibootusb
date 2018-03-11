@@ -174,6 +174,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                     string = re.sub(r'isobasedir=',
                                     'isobasedir=/multibootusb/' + iso_basename(iso_link) + '/', string, flags=re.I)
                     string = re.sub(r'ui gfxboot', '# ui gfxboot', string)  # Bug in the isolinux package
+                    string = string.replace('%INSTALL_DIR%', 'arch')
                     if 'manjaro' in string:
                         if not os.path.exists(os.path.join(usb_mount, '.miso')):
                             with open(os.path.join(usb_mount, '.miso'), "w") as f:
