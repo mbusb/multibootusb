@@ -44,6 +44,9 @@ def install_distro():
                 f.write(file_path + "\n")
     log("Installing " + iso_name(config.image_path) + " on " + install_dir)
 
+    # Some distros requires certain directories be at the root.
+    relocator = DirectoryRelocator(install_dir, usb_mount)
+
     if config.distro == "opensuse":
         iso.iso_extract_file(config.image_path, install_dir, 'boot')
         config.status_text = "Copying ISO..."
@@ -58,9 +61,7 @@ def install_distro():
         iso_extract_full(config.image_path, usb_mount)
     elif config.distro == "trinity-rescue":
         iso_extract_full(config.image_path, install_dir)
-        if os.path.exists(os.path.join(usb_mount, 'trk3')):
-            shutil.rmtree(os.path.join(usb_mount, 'trk3'))
-        shutil.move(os.path.join(install_dir, 'trk3'), os.path.join(usb_mount))
+        relocator.move(('trk3',))
     elif config.distro == "ipfire":
         iso.iso_extract_file(config.image_path, usb_mount, '*.tlz')
         iso.iso_extract_file(config.image_path, usb_mount, 'distro.img')
@@ -104,25 +105,13 @@ def install_distro():
     elif config.distro == 'Avira-RS':
         iso_extract_full(config.image_path, install_dir)
         # we want following directories on root of the USB drive. Ensure the previous directories are removed before moving.
-        if os.path.exists(os.path.join(usb_mount, 'antivir')):
-            shutil.rmtree(os.path.join(usb_mount, 'antivir'))
-            shutil.move(os.path.join(install_dir, 'antivir'), os.path.join(usb_mount))
-        if os.path.exists(os.path.join(usb_mount, 'avupdate')):
-            shutil.rmtree(os.path.join(usb_mount, 'avupdate'))
-            shutil.move(os.path.join(install_dir, 'avupdate'), os.path.join(usb_mount))
-        if os.path.exists(os.path.join(usb_mount, 'system')):
-            shutil.rmtree(os.path.join(usb_mount, 'system'))
-            shutil.move(os.path.join(install_dir, 'system'), os.path.join(usb_mount))
+        relocator.move(('antivir', 'avupdate', 'system'))
     elif config.distro == 'alpine':
         iso_extract_full(config.image_path, install_dir)
-        if os.path.exists(os.path.join(usb_mount, 'apks')):
-            shutil.rmtree(os.path.join(usb_mount, 'apks'))
-        shutil.move(os.path.join(install_dir, 'apks'), os.path.join(usb_mount))
+        relocator.move(('apks',))
     elif config.distro == 'insert':
         iso_extract_full(config.image_path, install_dir)
-        if os.path.exists(os.path.join(usb_mount, 'INSERT')):
-            shutil.rmtree(os.path.join(usb_mount, 'INSERT'))
-        shutil.move(os.path.join(install_dir, 'INSERT'), os.path.join(usb_mount))
+        relocator.move(('INSERT',))
     else:
         iso.iso_extract_full(config.image_path, install_dir)
 
@@ -222,6 +211,20 @@ def install_patch():
                 log(err)
                 log("Could not copy " + module)
 
+class DirectoryRelocator:
+    def __init__(self, src_dir, dst_dir):
+        self.src_dir = src_dir
+        self.dst_dir = dst_dir
+
+    def move(self, dirs):
+        for dir_name in dirs:
+            log('Relocating %s from %s to %s' %
+                (dir_name, self.src_dir, self.dst_dir))
+            src = os.path.join(self.src_dir, dir_name)
+            dst = os.path.join(self.dst_dir, dir_name)
+            if os.path.exists(dst):
+                os.rmtree(dst)
+            shutil.move(src, dst)
 
 if __name__ == '__main__':
     config.image_path = '../../../DISTROS/2016/slitaz-4.0.iso'
