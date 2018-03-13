@@ -47,11 +47,8 @@ def install_distro():
     if config.distro == "opensuse":
         iso.iso_extract_file(config.image_path, install_dir, 'boot')
         config.status_text = "Copying ISO..."
-        if platform.system() == "Windows":
-            subprocess.call(["xcopy", config.image_path, usb_mount], shell=True)  # Have to use xcopy as python file copy is dead slow.
-        elif platform.system() == "Linux":
-            log("Copying " + config.image_path + " to " + usb_mount)
-            shutil.copy(config.image_path, usb_mount)
+        log("Copying " + config.image_path + " to " + usb_mount)
+        copy_iso(config.image_path, usb_mount)
     elif config.distro == "Windows" or config.distro == 'pc-unlocker'\
             or config.distro == 'pc-tool' or config.distro == 'grub2only':
         log("Extracting iso to " + usb_mount)
@@ -62,8 +59,8 @@ def install_distro():
             shutil.rmtree(os.path.join(usb_mount, 'trk3'))
         shutil.move(os.path.join(install_dir, 'trk3'), os.path.join(usb_mount))
     elif config.distro == "ipfire":
-        iso.iso_extract_file(config.image_path, usb_mount, '*.tlz')
-        iso.iso_extract_file(config.image_path, usb_mount, 'distro.img')
+        iso.iso_extract_file(config.image_path, usb_mount,
+                             ['*.tlz', 'distro.img'])
         iso.iso_extract_file(config.image_path, install_dir, 'boot')
     elif config.distro == "zenwalk":
         config.status_text = "Copying ISO..."
@@ -71,14 +68,11 @@ def install_distro():
         copy_iso(config.image_path, install_dir)
     elif config.distro == "salix-live":
         # iso.iso_extract_file(config.image_path, install_dir, "boot")
-        iso.iso_extract_file(config.image_path, install_dir, '*syslinux')
-        iso.iso_extract_file(config.image_path, install_dir, '*menus')
-        iso.iso_extract_file(config.image_path, install_dir, '*vmlinuz')
-        iso.iso_extract_file(config.image_path, install_dir, '*initrd*')
-        iso.iso_extract_file(config.image_path, usb_mount, '*modules')
-        iso.iso_extract_file(config.image_path, usb_mount, '*packages')
-        iso.iso_extract_file(config.image_path, usb_mount, '*optional')
-        iso.iso_extract_file(config.image_path, usb_mount, '*liveboot')
+        iso.iso_extract_file(config.image_path, install_dir,
+                             ['*syslinux', '*menus', '*vmlinuz', '*initrd*'])
+        iso.iso_extract_file(config.image_path, usb_mount,
+                             ['*modules', '*packages', '*optional',
+                              '*liveboot'])
         #iso.iso_extract_full(config.image_path, usb_mount)
         config.status_text = "Copying ISO..."
         copy_iso(config.image_path, install_dir)
@@ -147,7 +141,11 @@ def copy_iso(src, dst):
     :return:
     """
     if platform.system() == "Windows":
-        subprocess.call("xcopy " + src + " " + dst, shell=True)
+        # Note that xcopy asks if the target is a file or a directory when
+        # source filename (or dest filename) contains space(s) and the target
+        # does not exist.
+        assert os.path.exist(dst)
+        subprocess.call(['xcopy', '/Y', src, dst], shell=True)
     elif platform.system() == "Linux":
         shutil.copy(src, dst)
 

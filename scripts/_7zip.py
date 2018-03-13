@@ -44,10 +44,16 @@ def extract_iso(src, dst, pattern=None, suppress_out=True):
     if not os.path.exists(dst):
         os.makedirs(dst, exist_ok=True)
 
+    src = gen.quote(src)
+    dst = gen.quote(dst)
     if pattern is None:
-        _cmd = _7zip + cli_option + ' x -y -o' + gen.quote(dst) + ' ' + gen.quote(src) + suppress_out
+        _cmd = _7zip + cli_option + ' x -y -o' + dst + ' ' + src + suppress_out
     else:
-        _cmd = _7zip + cli_option + ' x -y ' + gen.quote(src) + ' -o' + dst + ' ' + gen.quote(pattern) + ' -r' + suppress_out
+        if type(pattern) is str:
+            pattern = [pattern]
+        pattern_str = ' '.join(gen.quote(s) for s in pattern)
+        _cmd = _7zip + cli_option + ' x -y ' + src + \
+               ' -o' + dst + ' ' + pattern_str + ' -r' + suppress_out
     gen.log('Executing ==> ' + _cmd)
 
     config.status_text = 'Status: Extracting ' + os.path.basename(src).strip()
@@ -117,6 +123,25 @@ def test_iso(iso_link, suppress_out=True):
 
     return bool(rc in [0, 1])
 
+def test_extraction():
+    import shutil
+
+    src = 'c:/Users/shinj/Downloads/clonezilla-live-2.5.2-31-amd64.iso'
+    tmp_dir = 'c:/Users/shinj/Documents/tmp'
+    for subdir, pattern in [
+            ('single_string', 'EFI/'),
+            ('single_list', ['EFI/']),
+            ('multi', ['EFI/', 'syslinux/']),
+            ('all', None) ]:
+        dest_dir = os.path.join(tmp_dir, subdir)
+        if os.path.exists(dest_dir):
+            shutil.rmtree(dest_dir)
+        os.mkdir(dest_dir)
+        args = [src, dest_dir]
+        if pattern is not None:
+            args.append(pattern)
+        print ('Calling extract_iso(%s)' % args)
+        extract_iso(*args)
 
 if __name__ == '__main__':
     # slitaz-4.0.iso
