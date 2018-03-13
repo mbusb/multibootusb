@@ -28,7 +28,6 @@ def install_distro():
     """
     usb_mount = config.usb_mount
     install_dir = os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path))
-    _iso_file_list = iso.iso_file_list(config.image_path)
 
     if not os.path.exists(os.path.join(usb_mount, "multibootusb")):
         log("Copying multibootusb directory to " + usb_mount)
@@ -40,7 +39,7 @@ def install_distro():
         with open(os.path.join(install_dir, "multibootusb.cfg"), "w") as f:
             f.write(config.distro)
         with open(os.path.join(install_dir, "iso_file_list.cfg"), 'w') as f:
-            for file_path in _iso_file_list:
+            for file_path in iso.iso_file_list(config.image_path):
                 f.write(file_path + "\n")
     log("Installing " + iso_name(config.image_path) + " on " + install_dir)
 
