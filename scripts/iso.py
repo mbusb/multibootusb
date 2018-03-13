@@ -85,13 +85,11 @@ def isolinux_bin_dir(iso_link):
     """
     if os.path.exists(iso_link):
         bin_dir = False
-        iso_file_list = _7zip.list_iso(iso_link)
-        if any("isolinux.bin" in s.lower() for s in iso_file_list):
-            for f in iso_file_list:
-                if 'isolinux.bin' in f.lower():
-                    if 'efi' not in f.lower():  # Certain distros place their isolinux.bin in to /EFI/BOOT director and we don't want to include them
-                        bin_dir = os.path.dirname(f)
-                        break
+        for f in _7zip.list_iso(iso_link):
+            if 'isolinux.bin' in f.lower():
+                if 'efi' not in f.lower():  # Certain distros place their isolinux.bin in to /EFI/BOOT director and we don't want to include them
+                    bin_dir = os.path.dirname(f)
+                    break
 
         return bin_dir
 
