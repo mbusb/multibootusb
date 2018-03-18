@@ -132,7 +132,7 @@ def copy_iso(src, dst):
         # Note that xcopy asks if the target is a file or a directory when
         # source filename (or dest filename) contains space(s) and the target
         # does not exist.
-        assert os.path.exist(dst)
+        assert os.path.exists(dst)
         subprocess.call(['xcopy', '/Y', src, dst], shell=True)
     elif platform.system() == "Linux":
         shutil.copy(src, dst)
