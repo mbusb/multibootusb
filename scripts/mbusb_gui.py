@@ -370,11 +370,12 @@ Are you SURE you want to enable it?",
                         if self.ui.check_install_sys_all.isChecked():
                             log("Copying multibootusb directory to " + config.usb_mount)
                             for dirpath, dirnames, filenames in os.walk(
-                                    resource_path(os.path.join("tools", "multibootusb"))):
+                                    resource_path(os.path.join("data", "multibootusb"))):
                                 for f in filenames:
-                                    log("Copying " + f)
+                                    # log("Copying " + f)
                                     shutil.copy(resource_path(os.path.join(dirpath, f)),
-                                                os.path.join(self.usb.get_usb(config.usb_disk).mount, "multibootusb"))
+                                                os.path.join(config.usb_mount,
+                                                             "multibootusb"))
                         QtWidgets.QMessageBox.information(self, 'Install Success...',
                                                           'Syslinux installed successfully on ' + config.usb_disk)
                     elif ret is False:
