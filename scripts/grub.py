@@ -376,8 +376,6 @@ def iso2grub2(install_dir, loopback_cfg_path, wrote_custom_cfg):
                 for keyword, value in re.findall(
                         r'^\s*(kernel|linux|initrd|append)[= ](.*)$',
                         matching_block, re.I|re.MULTILINE):
-                    # Ensure that we do not have caps label in the menuentry.
-                    value = value.replace(keyword.upper(), '') # Essencial?
                     kw = keyword.lower()
                     if kw in ['kernel', 'linux']:
                         if linux_line:
