@@ -310,7 +310,7 @@ def iso2grub2(iso_dir):
                         kernel_line = extract_kernel_line(kernel_text[0][1], kernel_text[0][0], iso_bin_dir)
                     elif match_count > 2:
                         for _lines in kernel_text:
-                            kernel_line = extract_kernel_line(_lines[0][1], _lines[0][0],
+                            kernel_line = extract_kernel_line(_lines[1], _lines[0],
                                                               iso_bin_dir)
                             if kernel_line == '':
                                 continue
@@ -324,7 +324,7 @@ def iso2grub2(iso_dir):
                         initrd_line = extract_kernel_line(initrd_text[0][1], initrd_text[0][0], iso_bin_dir)
                     elif match_count > 2:
                         for _lines in initrd_text:
-                            initrd_line = extract_kernel_line(_lines[0][1], _lines[0][0],
+                            initrd_line = extract_kernel_line(_lines[1], _lines[0],
                                                               iso_bin_dir)
                             if initrd_line == '':
                                 continue
