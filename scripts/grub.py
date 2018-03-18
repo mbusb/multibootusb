@@ -21,15 +21,24 @@ def mbusb_update_grub_cfg():
     :return:
     """
     # Lets convert syslinux config file to grub2 accepted file format.
-    _iso_dir = os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path))
+    install_dir = os.path.join(config.usb_mount, 'multibootusb',
+                               iso.iso_basename(config.image_path))
 
     # First write custom loopback.cfg file so as to be detected by iso2grub2 function later.
-    write_custom_gurb_cfg()
+
+    # There may be more than one loopback.cfg but we just need to fix
+    # one and that is goingn to be referenced in mbusb's grub.cfg.
+    loopback_cfg_path = iso.iso_file_path(config.image_path, 'loopback.cfg')
+    if not loopback_cfg_path:
+        loopback_cfg_path = 'loopback.cfg'
+
+    wrote_custom_cfg = write_custom_grub_cfg(install_dir, loopback_cfg_path)
 
     # Try to generate loopback entry file from syslinux config files
     try:
         gen.log('Trying to create loopback.cfg')
-        iso2_grub2_cfg = iso2grub2(_iso_dir)
+        iso2_grub2_cfg = iso2grub2(install_dir, loopback_cfg_path,
+                                   wrote_custom_cfg)
     except Exception as e:
         print(e)
         gen.log(e)
@@ -39,7 +48,6 @@ def mbusb_update_grub_cfg():
     grub_cfg_path = None
     syslinux_menu = None
 #     sys_cfg_path = None
-    loopback_cfg_path = None
     mbus_grub_cfg_path = os.path.join(config.usb_mount, 'multibootusb', 'grub', 'grub.cfg')
 #     iso_grub_cfg = iso.iso_file_path(config.image_path, 'grub.cfg')
     if iso.isolinux_bin_dir(config.image_path) is not False:
@@ -55,7 +63,6 @@ def mbusb_update_grub_cfg():
 
     efi_grub_cfg = get_grub_cfg(config.image_path)
     boot_grub_cfg = get_grub_cfg(config.image_path, efi=False)
-    loopback_cfg_path = iso.iso_file_path(config.image_path, 'loopback.cfg')
 
     if loopback_cfg_path is not False:
         grub_cfg_path = loopback_cfg_path.replace('\\', '/')
@@ -109,12 +116,13 @@ def mbusb_update_grub_cfg():
         gen.log('Unable to update entry in grub.cfg...')
 
 
-def write_custom_gurb_cfg():
+def write_custom_grub_cfg(install_dir, loopback_cfg_path):
     """
     Create custom grub loopback.cfg file for known distros. Custom menu entries are stored on munus.py module
     :return: 
     """
-    loopback_cfg_path = os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), 'loopback.cfg')
+    loopback_cfg_path = os.path.join(
+        install_dir, loopback_cfg_path.lstrip(r'\/'))
     menu = False
     if config.distro == 'pc-tool':
         menu = menus.pc_tool_config(syslinux=False, grub=True)
@@ -124,6 +132,9 @@ def write_custom_gurb_cfg():
     if menu is not False:
         gen.log('Writing custom loopback.cfg file...')
         write_to_file(loopback_cfg_path, menu)
+        return True
+    else:
+        return False
 
 
 def get_grub_cfg(iso_link, efi=True):
@@ -194,13 +205,10 @@ def grub_raw_iso(mbus_grub_cfg_path):
 def write_to_file(file_path, _strings):
 
     try:
-        if not os.path.exists(file_path):
-            open(file_path, 'a').close()
-
         with open(file_path, 'a') as f:
             f.write(_strings + '\n')
     except:
-        gen.log('Error writing to loopback.cfg file..')
+        gen.log('Error writing to %s...' % file_path)
 
 
 def extract_kernel_line(search_text, match_line, isolinux_dir):
@@ -247,20 +255,60 @@ def extract_kernel_line(search_text, match_line, isolinux_dir):
     return kernel_line.replace('\\', '/').replace('//', '/')
 
 
-def iso2grub2(iso_dir):
+def extract_initrd_param(value, isolinux_dir):
+    kernel_search_path = [
+        '',
+        os.path.join('multibootusb',
+                     iso.iso_basename(config.image_path), isolinux_dir),
+        os.path.join('multibootusb', # A dire attemp to find.
+                     iso.iso_basename(config.image_path)),
+        ]
+    initrd_line, others = '', []
+    for paramdef in value.split(' '):
+        if not paramdef.lower().startswith('initrd='):
+            others.append(paramdef)
+            continue
+        paths = []
+        for path in paramdef[len('initrd='):].split(','):
+            # try to find the specified kernel
+            for d in kernel_search_path:
+                if os.path.exists(os.path.join(config.usb_mount, d, path)):
+                    paths.append(os.path.join(d, path))
+                    break
+            else:
+                # Give up and use the specified kernel as is.
+                paths.append(path)
+        initrd_line = 'initrd ' + ' '.join(paths)
+    return  initrd_line, ' '.join(others)
+
+
+def iso2grub2(install_dir, loopback_cfg_path, wrote_custom_cfg):
     """
     Function to convert syslinux configuration to grub2 accepted configuration format. Features implemented are similar
     to that of grub2  'loopback.cfg'. This 'loopback.cfg' file can be later on caled directly from grub2. The main
     advantage of this function is to generate the 'loopback.cfg' file automatically without manual involvement.
-    :param iso_dir: Path to distro install directory for looping through '.cfg' files.
+    :param install_dir: Path to distro install directory for looping through '.cfg' files.
+    :param loopback_cfg_path: Path to 'loopback.cfg' to be updated
     :param file_out: Path to 'loopback.cfg' file. By default it is set to root of distro install directory.
     :return:
     """
-    grub_file_path = os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), 'loopback.cfg')
-    gen.log('loopback.cfg file is set to ' + grub_file_path)
+    loopback_cfg_path = os.path.join(
+        install_dir, loopback_cfg_path.lstrip(r'\/'))
+
+    gen.log('loopback.cfg file is set to ' + loopback_cfg_path)
+    # Comment-out the previous content if write_custom_grub_cfg() did nothing.
+    if os.path.exists(loopback_cfg_path) and not wrote_custom_cfg:
+        with open(loopback_cfg_path, 'r') as f:
+            lines = f.readlines()
+        with open(loopback_cfg_path, 'w') as f:
+            f.write('##### Previous content is kept from here.\n')
+            f.write( ''.join('#'+s for s in lines))
+            f.write('##### to here.\n\n')
+
     iso_bin_dir = iso.isolinux_bin_dir(config.image_path)
+    seen_menu_lines = []
     # Loop though the distro installed directory for finding config files
-    for dirpath, dirnames, filenames in os.walk(iso_dir):
+    for dirpath, dirnames, filenames in os.walk(install_dir):
         for f in filenames:
             # We will strict to only files ending with '.cfg' extension. This is the file extension isolinux or syslinux
             #  recommends for writing configurations
@@ -274,85 +322,93 @@ def iso2grub2(iso_dir):
             with open(cfg_file_path, "r", errors='ignore') as f:
                 data = f.read()
             # Make sure that lines with menu label, kernel and append are available for processing
-            ext_text = re.finditer('^(menu label|label)(.*?)(?=^(menu label|label))', data, re.I|re.DOTALL|re.MULTILINE)
-            if not ext_text:
+            matching_blocks = re.finditer(
+                '^(menu label|label)(.*?)(?=^(menu label|label|$))',
+                data, re.I|re.DOTALL|re.MULTILINE)
+            # materialize the list.
+            matching_blocks = [s for s in matching_blocks]
+            if not matching_blocks:
                 continue
+            gen.log("Probing '%s'" % cfg_file_path)
+            out_lines = []
+            for match in matching_blocks:
+                matched_block = match.group()
 
-            for m in ext_text:
-                menuentry = ''
-              # kernel = ''
-                kernel_line = ''
-                boot_options = ''
-                initrd_line = ''
-              # initrd = ''
-
-                # Extract line containing 'menu label' and convert to menu entry of grub2
-                matched = m.group().lower()
-                if 'menu label' in matched:
-                    menu_line = re.search('menu label(.*)\s', m.group(), re.I).group()
-                    menuentry = 'menuentry ' + gen.quote(re.sub(r'menu label', '', menu_line, re.I, ).strip())
-                    # Ensure that we do not have caps menu label in the menuentry
-                    menuentry = menuentry.replace('MENU LABEL', '')
-
-                elif 'label ' in matched:
-                    # Probably config does not use 'menu label' line. Just line containing 'label'
-                    #  and convert to menu entry of grub2
-                    menu_line = re.search('^label(.*)\s', m.group(), re.I).group()
-                    menuentry = 'menuentry ' + gen.quote(re.sub(r'label', '', menu_line, re.I, ).strip())
-                    # Ensure that we do not have caps label in the menuentry
-                    menuentry = menuentry.replace('LABEL', '')
-
-                # Extract kernel line and change to linux line of grub2
-                if 'kernel' in matched or 'linux' in matched:
-                    kernel_text = re.findall('((kernel|linux)[= ].*?[ \s])', m.group(), re.I)
-                    match_count = len(re.findall('((kernel|linux)[= ].*?[ \s])', m.group(), re.I))
-                    if match_count is 1:
-                        kernel_line = extract_kernel_line(kernel_text[0][1], kernel_text[0][0], iso_bin_dir)
-                    elif match_count > 2:
-                        for _lines in kernel_text:
-                            kernel_line = extract_kernel_line(_lines[1], _lines[0],
-                                                              iso_bin_dir)
-                            if kernel_line == '':
-                                continue
-                            else:
-                                break
-
-                if 'initrd' in matched:
-                    initrd_text = re.findall('((initrd)[= ].*?[ \s])', m.group(), re.I)
-                    match_count = len(re.findall('((initrd)[= ].*?[ \s])', m.group(), re.I))
-                    if match_count is 1:
-                        initrd_line = extract_kernel_line(initrd_text[0][1], initrd_text[0][0], iso_bin_dir)
-                    elif match_count > 2:
-                        for _lines in initrd_text:
-                            initrd_line = extract_kernel_line(_lines[1], _lines[0],
-                                                              iso_bin_dir)
-                            if initrd_line == '':
-                                continue
-                            else:
-                                break
-
-                if 'append' in matched:
-                    append_line = re.search('append (.*)\s', m.group(), re.I).group()
-                    boot_options = re.sub(r'((initrd[= ])(.*?)[ ])', '', append_line, re.I, flags=re.DOTALL)
-                    boot_options = re.sub(r'append', '', boot_options, re.I).strip()
-                    boot_options = boot_options.replace('APPEND', '')
-
-                if kernel_line.strip():
-                    linux = kernel_line.strip() + ' ' + boot_options.strip().strip()
+                # Extract 'menu label or 'label' line.
+                matches =  re.findall(
+                    r'^\s*(menu label|label)\s+(.*)$',
+                    matched_block, re.I|re.MULTILINE)
+                if 0 == len(matches):
+                    gen.log('Warning: found a block without menu-entry.')
+                    menu_line = 'menuentry "Anonymous"'
+                    menu_label = 'Unlabeled'
                 else:
-                    linux = ''
+                    if 2 <= len(matches):
+                        gen.log('Warning: found a block with more than one '
+                                'menu entries.')
+                    keyword, value = matches[0]
+                    menu_line = 'menuentry ' + gen.quote(value)
+                    menu_label = value
 
-                if menuentry.strip() and linux.strip() and initrd_line.strip():
-                    write_to_file(grub_file_path, menuentry + '{')
-                    write_to_file(grub_file_path, '    ' + linux)
-                    write_to_file(grub_file_path, '    ' + initrd_line)
-                    write_to_file(grub_file_path, '}\n')
-                elif menuentry.strip() and linux.strip():
-                    write_to_file(grub_file_path, menuentry + '{')
-                    write_to_file(grub_file_path, '    ' + linux)
-                    write_to_file(grub_file_path, '}\n')
+                # Extract lines containing 'kernel','linux','initrd'
+                # or 'append' to convert them into grub2 compatible ones.
+                linux_line = initrd_line = None
+                appends = []
+                for keyword, value in re.findall(
+                        r'^\s*(kernel|linux|initrd|append)[= ](.*)$',
+                        matched_block, re.I|re.MULTILINE):
+                    # Ensure that we do not have caps label in the menuentry.
+                    value = value.replace(keyword.upper(), '') # Essencial?
+                    kw = keyword.lower()
+                    if kw in ['kernel', 'linux']:
+                        if linux_line:
+                            gen.log("Warning: found more than one "
+                                    "'kernel/linux' lines in block '%s'."
+                                    % menu_label)
+                            continue
+                        linux_line = extract_kernel_line(
+                            keyword, '%s %s' % (keyword, value), iso_bin_dir)
+                    elif kw == 'initrd':
+                        if initrd_line:
+                            gen.log("Warning: found more than one "
+                                    "'initrd' specifications in block '%s'."
+                                    % menu_label)
+                            continue
+                        initrd_line = extract_kernel_line(
+                            keyword, '%s %s' % (keyword, value), iso_bin_dir)
+                    elif kw== 'append':
+                        if initrd_line:
+                            gen.log("Warning: found both 'append initrd=...' "
+                                    "and 'initrd ...' line")
+                        new_initrd_line, new_value = extract_initrd_param(
+                            value, iso_bin_dir)
+                        if new_initrd_line:
+                            initrd_line = new_initrd_line
+                        appends.append(new_value)
 
-    if os.path.exists(grub_file_path):
+                if menu_line in seen_menu_lines:
+                    out_lines.append( "# '%s' is superceded by the previous "
+                                      "definition." % menu_label)
+                else:
+                    if linux_line or initrd_line:
+                        seen_menu_lines.append(menu_line)
+                        out_lines.append(menu_line + ' {')
+                        for l, a in [
+                                (linux_line, ' ' + ' '.join(appends)),
+                                (initrd_line, '')]:
+                            if l:
+                                out_lines.append('    ' + l + a)
+                        out_lines.append( '}' )
+                    else:
+                        out_lines.append("# Avoided emitting an empty "
+                                         "menu item '%s'." % menu_label)
+
+            with open(loopback_cfg_path, 'a') as f:
+                f.write('# Extracted from %s\n' % cfg_file_path)
+                f.write('\n'.join(out_lines) + '\n')
+                f.write('\n')
+
+    if os.path.exists(loopback_cfg_path):
         gen.log(
             'loopback.cfg file is successfully created.\nYou must send this file for debugging if something goes wrong.')
         return 'loopback.cfg'
