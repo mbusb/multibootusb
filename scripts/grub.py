@@ -211,48 +211,53 @@ def write_to_file(file_path, _strings):
         gen.log('Error writing to %s...' % file_path)
 
 
-def extract_kernel_line(search_text, match_line, isolinux_dir):
+def kernel_search_path(isolinux_dir):
+    return 
+    
+def locate_kernel_file(subpath, isolinux_dir):
+    for d in [
+            '',
+            os.path.join('multibootusb',
+                         iso.iso_basename(config.image_path), isolinux_dir),
+            # Down below are dire attemps to find.
+            os.path.join('multibootusb',
+                         iso.iso_basename(config.image_path)),
+            os.path.join('multibootusb',
+                         iso.iso_basename(config.image_path), 'arch'),
+            ]:
+        if os.path.exists(os.path.join(config.usb_mount, d, subpath)):
+            unix_style_path = os.path.join(d, subpath).\
+                              replace('\\', '/').\
+                              lstrip('/')
+            return ('/' + unix_style_path)
+    return subpath
+        
+        
+def tweak_bootfile_path(img_file_spec, isolinux_dir):
     """
-    Function to check if kernel/linux line present in isolinux.cfg file is valid.
-    If valid, then convert them in to grub accepted format
-    :param search_text: Type of text is to be searched. Typically kernel or linux
-    :param match_line: Line containing kernel ot linux from isolinux supported .cfg files
+    Function to find image files to boot and return them concatinated
+    with a space. Return the spec untouched if no locations are found.
+    :param kernel_file_spec: Image path specification lead by kernel/linux keyword within isolinux supported .cfg files.
     :param isolinux_dir: Path to isolinux directory of an ISO
-    :return: Valid grub2 accepted kernel/linux line after conversion. If nothing found return ''.
+    :return: Converted file paths joined by a space. If no files can be located, img_file_spec is returned unmodified.
     """
     kernel_line = ''
 
-    # Remove '=' from linux/kernel parameter
-    if (search_text + '=') in match_line:
-        kernel_path = match_line.replace((search_text + '='), '').strip()
-        search_text = search_text.replace('=', '')
-    else:
-        kernel_path = match_line.replace(search_text, '', 1).strip()
+    raw_paths = img_file_spec.split(',')
+    converted_paths = [locate_kernel_file(p, isolinux_dir) for p in raw_paths]
+    if raw_paths != converted_paths: # Tweaked the paths successfully?
+        return ' '.join(converted_paths)
 
-    # Check if kernel/linux exist using absolute path (kernel_path)
-    if os.path.exists(os.path.join(config.usb_mount, kernel_path)):
-        kernel_line = search_text.lower().replace('kernel', 'linux') + ' ' + kernel_path.strip()
-
-    # Check if path to kernel/linux exist in isolinux directory and return absolute path
-    elif os.path.exists(os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path), isolinux_dir, kernel_path)):
-        kernel_line = search_text.lower().replace('kernel', 'linux') + ' /multibootusb/' + \
-                      iso.iso_basename(config.image_path) + '/' + isolinux_dir + '/' + kernel_path.strip()
-
-    # Check if multiple kernel/linux exist and convert it to grub accepted line
-    # Found such entries in manjaro and slitaz
-    elif ',/' in kernel_path:
-        kernel_line = search_text.lower().replace('kernel', 'linux') + ' ' + kernel_path.strip()
-        kernel_line = kernel_line.replace(',/', ' /')
-
-    # Same as above but I found this only in dban
-    elif 'z,' in kernel_path:
-        kernel_line = search_text.lower().replace('kernel', 'linux') + ' ' + kernel_path.strip()
-        kernel_line = kernel_line.replace('z,', ' /multibootusb/' + iso.iso_basename(config.image_path) + '/'
-                                          + iso.isolinux_bin_dir(config.image_path).replace('\\', '/') + '/')
-    else:
-        kernel_line = ''
-
-    return kernel_line.replace('\\', '/').replace('//', '/')
+    if 'z,' in img_file_spec:
+        # Fallback to legacy code.
+        # "... I found this only in dban"
+        iso_dir = iso.isolinux_bin_dir(config.image_path)
+        replacement = ' /multibootusb/' + iso.iso_basename(config.image_path) \
+                      + '/' \
+                      + iso_dir.replace('\\', '/') + '/'
+        return img_file_spec.replace('z,', replacement)
+    # Give up and return the original with replaced delimeters.
+    return ' '.join(img_file_spec.split(','))
 
 
 def extract_initrd_param(value, isolinux_dir):
@@ -268,16 +273,8 @@ def extract_initrd_param(value, isolinux_dir):
         if not paramdef.lower().startswith('initrd='):
             others.append(paramdef)
             continue
-        paths = []
-        for path in paramdef[len('initrd='):].split(','):
-            # try to find the specified kernel
-            for d in kernel_search_path:
-                if os.path.exists(os.path.join(config.usb_mount, d, path)):
-                    paths.append(os.path.join(d, path))
-                    break
-            else:
-                # Give up and use the specified kernel as is.
-                paths.append(path)
+        paths = [locate_kernel_file(s, isolinux_dir) for s 
+                 in paramdef[len('initrd='):].split(',')]
         initrd_line = 'initrd ' + ' '.join(paths)
     return  initrd_line, ' '.join(others)
 
@@ -321,32 +318,54 @@ def iso2grub2(install_dir, loopback_cfg_path, wrote_custom_cfg):
             # we will use only files containing strings which can be converted to grub2 cfg style
             with open(cfg_file_path, "r", errors='ignore') as f:
                 data = f.read()
-            # Make sure that lines with menu label, kernel and append are available for processing
-            matching_blocks = re.finditer(
-                '^(menu label|label)(.*?)(?=^(menu label|label|$))',
-                data, re.I|re.DOTALL|re.MULTILINE)
-            # materialize the list.
-            matching_blocks = [s for s in matching_blocks]
+
+            # Make sure that lines with 'label' available for processing.
+            # Do nothing otherwise.
+            matching_blocks_re = [m for m in re.finditer(
+                '^(label)(.*?)(?=(^label))',
+                data, re.I|re.DOTALL|re.MULTILINE)]
+
+            if matching_blocks_re:
+                matching_blocks = [m.group() for m in matching_blocks_re]
+                # Append the block after the last matching position
+                matching_blocks.append(data[matching_blocks_re[-1].span()[1]:])
+            else:
+                m = re.match('^(label)(.*?)',
+                             data, re.I|re.DOTALL|re.MULTILINE)
+                matching_blocks = m and [data[m.start():]] or []
+
             if not matching_blocks:
                 continue
+
+            #if not cfg_file_path.endswith('archiso_pxe64.cfg'):
+            #    continue
             gen.log("Probing '%s'" % cfg_file_path)
             out_lines = []
-            for match in matching_blocks:
-                matched_block = match.group()
-
+            for matching_block in matching_blocks:
+                #print ('------------ block begins here ------------')
+                #print (matching_block)
+                #print ('------------ block ends here ------------')
                 # Extract 'menu label or 'label' line.
                 matches =  re.findall(
                     r'^\s*(menu label|label)\s+(.*)$',
-                    matched_block, re.I|re.MULTILINE)
-                if 0 == len(matches):
+                    matching_block, re.I|re.MULTILINE)
+                labels = [v for v in matches if v[0].lower()=='label']
+                menu_labels = [v for v in matches if v[0].lower()=='menu label']
+                if 0 == len(labels) + len(menu_labels):
                     gen.log('Warning: found a block without menu-entry.')
                     menu_line = 'menuentry "Anonymous"'
                     menu_label = 'Unlabeled'
                 else:
-                    if 2 <= len(matches):
-                        gen.log('Warning: found a block with more than one '
-                                'menu entries.')
-                    keyword, value = matches[0]
+                    for vec, name in [ (labels, 'label'),
+                                       (menu_labels, 'menu label') ]:
+                        if 2 <= len(vec):
+                            gen.log("warning: found a block with more than "
+                                    "one '%s' entries." % name)
+                    # Prefer 'menu label' over 'label'.
+                    if 0<len(menu_labels):
+                        value = menu_labels[0][1].replace('^', '')
+                    else:
+                        value = labels[0][1]
                     menu_line = 'menuentry ' + gen.quote(value)
                     menu_label = value
 
@@ -356,7 +375,7 @@ def iso2grub2(install_dir, loopback_cfg_path, wrote_custom_cfg):
                 appends = []
                 for keyword, value in re.findall(
                         r'^\s*(kernel|linux|initrd|append)[= ](.*)$',
-                        matched_block, re.I|re.MULTILINE):
+                        matching_block, re.I|re.MULTILINE):
                     # Ensure that we do not have caps label in the menuentry.
                     value = value.replace(keyword.upper(), '') # Essencial?
                     kw = keyword.lower()
@@ -366,23 +385,24 @@ def iso2grub2(install_dir, loopback_cfg_path, wrote_custom_cfg):
                                     "'kernel/linux' lines in block '%s'."
                                     % menu_label)
                             continue
-                        linux_line = extract_kernel_line(
-                            keyword, '%s %s' % (keyword, value), iso_bin_dir)
+                        linux_line = 'linux ' + \
+                                     tweak_bootfile_path(value, iso_bin_dir)
                     elif kw == 'initrd':
                         if initrd_line:
                             gen.log("Warning: found more than one "
                                     "'initrd' specifications in block '%s'."
                                     % menu_label)
                             continue
-                        initrd_line = extract_kernel_line(
-                            keyword, '%s %s' % (keyword, value), iso_bin_dir)
+                        initrd_line = 'initrd ' + \
+                                      tweak_bootfile_path(value, iso_bin_dir)
                     elif kw== 'append':
-                        if initrd_line:
-                            gen.log("Warning: found both 'append initrd=...' "
-                                    "and 'initrd ...' line")
                         new_initrd_line, new_value = extract_initrd_param(
                             value, iso_bin_dir)
                         if new_initrd_line:
+                            if initrd_line:
+                                gen.log("Warning: found more than one initrd "
+                                        "specifications in block '%s'."
+                                        % menu_label)
                             initrd_line = new_initrd_line
                         appends.append(new_value)
 
@@ -404,7 +424,8 @@ def iso2grub2(install_dir, loopback_cfg_path, wrote_custom_cfg):
                                          "menu item '%s'." % menu_label)
 
             with open(loopback_cfg_path, 'a') as f:
-                f.write('# Extracted from %s\n' % cfg_file_path)
+                f.write('# Extracted from %s\n' %
+                        cfg_file_path.replace('\\', '/'))
                 f.write('\n'.join(out_lines) + '\n')
                 f.write('\n')
 
