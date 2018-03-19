@@ -232,8 +232,10 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                 elif distro == "salix-live":
                     string = re.sub(r'iso_path', '/multibootusb/' + iso_basename(iso_link) + '/' + iso_name(iso_link),
                                     string)
-                    string = re.sub(r'initrd', 'fromiso=/multibootusb/' + iso_basename(iso_link) + '/' +
-                                    iso_name(iso_link) + ' initrd', string)
+                    string = re.sub(r'initrd=',
+                                    'fromiso=/multibootusb/'
+                                    + iso_basename(iso_link) + '/'
+                                    + iso_name(iso_link) + ' initrd=', string)
                 elif distro == 'alt-linux':
                     string = re.sub(r':cdrom', ':disk', string)
                 elif distro == 'fsecure':
