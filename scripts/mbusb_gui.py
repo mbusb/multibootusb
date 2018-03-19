@@ -345,7 +345,7 @@ Are you SURE you want to enable it?",
 
     def onInstall_syslinuxClick(self):
         """
-        Function to install syslinux/extlinux on selected USB disk.
+        Function to install syslinux/extlinux on selected USB disk, except extlinux.cfg and syslinux.cfg.
         :return:
         """
 
@@ -366,16 +366,30 @@ Are you SURE you want to enable it?",
                 else:
                     log("Installing default syslinux on " + config.usb_disk)
                     ret = syslinux_default(config.usb_disk)
-                    if ret is True:
-                        if self.ui.check_install_sys_all.isChecked():
-                            log("Copying multibootusb directory to " + config.usb_mount)
-                            for dirpath, dirnames, filenames in os.walk(
-                                    resource_path(os.path.join("data", "multibootusb"))):
-                                for f in filenames:
-                                    # log("Copying " + f)
-                                    shutil.copy(resource_path(os.path.join(dirpath, f)),
-                                                os.path.join(config.usb_mount,
-                                                             "multibootusb"))
+                    if ret is True and \
+                       self.ui.check_install_sys_all.isChecked():
+                        log("Copying multibootusb directory to " +
+                            config.usb_mount)
+                        src_root = resource_path(
+                            os.path.join("data", "multibootusb"))
+                        cutoff = len(src_root) + 1
+                        dst_root = os.path.join(config.usb_mount,
+                                                "multibootusb")
+                        if not os.path.exists(dst_root):
+                            os.makedirs(dst_root)
+                        excludes = ['extlinux.cfg', 'syslinux.cfg']
+                        for dirpath, dirnames, filenames in os.walk(src_root):
+                            subdir_part = dirpath[cutoff:]
+                            dest_dir = os.path.join(dst_root, subdir_part)
+                            if not os.path.exists(dest_dir):
+                                os.makedirs(dest_dir)
+                            for f in filenames:
+                                dest_fp = os.path.join(dest_dir, f)
+                                if f in excludes and os.path.exists(dest_fp):
+                                    continue
+                                # log("Copying " + f)
+                                shutil.copy(os.path.join(dirpath, f),
+                                            dest_fp)
                         QtWidgets.QMessageBox.information(self, 'Install Success...',
                                                           'Syslinux installed successfully on ' + config.usb_disk)
                     elif ret is False:
