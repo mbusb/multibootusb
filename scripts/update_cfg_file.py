@@ -17,6 +17,43 @@ from . import grub
 from . import menus
 
 
+def fix_abspath_r(pattern, string, install_dir, iso_name):
+    """Return a list of tuples consisting of 'string' with replaced path and a bool representing if /boot/ was prepended in the expression."""
+    m = pattern.search(string)
+    if not m:
+        return [(string, False)]
+    start, end = m.span()
+    prologue, specified_path = m.group(1), m.group(2)
+    # See if a path that has 'boot/' prepended is a better choice.
+    # E.g. Debian debian-live-9.4.0-amd64-cinnamon has a loopback.cfg
+    # which contains "source /grub/grub.cfg".
+    if os.path.exists(os.path.join(install_dir, 'boot', specified_path)) \
+       and not os.path.exists(os.path.join(install_dir, specified_path)):
+        selected_path, fixed = 'boot/' + specified_path, True
+    else:
+        selected_path, fixed = specified_path, False
+    out = string[:start] + prologue + '/multibootusb/' + iso_name + '/' \
+          + selected_path.replace('\\', '/')
+    return [(out, fixed)] \
+        + fix_abspath_r(pattern, string[end:], install_dir, iso_name)
+
+def fix_abspath(string, install_dir, iso_name):
+    """Rewrite what appear to be a path within 'string'. If a file does not exist with specified path, one with '/boot' prepended is tried."""
+    path_expression = re.compile(r'([ \t=])/(.*?)((?=[\s*])|$)')
+    chunks = fix_abspath_r(
+        path_expression, string, install_dir, iso_name)
+    num_boot_prefixing = len([c for c in chunks if c[1] is True])
+    if num_boot_prefixing == 0:
+        # Fallback to the legacy implementation so that
+        # this tweak brings as little breakage as possible.
+        replace_text = r'\1/multibootusb/' + iso_name + '/'
+        return re.sub(r'([ \t =,])/', replace_text, string)
+    else:
+        log("Prepended '/boot' to %s." %
+            (num_boot_prefixing==1 and 'a path' or
+             ('%d paths' % num_boot_prefixing)))
+        return ''.join([c[0] for c in chunks])
+
 def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
     """
     Main function to modify/update distro specific strings on distro config files.
@@ -28,7 +65,8 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
     usb_label = usb_details['label']
 #     iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
     config.status_text = "Updating config files..."
-    install_dir = os.path.join(usb_mount, "multibootusb", iso_basename(iso_link))
+    _iso_name = iso_basename(iso_link)
+    install_dir = os.path.join(usb_mount, "multibootusb", _iso_name)
     log('Updating distro specific config files...')
     for dirpath, dirnames, filenames in os.walk(install_dir):
         for f in filenames:
@@ -40,8 +78,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                     log("Unable to read %s" % cfg_file)
                 else:
                     if not distro == "generic":
-                        replace_text = r'\1/multibootusb/' + iso_basename(iso_link) + '/'
-                        string = re.sub(r'([ \t =,])/', replace_text, string)
+                        string = fix_abspath(string, install_dir, _iso_name)
                         string = re.sub(r'linuxefi', 'linux', string)
                         string = re.sub(r'initrdefi', 'initrd', string)
                 if distro == "ubuntu":
