@@ -209,6 +209,10 @@ def iso_file_path(iso_link, file_name):
 
     return file_path
 
+def get_file_list(iso_link, predicate):
+    # Note that unlike iso_file_path(), only the basename is checked.
+    return [f for f in _7zip.list_iso(iso_link) if predicate(f)]
+
 if __name__ == '__main__':
     #iso_path = '../../../DISTROS/2016/debian-live-8.3.0-amd64-lxde-desktop.iso'
     iso_path = '../../../DISTROS/2015/super_grub2_disk_hybrid_2.02s3.iso'

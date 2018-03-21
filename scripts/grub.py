@@ -20,60 +20,68 @@ def mbusb_update_grub_cfg():
     Function to update grub.cfg file to support UEFI/EFI systems
     :return:
     """
-    # Lets convert syslinux config file to grub2 accepted file format.
+
     install_dir = os.path.join(config.usb_mount, 'multibootusb',
                                iso.iso_basename(config.image_path))
-
-    # First write custom loopback.cfg file so as to be detected by iso2grub2 function later.
-
-    # There may be more than one loopback.cfg but we just need to fix
-    # one and that is goingn to be referenced in mbusb's grub.cfg.
-    loopback_cfg_path = iso.iso_file_path(config.image_path, 'loopback.cfg')
-    if not loopback_cfg_path:
-        loopback_cfg_path = 'loopback.cfg'
-
-    wrote_custom_cfg = write_custom_grub_cfg(install_dir, loopback_cfg_path)
-
-    # Try to generate loopback entry file from syslinux config files
-    try:
-        gen.log('Trying to create loopback.cfg')
-        iso2_grub2_cfg = iso2grub2(install_dir, loopback_cfg_path,
-                                   wrote_custom_cfg)
-    except Exception as e:
-        print(e)
-        gen.log(e)
-        gen.log('Error converting syslinux cfg to grub2 cfg', error=True)
-        iso2_grub2_cfg = False
-
     grub_cfg_path = None
     syslinux_menu = None
-#     sys_cfg_path = None
-    mbus_grub_cfg_path = os.path.join(config.usb_mount, 'multibootusb', 'grub', 'grub.cfg')
-#     iso_grub_cfg = iso.iso_file_path(config.image_path, 'grub.cfg')
-    if iso.isolinux_bin_dir(config.image_path) is not False:
-        iso_sys_cfg_path = os.path.join(iso.isolinux_bin_dir(config.image_path), 'syslinux.cfg')
-        iso_iso_cfg_path = os.path.join(iso.isolinux_bin_dir(config.image_path), 'isolinux.cfg')
+    mbus_grub_cfg_path = os.path.join(config.usb_mount, 'multibootusb',
+                                      'grub', 'grub.cfg')
+    isobin_dir = iso.isolinux_bin_dir(config.image_path)
+    if isobin_dir is not False:
+        for name in ['syslinux.cfg', 'isolinux.cfg']:
+            cfg_path = os.path.join(isobin_dir, name)
+            cfg_fullpath = os.path.join(install_dir, cfg_path)
+            if os.path.exists(cfg_fullpath):
+                syslinux_menu = cfg_path.replace('\\', '/')
+                break
 
-        if os.path.exists(os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path),
-                                       iso_sys_cfg_path)):
-            syslinux_menu = iso_sys_cfg_path.replace('\\', '/')
-        elif os.path.exists(os.path.join(config.usb_mount, 'multibootusb', iso.iso_basename(config.image_path),
-                                         iso_iso_cfg_path)):
-            syslinux_menu = iso_iso_cfg_path.replace('\\', '/')
+    # Decide which grub config file to boot by.
+    loopback_cfg_list = iso.get_file_list(
+        config.image_path,
+        lambda x: os.path.basename(x).lower()=='loopback.cfg')
+    grub_cfg_list = iso.get_file_list(
+        config.image_path,
+        lambda x: os.path.basename(x).lower().startswith('grub') and
+        os.path.basename(x).lower().endswith('.cfg'))
+    candidates = []
+    for src_list, predicate in [
+            # List in the order of decreasing preference.
+            (loopback_cfg_list, lambda x: 'efi' in x.lower()),
+            (loopback_cfg_list, lambda x: 'boot' in x.lower()),
+            (grub_cfg_list, lambda x: 'efi' in x.lower()),
+            (grub_cfg_list, lambda x: 'boot' in x.lower()),
+            (loopback_cfg_list,
+             lambda x: 'efi' not in x.lower() and 'boot' not in x.lower()),
+            (grub_cfg_list,
+             lambda x: 'efi' not in x.lower() and 'boot' not in x.lower())]:
+        sub_candidates = [x for x in src_list if predicate(x)]
+        if len(sub_candidates):
+            candidates.append(sub_candidates[0])
+            # We could 'break' here but will let the iteration continue
+            # in order to lower the chance of keeping latent bugs.
 
-    efi_grub_cfg = get_grub_cfg(config.image_path)
-    boot_grub_cfg = get_grub_cfg(config.image_path, efi=False)
-
-    if loopback_cfg_path is not False:
-        grub_cfg_path = loopback_cfg_path.replace('\\', '/')
-    elif efi_grub_cfg is not False:
-        grub_cfg_path = efi_grub_cfg.replace('\\', '/')
-    elif boot_grub_cfg is not False:
-        grub_cfg_path = boot_grub_cfg.replace('\\', '/')
-    elif iso2_grub2_cfg is not False:
-        grub_cfg_path = iso2_grub2_cfg.replace('\\', '/')
-    #elif bootx_64_cfg is not False:
-    #    grub_cfg_path = bootx_64_cfg.replace('\\', '/')
+    if 0<len(candidates):
+        grub_cfg_path = candidates[0].replace('\\', '/')
+    else :
+        # No suitable grub configuration file is provided by distro.
+        # Lets convert syslinux config files to grub2 accepted file format.
+        new_loopback_here = 'loopback.cfg'
+        try:
+            # First write custom loopback.cfg file so as to be detected
+            # by iso2grub2 function later.
+            write_custom_grub_cfg(install_dir, new_loopback_here)
+            gen.log('Trying to create loopback.cfg')
+            iso2grub2(install_dir, new_loopback_here)
+        except Exception as e:
+            new_loopback_here = None
+            gen.log(e)
+            gen.log('Error converting syslinux cfg to grub2 cfg', error=True)
+        if new_loopback_here:
+            grub_cfg_path = new_loopback_here.replace('\\', '/')
+        #elif bootx_64_cfg is not False:
+        #    grub_cfg_path = bootx_64_cfg.replace('\\', '/')
+    gen.log("Using %s to boot this distro." % grub_cfg_path)
 
     if os.path.exists(mbus_grub_cfg_path):
         gen.log('Updating grub.cfg file...')
@@ -135,35 +143,6 @@ def write_custom_grub_cfg(install_dir, loopback_cfg_path):
         return True
     else:
         return False
-
-
-def get_grub_cfg(iso_link, efi=True):
-    """
-    Detects path to "grub.cfg" file from ISO file. Default is to get from EFI directory.
-    :return: path of "grub.cfg" file as string.
-    """
-    if os.path.exists(iso_link):
-        grub_path = False
-        iso_file_list = _7zip.list_iso(iso_link)
-        if any("grub" in s.lower() for s in iso_file_list):
-            for f in iso_file_list:
-                f_basename = os.path.basename(f).lower()
-                if f_basename.startswith('grub') and f_basename.endswith('.cfg'):
-                #if 'grub.cfg' in f.lower():
-                    if efi is True:
-                        if 'efi' in f.lower():
-                            grub_path = f.replace('\\', '/')
-                            gen.log('Found ' + grub_path)
-                            break
-                        elif 'boot' in f.lower():
-                            grub_path = f.replace('\\', '/')
-                            gen.log('Found ' + grub_path)
-                            break
-                        else:
-                            grub_path = f.replace('\\', '/')
-                            gen.log('Found ' + grub_path)
-                            break
-        return grub_path
 
 
 def grub_custom_menu(mbus_grub_cfg_path, distro):
@@ -279,7 +258,7 @@ def extract_initrd_param(value, isolinux_dir):
     return  initrd_line, ' '.join(others)
 
 
-def iso2grub2(install_dir, loopback_cfg_path, wrote_custom_cfg):
+def iso2grub2(install_dir, loopback_cfg_path):
     """
     Function to convert syslinux configuration to grub2 accepted configuration format. Features implemented are similar
     to that of grub2  'loopback.cfg'. This 'loopback.cfg' file can be later on caled directly from grub2. The main
@@ -293,14 +272,6 @@ def iso2grub2(install_dir, loopback_cfg_path, wrote_custom_cfg):
         install_dir, loopback_cfg_path.lstrip(r'\/'))
 
     gen.log('loopback.cfg file is set to ' + loopback_cfg_path)
-    # Comment-out the previous content if write_custom_grub_cfg() did nothing.
-    if os.path.exists(loopback_cfg_path) and not wrote_custom_cfg:
-        with open(loopback_cfg_path, 'r') as f:
-            lines = f.readlines()
-        with open(loopback_cfg_path, 'w') as f:
-            f.write('##### Previous content is kept from here.\n')
-            f.write( ''.join('#'+s for s in lines))
-            f.write('##### to here.\n\n')
 
     iso_bin_dir = iso.isolinux_bin_dir(config.image_path)
     seen_menu_lines = []
@@ -430,7 +401,7 @@ def iso2grub2(install_dir, loopback_cfg_path, wrote_custom_cfg):
     if os.path.exists(loopback_cfg_path):
         gen.log(
             'loopback.cfg file is successfully created.\nYou must send this file for debugging if something goes wrong.')
-        return 'loopback.cfg'
+        return loopback_cfg_path
     else:
         gen.log('Failed to convert syslinux config file to loopback.cfg')
         return False
