@@ -516,6 +516,12 @@ Are you SURE you want to enable it?",
                                               'Please select the partition (ending '
                                               'with a digit eg. /dev/sdb1)\nfrom the drop down list.')
             self.ui_enable_controls()
+        elif 0 < config.persistence and \
+             persistence.detect_missing_tools(config.distro):
+            QtWidgets.QMessageBox.information(
+                self, 'Missing tools...!',
+                persistence.detect_missing_tools(config.distro))
+            self.ui_enable_controls()
         else:
             # clean_iso_cfg_ext_dir(os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))  # Need to be cleaned.
             # extract_cfg_file(config.image_path)  # Extract files from ISO
