@@ -658,8 +658,7 @@ class ConfigTweaker:
         apply_persistence_to_all_lines = \
             0 < self.setup_params.persistence_size and \
             not self.config_is_persistence_aware(content)
-        matching_re = r'^(\s*(%s)\s*)(.*%s([ \t].*$|$))' % (
-            self.BOOT_PARAMS_STARTER, self.LIVE_BOOT_DETECT_PARAM)
+        matching_re = r'^(\s*(%s)\s*)(.*)$' % self.BOOT_PARAMS_STARTER
         kernel_parameter_line_pattern = re.compile(
             matching_re,
             flags = re.I | re.MULTILINE)
@@ -672,14 +671,17 @@ class ConfigTweaker:
         
         return self.post_process(out)
 
+    def on_liveboot_params(self, params):
+        return self.LIVE_BOOT_DETECT_PARAM in params
+
 class ParamTweakerWithDebianStylePersistenceParam(ConfigTweaker):
     def param_operations_for_persistence(self):
         return [
-            (add_tokens(self.PERSISTENCY_TOKEN), always),
-            (add_or_replace_kv('%s-path=' % self.PERSISTENCY_TOKEN,
-                               self.setup_params.distro_path),
-             always),
-        ]
+            ([add_tokens(self.PERSISTENCY_TOKEN),
+              add_or_replace_kv('%s-path=' % self.PERSISTENCY_TOKEN,
+                                self.setup_params.distro_path)],
+             self.on_liveboot_params)]
+
 
 class UbuntuConfigTweaker(ParamTweakerWithDebianStylePersistenceParam):
     LIVE_BOOT_DETECT_PARAM = 'boot=casper'
@@ -687,16 +689,18 @@ class UbuntuConfigTweaker(ParamTweakerWithDebianStylePersistenceParam):
 
     def param_operations(self):
         return [
-            (add_tokens('ignore_bootid'), always),
+            (add_tokens('ignore_bootid'), self.on_liveboot_params),
             (add_or_replace_kv('live-media-path=',
                                '%s/casper' % self.setup_params.distro_path),
-             always),
-            (add_or_replace_kv('cdrom-detect/try-usb=', 'true'), always),
+             self.on_liveboot_params),
+            (add_or_replace_kv('cdrom-detect/try-usb=', 'true'),
+             self.on_liveboot_params),
             # Recently, correct param seems to be 'floppy=0,allowed_driver_mask
-            (add_or_replace_kv('floppy.allowed_drive_mask=', '0'), always),
-            (add_tokens('ignore_uuid'), always),
+            (add_or_replace_kv('floppy.allowed_drive_mask=', '0'),
+             self.on_liveboot_params),
+            (add_tokens('ignore_uuid'), self.on_liveboot_params),
             (add_or_replace_kv('root=UUID=', self.setup_params.usb_uuid),
-             always),
+             self.on_liveboot_params),
             (replace_kv('live-media=',
                         '/dev/disk/by-uuid/%s' % self.setup_params.usb_uuid),
              always),
@@ -712,150 +716,13 @@ class DebianConfigTweaker(ParamTweakerWithDebianStylePersistenceParam):
 
     def param_operations(self):
         return [
-            (add_tokens('ignore_bootid'), always),
+            (add_tokens('ignore_bootid'), self.on_liveboot_params),
             (add_or_replace_kv('live-media-path=',
                                '%s/live' % self.setup_params.distro_path),
-             always),
+             self.on_liveboot_params),
             ]
     def post_process(self, entire_string):
         return entire_string
-
-
-def test_rewrite_machinary():
-
-    def transform(op_or_oplist, predicate, input_line):
-        params = input_line.split(' ')
-        if not predicate(params):
-            return input_line
-        # See if op_or_oplist is iterable
-        try:
-            iter(op_or_oplist)
-        except TypeError:
-            # Otherwise let's assume we have a singleton op here
-            op_or_oplist = [op_or_oplist]
-        for op in op_or_oplist:
-            params = op(params)
-        return ' '.join(params)
-
-    
-    boot_line = "kernel /boot/vmlinuz bar=baz foo bar key2=value2"
-
-    print ('Test token addition')
-    assert transform(add_tokens('foo','more'), always, boot_line)==\
-           "kernel /boot/vmlinuz bar=baz foo bar key2=value2 more"
-
-    print ('Test token replacement')
-    assert transform(replace_token('foo', 'hum'), always, boot_line)==\
-           "kernel /boot/vmlinuz bar=baz hum bar key2=value2"
-
-    print ('Test token removal')
-    assert transform(remove_tokens('foo', 'bar'), always, boot_line)==\
-           "kernel /boot/vmlinuz bar=baz key2=value2"
-
-    print ('Test kv add_or_replace (results in append)')
-    assert transform(add_or_replace_kv('live-path=', '/lib/live'), always, 
-                     boot_line)==\
-                     "kernel /boot/vmlinuz bar=baz foo bar key2=value2 " \
-                     "live-path=/lib/live"
-
-    print ('Test kv add_or_replace (results in replace)')
-    assert transform(add_or_replace_kv('bar=', '/lib/live'),
-                     always, boot_line)==\
-           "kernel /boot/vmlinuz bar=/lib/live foo bar key2=value2"
-
-    print ('Test kv replace (results in no change)')
-    assert transform(replace_kv('live-path=', '/lib/live'), always,
-                     boot_line)==\
-                     "kernel /boot/vmlinuz bar=baz foo bar key2=value2"
-
-    print ('Test kv replace (results in replace)')
-    assert transform(replace_kv('bar=', '/lib/live'), always, boot_line)==\
-           "kernel /boot/vmlinuz bar=/lib/live foo bar key2=value2"
-
-    print ('Test kv replace with computed value (bang! at head).')
-    assert transform(replace_kv('bar=', lambda k, old_v, params: '!' + old_v),
-                     always, boot_line)==\
-                     "kernel /boot/vmlinuz bar=!baz foo bar key2=value2"
-
-    print ('Test key removal')
-    assert transform(remove_keys('bar=','key2='), always, boot_line)==\
-           "kernel /boot/vmlinuz foo bar"
-
-    print ('Test strip everything (multi-op)')
-    assert transform([remove_tokens('foo', 'bar', 'kernel', '/boot/vmlinuz'),
-                      remove_keys('bar=', 'key2=')],
-                     always, boot_line)==''
-
-    print ('Test condition always')
-    assert  transform(replace_token('bar', 'tail'), always,
-                      boot_line)=="kernel /boot/vmlinuz bar=baz foo tail "\
-                      "key2=value2"
-
-    print ('Test condition contains_token (positive)')
-    assert transform(replace_token('bar', 'tail'), contains_token('kernel'),
-                     boot_line)=="kernel /boot/vmlinuz bar=baz foo tail"\
-                     " key2=value2"
-
-    print ('Test condition contains_token (negative)')
-    assert transform(replace_token('bar', 'tail'), contains_token('initrd'),
-                     boot_line)==boot_line
-
-    print ('Test condition contains_all_tokens (positive)')
-    assert transform(replace_token('bar', 'tail'),
-                     contains_all_tokens('kernel', 'foo'),
-                     boot_line)=="kernel /boot/vmlinuz bar=baz foo tail" \
-                     " key2=value2"
-
-    print ('Test condition contains_all_tokens (negative)')
-    assert transform(replace_token('bar', 'tail'),
-                     contains_all_tokens('kernel', 'nowhere'),
-                     boot_line)==boot_line
-
-    print ('Test condition contains_any_token (positive)')
-    assert  transform(replace_token('bar', 'tail'),
-                      contains_any_token('kernel', 'nowhere'),
-                      boot_line)=="kernel /boot/vmlinuz bar=baz foo tail" \
-                      " key2=value2"
-
-    print ('Test condition contains_any_token (negative)')
-    assert  transform(replace_token('bar', 'tail'),
-                      contains_any_token('not_anywhere', 'nowhere'),
-                      boot_line)==boot_line
-
-    print ('Test condition contains_any_key (positive)')
-    assert  transform(replace_token('bar', 'tail'),
-                      contains_any_key('key2', 'nowhere'),
-                      boot_line)=="kernel /boot/vmlinuz bar=baz foo tail" \
-                      " key2=value2"
-
-    print ('Test condition contains_any_key (negative)')
-    assert transform(replace_token('bar', 'tail'),
-                     contains_any_key('anywhere', 'else'),
-                     boot_line)==boot_line
-
-
-    print ('Test not() predicate on contains_any_token (positive)')
-    assert transform(replace_token('bar', 'tail'),
-                     _not(contains_any_token('nowhere', 'else')),
-                     boot_line)=="kernel /boot/vmlinuz bar=baz foo tail" \
-                     " key2=value2"
-
-    print ('Test not() predicate on contains_any_token (negative)')
-    assert transform(replace_token('bar', 'tail'),
-                     _not(contains_any_token('nowhere', 'kernel')),
-                     boot_line)==boot_line
-
-    print ('Test not() predicate on contains_all_keys (positive)')
-    assert transform(replace_token('bar', 'tail'),
-                     _not(contains_all_keys('bar=', 'nonexistent_key=')),
-                     boot_line)=="kernel /boot/vmlinuz bar=baz foo tail" \
-                     " key2=value2"
-
-    print ('Test not() predicate on contains_all_keys (negative)')
-    assert transform(replace_token('bar', 'tail'),
-                     _not(contains_all_keys('bar=', 'key2=')),
-                     boot_line)=="kernel /boot/vmlinuz bar=baz foo bar" \
-                     " key2=value2"
 
 
 def test_tweak_objects():
@@ -888,10 +755,17 @@ def test_tweak_objects():
     assert debian_tweaker.tweak(content) == "menu\n\tkernel\tfoo persistence in the middle boot=live ignore_bootid live-media-path=/multibootusb/debian/live persistence-path=/multibootusb/debian"""
 
     print ("Testing if 'boot=live' at a line end is recognized.")
-    content = """\tkernel\tfoo persistence in the middle boot=live
-kernel foo"""
-    assert debian_tweaker.tweak(content) == """\tkernel\tfoo persistence in the middle boot=live ignore_bootid live-media-path=/multibootusb/debian/live persistence-path=/multibootusb/debian
-kernel foo"""
+    content = """append zoo
+\tkernel\tfoo persistence in the middle boot=live
+append foo"""
+    assert debian_tweaker.tweak(content) == """append zoo
+\tkernel\tfoo persistence in the middle boot=live ignore_bootid live-media-path=/multibootusb/debian/live persistence-path=/multibootusb/debian
+append foo"""
+
+    print ("Testing if replacement of 'live-media=' happens on non-boot lines.")
+    content = "\t\tlinux live-media=/tobe/replaced"
+    assert ubuntu_tweaker.tweak(content)==\
+        "\t\tlinux live-media=/dev/disk/by-uuid/{usb-uuid}"
 
     print ("Testing if \\tappend is recognized as a starter.")
     content = """\tappend  foo boot=live ignore_bootid persistence in the middle live-media-path=/foo/bar"""
