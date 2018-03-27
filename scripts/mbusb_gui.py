@@ -208,14 +208,16 @@ Are you SURE you want to enable it?",
     def browse_iso(self):
         if str(self.ui.image_path.text()):
             self.ui.image_path.clear()
-        preference_file_path = os.path.join(multibootusb_host_dir(), "preference", "iso_dir.txt")
+        preference_file_path = os.path.join(multibootusb_host_dir(),
+                                            "preference", "iso_dir.txt")
         dir_path = ''
         if os.path.exists(preference_file_path):
             dir_path = open(preference_file_path, 'r').read()
 
-        config.image_path = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', dir_path,
-                                                                  'ISO Files (*.iso);; Zip Files(*.zip);; '
-                                                                  'Img Files(*.img);; All Files(*.*)')[0]
+        config.image_path = QtWidgets.QFileDialog.getOpenFileName(
+            self, 'Select an iso...', dir_path,
+            'ISO Files (*.iso);; Zip Files(*.zip);; '
+            'Img Files(*.img);; All Files(*.*)')[0]
 
         if config.image_path:
             # sanity checks
@@ -223,19 +225,37 @@ Are you SURE you want to enable it?",
                 QtWidgets.QMessageBox.critical(
                     self,
                     "ISO Not readable",
-                    "Sorry, the file \"{0}\" is not readable.".format(config.image_path)
+                    "Sorry, the file \"{0}\" is not readable.".format(
+                        config.image_path)
                 )
                 return
             if iso_size(config.image_path) == 0:
                 QtWidgets.QMessageBox.critical(
                     self,
                     "ISO is an empty file",
-                    "Sorry, the file \"{0}\" contains no data.".format(config.image_path)
+                    "Sorry, the file \"{0}\" contains no data.".format(
+                        config.image_path)
                 )
                 return
-
             default_dir_path = os.path.dirname(config.image_path)
             gen.write_to_file(preference_file_path, default_dir_path)
+
+            # Detect supported distro
+            try:
+                clean_iso_cfg_ext_dir(   # Need to be cleaned.
+                    os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))
+                extract_cfg_file(config.image_path)
+                config.distro = distro(iso_cfg_ext_dir(), config.image_path,
+                                       expose_exception=True)
+            except Exception as exc:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Failure to detect distro type",
+                    'Sorry, failed in examining "{0}" to detect distro type '
+                    'due to the following reason.\n\n"{1}".'
+                    .format(config.image_path, exc)
+                )
+                return
 
             if platform.system() == "Windows":
                 if "/" in config.image_path:
@@ -248,9 +268,6 @@ Are you SURE you want to enable it?",
             self.ui.label_image_bootable_value.setVisible(True)
 
             if os.path.exists(config.image_path):
-                clean_iso_cfg_ext_dir(os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))  # Need to be cleaned.
-                extract_cfg_file(config.image_path)
-                config.distro = distro(iso_cfg_ext_dir(), config.image_path)  # Detect supported distro
                 self.ui.label_image_type_value.setText(str(config.distro))
                 self.ui.label_image_type_value.setVisible(True)
                 if config.distro:
