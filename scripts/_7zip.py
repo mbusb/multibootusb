@@ -61,7 +61,7 @@ def extract_iso(src, dst, pattern=None, suppress_out=True):
         subprocess.call(_cmd, stdin=devnull, stdout=devnull, stderr=devnull, shell=True)
 
 
-def list_iso(iso_link, suppress_out=True):
+def list_iso(iso_link, suppress_out=True, expose_exception=False):
     """
     List the content of ISO files. It does'nt work with non 'utf' characters (simply ignores them).
     :param iso_link:Path to ISO link
@@ -85,6 +85,8 @@ def list_iso(iso_link, suppress_out=True):
                                                shell=True).decode('utf-8', 'ignore').splitlines()
         except Exception as e:
             gen.log(e)
+            if expose_exception:
+                raise
             _cmd_out = ''
         for line in _cmd_out:
             if '...' in line:
