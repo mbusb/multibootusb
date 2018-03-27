@@ -20,11 +20,14 @@ from . import menus
 
 from .param_rewrite import add_tokens, remove_tokens, replace_token, \
     add_or_replace_kv, replace_kv, remove_keys, \
-    always, contains_all_tokens, contains_any_token, contains_key, \
-    contains_all_keys, contains_any_key, _not
+    always, contains_token, contains_all_tokens, contains_any_token, \
+    contains_key, contains_all_keys, contains_any_key, starter_is_either, _not
 
-def dont_require_tweaking(fname):
-    return fname.startswith(('cdrom/', 'dev/'))
+
+def dont_require_tweaking(fname, content, match_start, match_end):
+    return fname.startswith(('cdrom/', 'dev/')) or \
+        (4 <= match_start and # Don't write an arg of 'init=' param.
+         content[match_start-4:match_start+1] == 'init=')
 
 def fix_abspath_r(pattern, string, install_dir, iso_name, config_fname):
     """Return a list of tuples consisting of 'string' with replaced path and a bool representing if /boot/ was prepended in the expression."""
@@ -34,9 +37,9 @@ def fix_abspath_r(pattern, string, install_dir, iso_name, config_fname):
     start, end = m.span()
     prologue, specified_path = m.group(1), m.group(2)
 
-    if dont_require_tweaking(specified_path):
+    if dont_require_tweaking(specified_path, string, start, end):
         return [(string[:start] + prologue + '/' + specified_path,
-                 '/%s is white-listed and kept as is.' % specified_path)] \
+                 '/%s is kept as is.' % specified_path)] \
                 + fix_abspath_r(pattern, string[end:], install_dir, iso_name,
                                 config_fname)
 
@@ -112,11 +115,12 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
 
     tweaker_params = ConfigTweakerParam(
         distro, '/multibootusb/%s' % iso_basename(iso_link),
-        persistence, usb_uuid)
+        persistence, usb_uuid, usb_mount, usb_disk)
     tweaker_class_dict = {
         'ubuntu'         : UbuntuConfigTweaker,
         'debian'         : DebianConfigTweaker,
         'debian-install' : DebianConfigTweaker,
+        'gentoo'         : GentooConfigTweaker,
         }
     tweaker_class = tweaker_class_dict.get(distro)
 
@@ -216,14 +220,6 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     r'finnixdir=/multibootusb/' + iso_basename(iso_link) + '/finnix initrd=', string)
                 elif distro == "knoppix":
                     string = re.sub(r'initrd=', 'knoppix_dir=/multibootusb/' + iso_basename(iso_link) + '/KNOPPIX initrd=', string)
-                elif distro == "gentoo":
-                    string = re.sub(r'append ',
-                                    'append real_root=' + usb_disk + ' slowusb subdir=/multibootusb/' +
-                                    iso_basename(iso_link) + '/ ', string, flags=re.I)
-                    string = re.sub(r'slowusb', 'slowusb loop=/multibootusb/' +
-                                    iso_basename(iso_link) + '/liberte/boot/root-x86.sfs', string, flags=re.I)
-                    string = re.sub(r'cdroot_hash=\S*', '', string, flags=re.I)
-
                 elif distro == "systemrescuecd":
                     rows = []
                     subdir = '/multibootusb/' + iso_basename(iso_link)
@@ -498,7 +494,6 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
             elif distro == 'grub2only':
                 config_file.write(menus.grub2only())
             elif distro == 'memdisk_iso':
-                print(menus.memdisk_iso_cfg(syslinux=True, grub=False))
                 config_file.write(menus.memdisk_iso_cfg(syslinux=True, grub=False))
             elif distro == 'memdisk_img':
                 config_file.write(menus.memdisk_img_cfg(syslinux=True, grub=False))
@@ -586,11 +581,14 @@ def update_grub4dos_iso_menu():
             f.write("#end " + iso_basename(config.image_path) + "\n")
 
 class ConfigTweakerParam:
-    def __init__(self, distro_name, distro_path, persistence_size, usb_uuid):
+    def __init__(self, distro_name, distro_path, persistence_size, 
+                 usb_uuid, usb_mount, usb_disk):
         self.distro_name = distro_name
-        self.distro_path = distro_path # synonym for 'install_dir'
+        self.distro_path = distro_path           # drive relative
         self.persistence_size = persistence_size
         self.usb_uuid = usb_uuid
+        self.usb_mount = usb_mount
+        self.usb_disk = usb_disk
 
 class ConfigTweaker:
 
@@ -598,10 +596,6 @@ class ConfigTweaker:
 
     def __init__(self, setup_params):
         self.setup_params = setup_params
-        self.persistence_awareness_checking_re = re.compile(
-            r'^\s*(%s).*?\s%s(\s.*|)$' % \
-            (self.BOOT_PARAMS_STARTER, self.PERSISTENCY_TOKEN),
-            flags=re.I|re.MULTILINE)
 
     def config_is_persistence_aware(self, content):
         """ Used to restrict update of boot parameters to persistent-aware
@@ -625,14 +619,14 @@ class ConfigTweaker:
 
         start, end = m.span()
         upto_match, rest_of_content = content[:start], content[end:]
-        starter_part, params_part = [m.group(i) for i in [1, 3]]
+        starter_part, starter_token, params_part = [m.group(i) for i in [1,2,3]]
         params = params_part.split(' ')
-        if apply_persistence_to_all_lines or self.PERSISTENCY_TOKEN in params:
+        if apply_persistence_to_all_lines or self.has_persistency_param(params):
             param_operations = param_operations + \
                                param_operations_for_persistence
 
         for op_or_op_list, precondition in param_operations:
-            if not precondition(params):
+            if not precondition(starter_token, params):
                 continue
             try:
                 iter(op_or_op_list)
@@ -671,10 +665,36 @@ class ConfigTweaker:
         
         return self.post_process(out)
 
-    def on_liveboot_params(self, params):
+    def on_liveboot_params(self, starter, params):
         return self.LIVE_BOOT_DETECT_PARAM in params
 
-class ParamTweakerWithDebianStylePersistenceParam(ConfigTweaker):
+    def post_process(self, entire_string):
+        return entire_string
+
+    def add_op_if_file_exists(self, op_list, op_creator_func, key,
+                              candidate_relative_path_list, predicate):
+        for candidate in candidate_relative_path_list:
+            relpath = os.path.join(self.setup_params.distro_path, candidate)
+            if os.path.exists(os.path.join(
+                    self.setup_params.usb_mount, relpath)):
+                normalized_relpath = relpath.replace('\\','/')
+                op_list.append((op_creator_func(key, normalized_relpath),
+                                predicate))
+                break
+
+
+class ConfigTweakerWithDebianStylePersistenceParam(ConfigTweaker):
+    def __init__(self, *args, **kw):
+        super(ConfigTweakerWithDebianStylePersistenceParam,
+              self).__init__(*args, **kw)
+        self.persistence_awareness_checking_re = re.compile(
+            r'^\s*(%s).*?\s%s(\s.*|)$' % \
+            (self.BOOT_PARAMS_STARTER, self.PERSISTENCY_TOKEN),
+            flags=re.I|re.MULTILINE)
+
+    def has_persistency_param(self, params):
+        return self.PERSISTENCY_TOKEN in params
+    
     def param_operations_for_persistence(self):
         return [
             ([add_tokens(self.PERSISTENCY_TOKEN),
@@ -683,23 +703,21 @@ class ParamTweakerWithDebianStylePersistenceParam(ConfigTweaker):
              self.on_liveboot_params)]
 
 
-class UbuntuConfigTweaker(ParamTweakerWithDebianStylePersistenceParam):
+class UbuntuConfigTweaker(ConfigTweakerWithDebianStylePersistenceParam):
     LIVE_BOOT_DETECT_PARAM = 'boot=casper'
     PERSISTENCY_TOKEN = 'persistent'
 
     def param_operations(self):
         return [
-            (add_tokens('ignore_bootid'), self.on_liveboot_params),
-            (add_or_replace_kv('live-media-path=',
-                               '%s/casper' % self.setup_params.distro_path),
-             self.on_liveboot_params),
-            (add_or_replace_kv('cdrom-detect/try-usb=', 'true'),
-             self.on_liveboot_params),
+            ([add_tokens('ignore_bootid'),
+              add_or_replace_kv('live-media-path=',
+                                '%s/casper' % self.setup_params.distro_path),
+              add_or_replace_kv('cdrom-detect/try-usb=', 'true'),
             # Recently, correct param seems to be 'floppy=0,allowed_driver_mask
-            (add_or_replace_kv('floppy.allowed_drive_mask=', '0'),
-             self.on_liveboot_params),
-            (add_tokens('ignore_uuid'), self.on_liveboot_params),
-            (add_or_replace_kv('root=UUID=', self.setup_params.usb_uuid),
+              add_or_replace_kv('floppy.allowed_drive_mask=', '0'),
+              add_tokens('ignore_uuid'),
+              add_or_replace_kv('root=UUID=', self.setup_params.usb_uuid),
+              ],
              self.on_liveboot_params),
             (replace_kv('live-media=',
                         '/dev/disk/by-uuid/%s' % self.setup_params.usb_uuid),
@@ -709,7 +727,7 @@ class UbuntuConfigTweaker(ParamTweakerWithDebianStylePersistenceParam):
         return entire_string.replace(r'ui gfxboot', '#ui gfxboot')
 
 
-class DebianConfigTweaker(ParamTweakerWithDebianStylePersistenceParam):
+class DebianConfigTweaker(ConfigTweakerWithDebianStylePersistenceParam):
 
     LIVE_BOOT_DETECT_PARAM = 'boot=live'
     PERSISTENCY_TOKEN = 'persistence'
@@ -721,13 +739,50 @@ class DebianConfigTweaker(ParamTweakerWithDebianStylePersistenceParam):
                                '%s/live' % self.setup_params.distro_path),
              self.on_liveboot_params),
             ]
-    def post_process(self, entire_string):
-        return entire_string
+
+class NoPersistenceTweaker(ConfigTweaker):
+
+    def config_is_persistence_aware(self, content):
+        return False
+
+    def param_operations_for_persistence(self):
+        return []
+
+    def has_persistency_param(self, params):
+        return False
+    
+class GentooConfigTweaker(NoPersistenceTweaker):
+
+    def param_operations(self):
+        ops = [
+            ([add_or_replace_kv('real_root=', self.setup_params.usb_disk),
+              add_tokens('slowusb'),
+              add_or_replace_kv('subdir=', self.setup_params.distro_path),
+              remove_keys('cdroot_hash='),
+
+              # Without this, pentoo-amd64-hardened-2018.0_RC5.8_pre20180305/
+              # stucks at "copying read-write image contents to tmpfs"
+              add_tokens('overlayfs'),
+
+              # Said distro fails to mount root device if this param is given
+              remove_tokens('aufs'),
+              ],
+             starter_is_either('append', 'linux')),
+            ]
+        sfs_path = os.path.join(self.setup_params.distro_path,
+                                'liberte','boot', 'root-x86.sfs')
+        self.add_op_if_file_exists(
+            ops, add_or_replace_kv,
+            'loop=', ['liberte/boot/root-x86.sfs', 'image.squashfs'],
+            starter_is_either('append', 'linux'))
+        return ops
 
 
 def test_tweak_objects():
+    usb_mount = 'L:'
+    usb_disk  = 'L:'
     setup_params_no_persistence = ConfigTweakerParam(
-        'debian', '/multibootusb/debian', 0, '{usb-uuid}')
+        'debian', '/multibootusb/debian', 0, '{usb-uuid}', usb_mount, usb_disk)
     debian_tweaker = DebianConfigTweaker(setup_params_no_persistence)
     ubuntu_tweaker = UbuntuConfigTweaker(setup_params_no_persistence)
 
@@ -747,19 +802,19 @@ def test_tweak_objects():
     assert debian_tweaker.config_is_persistence_aware(content)
 
     print ("Testing if 'persistence' token is left at the original place.")
-    content = "\tkernel\tfoo persistence boot=live in the middle"
-    assert debian_tweaker.tweak(content) == "\tkernel\tfoo persistence boot=live in the middle ignore_bootid live-media-path=/multibootusb/debian/live persistence-path=/multibootusb/debian"""
+    content = "\tlinux\tfoo persistence boot=live in the middle"
+    assert debian_tweaker.tweak(content) == "\tlinux\tfoo persistence boot=live in the middle ignore_bootid live-media-path=/multibootusb/debian/live persistence-path=/multibootusb/debian"""
 
     print ("Testing if 'boot=live' at the very end is recognized.")
-    content = "menu\n\tkernel\tfoo persistence in the middle boot=live"
-    assert debian_tweaker.tweak(content) == "menu\n\tkernel\tfoo persistence in the middle boot=live ignore_bootid live-media-path=/multibootusb/debian/live persistence-path=/multibootusb/debian"""
+    content = "menu\n\tlinux\tfoo persistence in the middle boot=live"
+    assert debian_tweaker.tweak(content) == "menu\n\tlinux\tfoo persistence in the middle boot=live ignore_bootid live-media-path=/multibootusb/debian/live persistence-path=/multibootusb/debian"""
 
     print ("Testing if 'boot=live' at a line end is recognized.")
     content = """append zoo
-\tkernel\tfoo persistence in the middle boot=live
+\tappend\tfoo persistence in the middle boot=live
 append foo"""
     assert debian_tweaker.tweak(content) == """append zoo
-\tkernel\tfoo persistence in the middle boot=live ignore_bootid live-media-path=/multibootusb/debian/live persistence-path=/multibootusb/debian
+\tappend\tfoo persistence in the middle boot=live ignore_bootid live-media-path=/multibootusb/debian/live persistence-path=/multibootusb/debian
 append foo"""
 
     print ("Testing if replacement of 'live-media=' happens on non-boot lines.")
@@ -783,7 +838,8 @@ append foo"""
     content = "  kernel file=/cdrom/preseed/ubuntu.seed boot=live"
 
     setup_params_persistent = ConfigTweakerParam(
-        'debian', '/multibootusb/debian', 128*1024*1024, '{usb-uuid}')
+        'debian', '/multibootusb/debian', 128*1024*1024, '{usb-uuid}',
+        usb_mount, usb_disk)
     debian_persistence_tweaker = DebianConfigTweaker(
         setup_params_persistent)
     ubuntu_persistence_tweaker = UbuntuConfigTweaker(
@@ -815,10 +871,10 @@ append foo"""
     print ("Testing if debian tweaker appends persistence params "
            "to relevant lines only.")
     content = """label live-forensic
-	menu label Live (^forensic mode)
-	linux /live/vmlinuz
-	initrd /live/initrd.img
-	append boot=live noconfig=sudo username=root hostname=kali noswap noautomount
+        menu label Live (^forensic mode)
+        linux /live/vmlinuz
+        initrd /live/initrd.img
+        append boot=live noconfig=sudo username=root hostname=kali noswap noautomount
 
 label live-persistence
     menu label ^Live USB Persistence              (check kali.org/prst)
@@ -827,10 +883,10 @@ label live-persistence
     append boot=live noconfig=sudo username=root hostname=kali persistence
 """
     assert debian_persistence_tweaker.tweak(content)=="""label live-forensic
-	menu label Live (^forensic mode)
-	linux /live/vmlinuz
-	initrd /live/initrd.img
-	append boot=live noconfig=sudo username=root hostname=kali noswap noautomount ignore_bootid live-media-path=/multibootusb/debian/live
+        menu label Live (^forensic mode)
+        linux /live/vmlinuz
+        initrd /live/initrd.img
+        append boot=live noconfig=sudo username=root hostname=kali noswap noautomount ignore_bootid live-media-path=/multibootusb/debian/live
 
 label live-persistence
     menu label ^Live USB Persistence              (check kali.org/prst)
@@ -839,16 +895,53 @@ label live-persistence
     append boot=live noconfig=sudo username=root hostname=kali persistence ignore_bootid live-media-path=/multibootusb/debian/live persistence-path=/multibootusb/debian
 """
 
+    setup_params = ConfigTweakerParam(
+        'debian', '/multibootusb/pentoo-amd64-hardened-2018.0_RC5.8_pre20180305/', 0, '{usb-uuid}', usb_mount, usb_disk)
+    gentoo_tweaker = GentooConfigTweaker(setup_params)
+    
+    print ("Testing Gentoo-tweaker on syslinux config.")
+    content = """label pentoo
+menu label Pentoo Defaults (verify) 
+kernel /isolinux/pentoo
+append initrd=/isolinux/pentoo.igz root=/dev/ram0 init=/linuxrc nox nodhcp overlayfs max_loop=256 dokeymap looptype=squashfs loop=/image.squashfs cdroot video=uvesafb:mtrr:3,ywrap,1024x768-16 usbcore.autosuspend=1 console=tty0 net.ifnames=0 scsi_mod.use_blk_mq=1 ipv6.autoconf=0 verify
+"""
+
+    # Note that you'll have pentoo installed on the flash drive
+    # for this test to succeed.
+    assert gentoo_tweaker.tweak(content)=="""label pentoo
+menu label Pentoo Defaults (verify) 
+kernel /isolinux/pentoo
+append initrd=/isolinux/pentoo.igz root=/dev/ram0 init=/linuxrc nox nodhcp overlayfs max_loop=256 dokeymap looptype=squashfs loop=/multibootusb/pentoo-amd64-hardened-2018.0_RC5.8_pre20180305/image.squashfs cdroot video=uvesafb:mtrr:3,ywrap,1024x768-16 usbcore.autosuspend=1 console=tty0 net.ifnames=0 scsi_mod.use_blk_mq=1 ipv6.autoconf=0 verify real_root=%s slowusb subdir=/multibootusb/pentoo-amd64-hardened-2018.0_RC5.8_pre20180305/
+""" % usb_disk
+    
+    print ("Testing Gentoo-tweaker on grub config.")
+    content = """insmod all_video
+
+menuentry 'Boot LiveCD (kernel: pentoo)' --class gnu-linux --class os {
+	linux /isolinux/pentoo root=/dev/ram0 init=/linuxrc  nox aufs max_loop=256 dokeymap looptype=squashfs loop=/image.squashfs  cdroot cdroot_hash=xxx
+	initrd /isolinux/pentoo.igz
+}
+"""
+    assert gentoo_tweaker.tweak(content)=="""insmod all_video
+
+menuentry 'Boot LiveCD (kernel: pentoo)' --class gnu-linux --class os {
+	linux /isolinux/pentoo root=/dev/ram0 init=/linuxrc  nox max_loop=256 dokeymap looptype=squashfs loop=/multibootusb/pentoo-amd64-hardened-2018.0_RC5.8_pre20180305/image.squashfs  cdroot real_root=%s slowusb subdir=/multibootusb/pentoo-amd64-hardened-2018.0_RC5.8_pre20180305/ overlayfs
+	initrd /isolinux/pentoo.igz
+}
+""" % usb_disk
 
 def test_abspath_rewrite():
     content = """menuentry "Install Ubuntu" {
-	linux	/casper/vmlinuz.efi  file=/cdrom/preseed/ubuntu.seed boot=casper only-ubiquity iso-scan/filename=${iso_path} quiet splash ---
+	linux	/casper/vmlinuz.efi  file=/cdrom/preseed/ubuntu.seed boot=casper only-ubiquity init=/linuxrc iso-scan/filename=${iso_path} quiet splash ---
 	initrd	/casper/initrd.lz
 }"""
+    print (fix_abspath(
+        content, 'g:/multibootusb/ubuntu-14.04.5-desktop-amd64',
+        'ubuntu-14.04.5-desktop-amd64', 'test_abspath_rewrite'))
     assert fix_abspath(
         content, 'g:/multibootusb/ubuntu-14.04.5-desktop-amd64',
         'ubuntu-14.04.5-desktop-amd64', 'test_abspath_rewrite')==\
         """menuentry "Install Ubuntu" {
-	linux	/multibootusb/ubuntu-14.04.5-desktop-amd64/casper/vmlinuz.efi  file=/cdrom/preseed/ubuntu.seed boot=casper only-ubiquity iso-scan/filename=${iso_path} quiet splash ---
+	linux	/multibootusb/ubuntu-14.04.5-desktop-amd64/casper/vmlinuz.efi  file=/cdrom/preseed/ubuntu.seed boot=casper only-ubiquity init=/linuxrc iso-scan/filename=${iso_path} quiet splash ---
 	initrd	/multibootusb/ubuntu-14.04.5-desktop-amd64/casper/initrd.lz
 }"""

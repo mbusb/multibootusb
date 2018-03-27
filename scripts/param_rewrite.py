@@ -63,40 +63,43 @@ def remove_keys(*keys):
 
 # Predicates
 
-def always(params):
+def always(starter_token, params):
     return True
 
 def contains_token(token):
-    return lambda params: token in params
+    return lambda starter, params: token in params
 
 def contains_all_tokens(*tokens):
-    return lambda params: all([t in params for t in tokens])
+    return lambda starter, params: all([t in params for t in tokens])
 
 def contains_any_token(*tokens):
-    return lambda params: any([t in params for t in tokens])
+    return lambda starter, params: any([t in params for t in tokens])
 
 def contains_key(key):
     assert type(key)==str
-    return lambda params: any(x.startswith(key) for x in params)
+    return lambda starter, params: any(x.startswith(key) for x in params)
 
 def contains_all_keys(*keys):
     assert all([k.endswith('=') for k in keys])
-    return lambda params: all(any(p.startswith(k) for p in params)
+    return lambda starter, params: all(any(p.startswith(k) for p in params)
                               for k in keys)
 
 def contains_any_key(*keys):
-    return lambda params: any(any(p.startswith(k) for p in params)
+    return lambda starter, params: any(any(p.startswith(k) for p in params)
                               for k in keys)
 
+def starter_is_either(*possible_starters):
+    return lambda starter, params: starter in possible_starters
+
 def _not(another_predicate):
-    return lambda params: not another_predicate(params)
+    return lambda starter, params: not another_predicate(starter, params)
 
 
 def test_rewrite_machinary():
 
     def transform(op_or_oplist, predicate, input_line):
         params = input_line.split(' ')
-        if not predicate(params):
+        if not predicate('test_starter', params):
             return input_line
         # See if op_or_oplist is iterable
         try:
