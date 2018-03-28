@@ -180,10 +180,13 @@ def detect_missing_tools(distro):
 
 def create_persistence():
     x = creator_dict.get(config.distro)
-    assert x, "Persistence is not supported for '%s'." % config.distro
+    if x is None:
+        gen.log("Persistence is not supported for '%s'." % config.distro)
+        return False
     creator_func, args_generator = x
     args = args_generator(config) + (config.persistence,)
     creator_func(*args)
+    return True
 
 def extract_file(file_path, install_dir):
     """
