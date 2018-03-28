@@ -107,14 +107,24 @@ def create_persistence_using_resize2fs(persistence_fname, persistence_size):
     config.status_text = 'Copying persistence file...'
     persistence_gz = gen.resource_path(
         os.path.join(tools_dir, 'persistence.gz'))
-    _7zip_cmd = [_7zip_exe, 'x', '-aoa', persistence_gz, '-o' + outdir]
-    if subprocess.call(_7zip_cmd, shell=True)==0:
-        gen.log("Generated 'persistence' file in '%s'" % outdir)
-        if persistence_fname != 'persistence':
-            os.rename(os.path.join(outdir, 'persistence'), persistence_path)
-            gen.log("Renamed to '%s'." % persistence_path)
+    _7zip_cmd_base = [_7zip_exe, 'x', '-o' + outdir]
+    for more_opts in ( ['-y'], ['-aoa'] ):
+        _7zip_cmd = _7zip_cmd_base + more_opts + [persistence_gz]
+        if subprocess.call(_7zip_cmd)==0:
+            if not os.path.exists(persistence_path):
+                gen.log("%s has failed to create the persistence file." %
+                        _7zip_cmd)
+                continue
+            gen.log("Generated 'persistence' file in '%s'" % outdir)
+            if persistence_fname != 'persistence':
+                os.rename(os.path.join(outdir, 'persistence'),
+                          persistence_path)
+                gen.log("Renamed to '%s'." % persistence_path)
+            break
+        gen.log("%s has failed with non-zero exit status." % _7zip_cmd)
     else:
-        gen.log("Failed to generate persistent file '%s'" % persistence_path)
+        gen.log("Couldn't generate persistence file '%s' by any means." %
+                persistence_path)
         return
 
     current_size = os.stat(persistence_path)[stat.ST_SIZE]
@@ -133,11 +143,11 @@ def create_persistence_using_resize2fs(persistence_fname, persistence_size):
 
     config.status_text = 'Resizing the persistence file...'
     fsck_cmd = ['e2fsck', '-y', '-f', persistence_path]
-    if subprocess.call(fsck_cmd, shell=True)==0:
+    if subprocess.call(fsck_cmd)==0:
         gen.log("Checking the persistence file.")
 
     resize_cmd = ['resize2fs', persistence_path]
-    if subprocess.call(resize_cmd, shell=True)==0:
+    if subprocess.call(resize_cmd)==0:
         gen.log("Successfully resized the persistence file.")
 
 creator_dict = {
