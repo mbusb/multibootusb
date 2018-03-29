@@ -35,21 +35,18 @@ def install_distro_list():
         return None
 
 
-def unin_distro():
-    usb_details = details(config.usb_disk)
-    usb_mount = usb_details['mount_point']
-    config.uninstall_distro_dir_name = config.uninstall_distro_dir_name.replace('\n', '')
-    gen.log(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "multibootusb.cfg"))
-    if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "multibootusb.cfg")):
-        with open(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "multibootusb.cfg"), "r") as multibootusb_cfg:
-            config.distro = multibootusb_cfg.read().replace('\n', '')
-        if config.distro:
-            uninstall_distro()
-    else:
-        return ""
+class UninstallThread(threading.Thread):
+
+    def __init__(self, target_distro, uninstall_distro_dir_name, *args, **kw):
+        super(UninstallThread, self).__init__(*args, **kw)
+        self.target_distro = target_distro
+        self.uninstall_distro_dir_name = uninstall_distro_dir_name
+
+    def run(self):
+        do_uninstall_distro(self.target_distro, self.uninstall_distro_dir_name)
 
 
-def delete_frm_file_list():
+def delete_frm_file_list(iso_file_list, uninstall_distro_dir_name):
     """
     Generic way to remove files from USB disk.
     :param config.usb_disk:
@@ -59,12 +56,11 @@ def delete_frm_file_list():
     """
     usb_details = details(config.usb_disk)
     usb_mount = usb_details['mount_point']
-    if config.iso_file_list is not None:
-        for f in config.iso_file_list:
+    if iso_file_list is not None:
+        for f in iso_file_list:
+            f = f.replace('\n', '').strip("/")
             if platform.system() == "Windows":
-                f = f.replace('\n', '').strip("/").replace("/", "\\")
-            else:
-                f = f.replace('\n', '').strip("/")
+                f = f.replace("/", "\\")
             if os.path.exists(os.path.join(usb_mount, "ldlinux.sys")):
                 try:
                     os.chmod(os.path.join(usb_mount, "ldlinux.sys"), 0o777)
@@ -82,28 +78,30 @@ def delete_frm_file_list():
                     gen.log("Removing file " + (os.path.join(usb_mount, f)))
                     os.remove(os.path.join(usb_mount, f))
 
-        if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "generic.cfg")):
-            with open(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "generic.cfg"), "r") as generic_cfg:
+        generic_cfg_fullpath = os.path.join(
+            usb_mount, "multibootusb", uninstall_distro_dir_name,
+            "generic.cfg")
+        if os.path.exists(generic_cfg_fullpath):
+            with open(generic_cfg_fullpath, "r") as generic_cfg:
+                generic = generic_cfg.read().replace('\n', '')
                 if platform.system() == "Windows":
-                    generic = generic_cfg.read().replace('\n', '').replace("/", "\\")
-                else:
-                    generic = generic_cfg.read().replace('\n', '')
+                    generic = generic_cfg.read().replace("/", "\\")
                 if os.path.exists(os.path.join(usb_mount, generic.strip("/"))):
                     os.remove(os.path.join(usb_mount, generic.strip("/")))
+    gen.log('Removed files from ' + uninstall_distro_dir_name)
     if platform.system() == 'Linux':
-        gen.log('Removed files from ' + config.uninstall_distro_dir_name)
         gen.log('Syncing....')
         os.sync()
 
 
 
 
-def uninstall_distro():
+def do_uninstall_distro(target_distro, uninstall_distro_dir_name):
     """
     Uninstall selected distro from selected USB disk.
     :param config.usb_disk: Path of the USB disk
-    :param config.uninstall_distro_dir_name: Directory where the distro is installed
-    :param _distro: Generic name applied to distro install by multibootusb
+    :param target_distro: Generic name applied to distro to be uninstalled
+    :param uninstall_distro_dir_name: Directory where the distro is installed
     :return:
     """
     usb_details = details(config.usb_disk)
@@ -115,47 +113,50 @@ def uninstall_distro():
         if usb_mount:
             subprocess.call("chattr -i -R %s/* 2>/dev/null" % usb_mount, shell=True)
 
-    uninstall_distro_dir_name = os.path.join(
-        usb_mount, "multibootusb", config.uninstall_distro_dir_name)
+    uninstall_distro_dir_name_fullpath = os.path.join(
+        usb_mount, "multibootusb", uninstall_distro_dir_name)
     uninstall_distro_iso_name = os.path.join(
-        usb_mount, config.uninstall_distro_dir_name) + '.iso'
-    filelist_fname = os.path.join(uninstall_distro_dir_name,
+        usb_mount, uninstall_distro_dir_name) + '.iso'
+    filelist_fname = os.path.join(uninstall_distro_dir_name_fullpath,
                                   "iso_file_list.cfg")
     if os.path.exists(filelist_fname):
         with open(filelist_fname, "r") as f:
-            config.iso_file_list = f.readlines()
+            iso_file_list = f.readlines()
+    else:
+        iso_file_list = []
 
-    for path, subdirs, files in os.walk(uninstall_distro_dir_name):
+    for path, subdirs, files in os.walk(uninstall_distro_dir_name_fullpath):
         for name in files:
             if name.endswith(('ldlinux.sys', 'ldlinux.c32')):
                 os.chmod(os.path.join(path, name), 0o777)
                 os.unlink(os.path.join(path, name))
 
-    if config.distro == "opensuse":
+    if target_distro == "opensuse":
         if os.path.exists(uninstall_distro_iso_name):
             os.remove(uninstall_distro_iso_name)
-    elif config.distro in ["windows", "alpine", "generic"]:
-        delete_frm_file_list()
-
-    if config.distro == "ipfire":
+    elif target_distro in ["windows", "alpine", "generic"]:
+        # This function will be called anyway after this if/elif block
+        # delete_frm_file_list()
+        pass
+    elif target_distro == "ipfire":
         files = os.listdir(usb_mount)
         for f in files:
             if f.endswith('.tlz'):
                 os.remove(os.path.join(usb_mount, f))
         if os.path.exists(os.path.join(usb_mount, "distro.img")):
             os.remove(os.path.join(usb_mount, "distro.img"))
-    elif config.distro == "trinity-rescue":
+    elif target_distro == "trinity-rescue":
         shutil.rmtree(os.path.join(usb_mount, "trk3"))
 
-    if os.path.exists(uninstall_distro_dir_name):
+    if os.path.exists(uninstall_distro_dir_name_fullpath):
         if platform.system() == 'Linux':
             os.sync()
-        shutil.rmtree(uninstall_distro_dir_name)
+        shutil.rmtree(uninstall_distro_dir_name_fullpath)
 
-    delete_frm_file_list()
+    delete_frm_file_list(iso_file_list, uninstall_distro_dir_name)
 
-    update_sys_cfg_file()
-    update_grub_cfg_file()
+    update_sys_cfg_file(uninstall_distro_dir_name)
+    update_grub_cfg_file(uninstall_distro_dir_name)
 
     # Check if bootx64.efi is replaced by distro
     efi_grub_img = os.path.join(config.usb_mount, 'EFI', 'BOOT', 'bootx64.efi')
@@ -172,7 +173,7 @@ def uninstall_distro():
         gen.log('multibootusb EFI image already exist. Not copying...')
 
 
-def update_sys_cfg_file():
+def update_sys_cfg_file(uninstall_distro_dir_name):
     """
     Main function to remove uninstall distro specific operations.
     :return:
@@ -186,13 +187,16 @@ def update_sys_cfg_file():
     else:
         gen.log("Updating syslinux.cfg file...")
         string = open(sys_cfg_file).read()
-        string = re.sub(r'#start ' + config.uninstall_distro_dir_name + '.*?' + '#end ' + config.uninstall_distro_dir_name + '\s*', '', string, flags=re.DOTALL)
+        string = re.sub(r'#start ' + re.escape(uninstall_distro_dir_name)
+                        + '.*?' + '#end '
+                        + re.escape(uninstall_distro_dir_name)
+                        + r'\s*', '', string, flags=re.DOTALL)
         config_file = open(sys_cfg_file, "w")
         config_file.write(string)
         config_file.close()
 
 
-def update_grub_cfg_file():
+def update_grub_cfg_file(uninstall_distro_dir_name):
     """
     Main function to remove uninstall distro name from the grub.cfg file.
     :return:
@@ -200,13 +204,17 @@ def update_grub_cfg_file():
     if platform.system() == 'Linux':
         os.sync()
 
-    grub_cfg_file = os.path.join(config.usb_mount, "multibootusb", "grub", "grub.cfg")
+    grub_cfg_file = os.path.join(config.usb_mount, "multibootusb",
+                                 "grub", "grub.cfg")
     if not os.path.exists(grub_cfg_file):
         gen.log("grub.cfg file not found for updating changes.")
     else:
         gen.log("Updating grub.cfg file...")
         string = open(grub_cfg_file).read()
-        string = re.sub(r'#start ' + config.uninstall_distro_dir_name + '.*?' + '#end ' + config.uninstall_distro_dir_name + '\s*', '', string, flags=re.DOTALL)
+        string = re.sub(r'#start ' + re.escape(uninstall_distro_dir_name)
+                        + '.*?' + '#end '
+                        + re.escape(uninstall_distro_dir_name)
+                        + r'\s*', '', string, flags=re.DOTALL)
         config_file = open(grub_cfg_file, "w")
         config_file.write(string)
         config_file.close()
@@ -214,7 +222,10 @@ def update_grub_cfg_file():
 
 def uninstall_progress():
     """
-    Calculate uninstall progress percentage.
+    Start another thread that does the actual uninstallation work
+    and continuously calculate uninstall progress percentage.
+    This is the entry point for the uninstallation thread spawned
+    in GuiUninstallProgress.__init__.
     :return:
     """
     from . import progressbar
@@ -223,42 +234,50 @@ def uninstall_progress():
     if platform.system() == 'Linux':
         os.sync()
 
-    if os.path.exists(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "multibootusb.cfg")):
-        with open(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name, "multibootusb.cfg"),
-                  "r") as multibootusb_cfg:
-            config.distro = multibootusb_cfg.read().replace('\n', '')
-    else:
-        config.distro = ""
-    gen.log("Installed distro type is " +  config.distro)
+    uninstall_distro_dir_name = config.uninstall_distro_dir_name \
+                                .replace('\n', '')
 
-    if config.distro == "opensuse":
-        if os.path.exists(os.path.join(usb_mount, config.uninstall_distro_dir_name) + ".iso"):
-            folder_size_to_remove = os.path.getsize(os.path.join(usb_mount, config.uninstall_distro_dir_name) + ".iso")
+    drive_relative_mbcfg_path = os.path.join(
+        "multibootusb", uninstall_distro_dir_name, "multibootusb.cfg")
+    mbcfg_fullpath = os.path.join(usb_mount, drive_relative_mbcfg_path)
+    if os.path.exists(mbcfg_fullpath):
+        with open(mbcfg_fullpath,"r") as multibootusb_cfg:
+            target_distro = multibootusb_cfg.read().replace('\n', '')
+    else:
+        target_distro = ""
+    gen.log("Installed distro type is " +  target_distro or "unknown")
+
+    if target_distro == "opensuse":
+        iso_fullpath = os.path.join(usb_mount, uninstall_distro_dir_name) \
+                       + ".iso"
+        if os.path.exists(iso_fullpath):
+            folder_size_to_remove = os.path.getsize(iso_fullpath)
         else:
             folder_size_to_remove = 0
-        folder_size_to_remove += disk_usage(str(usb_mount) + "/multibootusb/" + config.uninstall_distro_dir_name).used
-    elif config.distro == "windows" or config.distro == "Windows":
+        folder_size_to_remove += disk_usage(str(usb_mount) + "/multibootusb/" + uninstall_distro_dir_name).used
+    elif target_distro == "windows" or target_distro == "Windows":
         if os.path.exists(os.path.join(usb_mount, "SOURCES")):
             folder_size_to_remove = disk_usage(str(usb_mount) + "/SOURCES").used
         else:
             folder_size_to_remove = disk_usage(str(usb_mount) + "/SSTR").used
-    elif config.distro == "ipfire":
-        folder_size_to_remove = disk_usage(str(usb_mount) + "/multibootusb/" + config.uninstall_distro_dir_name).used
+    elif target_distro == "ipfire":
+        folder_size_to_remove = disk_usage(str(usb_mount) + "/multibootusb/" + uninstall_distro_dir_name).used
         files = os.listdir(os.path.join(str(usb_mount)))
         for f in files:
             if f.endswith('.tlz'):
                 folder_size_to_remove += os.path.getsize(os.path.join(config.usb_mount, f))
-    elif config.distro == "trinity-rescue":
+    elif target_distro == "trinity-rescue":
         folder_size_to_remove = disk_usage(os.path.join(usb_mount, "trk3")).used
-        folder_size_to_remove += disk_usage(usb_mount + "/multibootusb/" + config.uninstall_distro_dir_name).used
+        folder_size_to_remove += disk_usage(usb_mount + "/multibootusb/" + uninstall_distro_dir_name).used
     else:
 
-        folder_size_to_remove = disk_usage(os.path.join(usb_mount, "multibootusb", config.uninstall_distro_dir_name)).used
+        folder_size_to_remove = disk_usage(os.path.join(usb_mount, "multibootusb", uninstall_distro_dir_name)).used
 
-    thrd = threading.Thread(target=unin_distro, name="uninstall_progress")
+    thrd = UninstallThread(target_distro, uninstall_distro_dir_name,
+                           name="uninstall_progress")
     initial_usb_size = disk_usage(usb_mount).used
     thrd.start()
-    config.status_text = "Uninstalling " + config.uninstall_distro_dir_name
+    config.status_text = "Uninstalling " + uninstall_distro_dir_name
     pbar = progressbar.ProgressBar(maxval=100).start()  # bar = progressbar.ProgressBar(redirect_stdout=True)
     while thrd.is_alive():
         current_size = disk_usage(usb_mount).used
