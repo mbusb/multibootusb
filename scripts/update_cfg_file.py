@@ -52,7 +52,8 @@ def fix_abspath_r(pattern, string, install_dir, iso_name, config_fname):
         # Confidently accept what is specified.
         selected_path, fixed = specified_path, False
     elif os.path.exists(os.path.join(install_dir, 'boot', specified_path)):
-        selected_path, fixed = 'boot/' + specified_path, "Prepended '/boot/'"
+        selected_path, fixed = ('boot/' + specified_path,
+                                "Prepended '/boot/' to %s" % specified_path)
     # A path specified by 'preseed/file=' or 'file=' is utilized
     # after OS boots up. Doing this for grub is moot.
     #elif specified_path.startswith('cdrom/') and \
@@ -65,7 +66,8 @@ def fix_abspath_r(pattern, string, install_dir, iso_name, config_fname):
          os.path.exists(os.path.join(install_dir, specified_path[:-4])):
         # Avira-RS provides boot/grub/loopback.cfg which points
         # to non-existent /boot/grub/vmlinuz.efi.
-        selected_path, fixed = specified_path[:-4], "Removed '.efi'"
+        selected_path, fixed = (specified_path[:-4],
+                                "Removed '.efi' from %s" % specified_path)
     else:
         # Reluctantly accept what is specified.
         log("Keeping path [%s] in '%s' though it does not exist." % (
@@ -93,8 +95,11 @@ def fix_abspath(string, install_dir, iso_name, config_fname):
         log("Applied %s on '%s' as shown below:" %
             (len(tweaked_chunks)==1 and 'a tweak' or
              ('%d tweaks' % len(tweaked_chunks)), config_fname))
+        count_dict = {}
         for path, op_desc in tweaked_chunks:
-            log("  %s" % op_desc)
+            count_dict.setdefault(op_desc, []).append((path,op_desc))
+        for op_desc, sub_chunks in count_dict.items():
+            log("  %s [%d]" % (op_desc, len(sub_chunks)))
         return ''.join([c[0] for c in chunks])
 
 def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
@@ -930,18 +935,43 @@ menuentry 'Boot LiveCD (kernel: pentoo)' --class gnu-linux --class os {
 }
 """ % usb_disk
 
-def test_abspath_rewrite():
+
+def do_test_abspath_rewrite():
+
     content = """menuentry "Install Ubuntu" {
-	linux	/casper/vmlinuz.efi  file=/cdrom/preseed/ubuntu.seed boot=casper only-ubiquity init=/linuxrc iso-scan/filename=${iso_path} quiet splash ---
+	linux	/casper/vmlinuz.efi  file=/cdrom/preseed/ubuntu.seed boot=casper only-ubiquity init=/linuxrc iso-scan/filename=${iso_path} quiet splash grub=/grub/grub.cfg ---
 	initrd	/casper/initrd.lz
 }"""
-    print (fix_abspath(
-        content, 'g:/multibootusb/ubuntu-14.04.5-desktop-amd64',
-        'ubuntu-14.04.5-desktop-amd64', 'test_abspath_rewrite'))
     assert fix_abspath(
         content, 'g:/multibootusb/ubuntu-14.04.5-desktop-amd64',
         'ubuntu-14.04.5-desktop-amd64', 'test_abspath_rewrite')==\
         """menuentry "Install Ubuntu" {
-	linux	/multibootusb/ubuntu-14.04.5-desktop-amd64/casper/vmlinuz.efi  file=/cdrom/preseed/ubuntu.seed boot=casper only-ubiquity init=/linuxrc iso-scan/filename=${iso_path} quiet splash ---
+	linux	/multibootusb/ubuntu-14.04.5-desktop-amd64/casper/vmlinuz  file=/cdrom/preseed/ubuntu.seed boot=casper only-ubiquity init=/linuxrc iso-scan/filename=${iso_path} quiet splash grub=/multibootusb/ubuntu-14.04.5-desktop-amd64/boot/grub/grub.cfg ---
 	initrd	/multibootusb/ubuntu-14.04.5-desktop-amd64/casper/initrd.lz
 }"""
+
+
+def test_abspath_rewrite():
+
+    def os_path_exists(path):
+        path = path.replace('\\', '/')
+        if path.endswith('.efi'):
+            return False
+        if path.startswith('g:/multibootusb/ubuntu-14.04.5-desktop-amd64/boot'):
+            return True
+        if path.endswith('/boot/grub/grub.cfg'):
+            return True
+        if path == '/grub/grub.cfg':
+            return False
+        if path.endswith('casper/vmlinuz'):
+            return True
+        if path.endswith('/casper/initrd.lz'):
+            return True
+
+        return False
+    saved = os.path.exists
+    try:
+        os.path.exists = os_path_exists
+        do_test_abspath_rewrite()
+    finally:
+        os.path.exists = saved
