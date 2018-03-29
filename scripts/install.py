@@ -220,7 +220,7 @@ class DirectoryRelocator:
             src = os.path.join(self.src_dir, dir_name)
             dst = os.path.join(self.dst_dir, dir_name)
             if os.path.exists(dst):
-                os.rmtree(dst)
+                shutil.rmtree(dst)
             shutil.move(src, dst)
 
 if __name__ == '__main__':
