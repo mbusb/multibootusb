@@ -25,9 +25,17 @@ from .param_rewrite import add_tokens, remove_tokens, replace_token, \
 
 
 def dont_require_tweaking(fname, content, match_start, match_end):
-    return fname.startswith(('cdrom/', 'dev/')) or \
-        (4 <= match_start and # Don't write an arg of 'init=' param.
-         content[match_start-4:match_start+1] == 'init=')
+    # Avoid fixing a path on a comment line
+    beginning_of_line = content.rfind('\n', 0, match_start)
+    if beginning_of_line<0:
+        beginning_of_line = 0
+    if content[beginning_of_line:match_start].lstrip()[:1]=='#':
+        return True
+    if fname.startswith(('cdrom/', 'dev/')):
+        return True
+    if (4 <= match_start and # Don't write an arg of 'init=' param.
+        content[match_start-4:match_start+1] == 'init='):
+        return True
 
 def fix_abspath_r(pattern, string, install_dir, iso_name, kept_paths):
     """Return a list of tuples consisting of 'string' with replaced path and a bool representing if /boot/ was prepended in the expression."""
@@ -88,11 +96,14 @@ def fix_abspath(string, install_dir, iso_name, config_fname):
     chunks = fix_abspath_r(
         path_expression, string, install_dir, iso_name,  kept_paths)
     if len(kept_paths)==1:
-        log("'%s' is kept as is though it does not exist." % kept_paths[0])
+        log("In '%s', '/%s' is kept as is though it does not exist."
+            % (config_fname, kept_paths[0]))
     elif 2<=len(kept_paths):
-        log("Following paths are used as they are though they don't exist.")
+        log("In '%s', "
+            "following paths are used as they are though they don't exist."
+            % config_fname)
         for kept_path in kept_paths:
-            log('  ' + kept_path)
+            log('  /' + kept_path)
     tweaked_chunks = [c for c in chunks if c[1]]
     if len(tweaked_chunks) == 0:
         # Fallback to the legacy implementation so that
@@ -101,8 +112,8 @@ def fix_abspath(string, install_dir, iso_name, config_fname):
         return re.sub(r'([ \t =,])/', replace_text, string)
     else:
         log("Applied %s on '%s' as shown below:" %
-            (len(tweaked_chunks)==1 and 'a tweak' or
-             ('%d tweaks' % len(tweaked_chunks)), config_fname))
+            (len(tweaked_chunks)==1 and 'a rewrite exception' or
+             ('%d rewrite exceptions' % len(tweaked_chunks)), config_fname))
         count_dict = {}
         for path, op_desc in tweaked_chunks:
             count_dict.setdefault(op_desc, []).append((path,op_desc))
