@@ -25,11 +25,19 @@ from .param_rewrite import add_tokens, remove_tokens, replace_token, \
 
 
 def dont_require_tweaking(fname, content, match_start, match_end):
-    return fname.startswith(('cdrom/', 'dev/')) or \
-        (4 <= match_start and # Don't write an arg of 'init=' param.
-         content[match_start-4:match_start+1] == 'init=')
+    # Avoid fixing a path on a comment line
+    beginning_of_line = content.rfind('\n', 0, match_start)
+    if beginning_of_line<0:
+        beginning_of_line = 0
+    if content[beginning_of_line:match_start].lstrip()[:1]=='#':
+        return True
+    if fname.startswith(('cdrom/', 'dev/')):
+        return True
+    if (4 <= match_start and # Don't write an arg of 'init=' param.
+        content[match_start-4:match_start+1] == 'init='):
+        return True
 
-def fix_abspath_r(pattern, string, install_dir, iso_name, config_fname):
+def fix_abspath_r(pattern, string, install_dir, iso_name, kept_paths):
     """Return a list of tuples consisting of 'string' with replaced path and a bool representing if /boot/ was prepended in the expression."""
     m = pattern.search(string)
     if not m:
@@ -41,7 +49,7 @@ def fix_abspath_r(pattern, string, install_dir, iso_name, config_fname):
         return [(string[:start] + prologue + '/' + specified_path,
                  '/%s is kept as is.' % specified_path)] \
                 + fix_abspath_r(pattern, string[end:], install_dir, iso_name,
-                                config_fname)
+                                kept_paths)
 
     # See if a path that has 'boot/' prepended is a better choice.
     # E.g. Debian debian-live-9.4.0-amd64-cinnamon has a loopback.cfg
@@ -70,21 +78,32 @@ def fix_abspath_r(pattern, string, install_dir, iso_name, config_fname):
                                 "Removed '.efi' from %s" % specified_path)
     else:
         # Reluctantly accept what is specified.
-        log("Keeping path [%s] in '%s' though it does not exist." % (
-            specified_path, config_fname))
+        if specified_path not in kept_paths:
+            kept_paths.append(specified_path)
         selected_path, fixed = specified_path, False
 
     out = string[:start] + prologue + '/multibootusb/' + iso_name + '/' \
           + selected_path.replace('\\', '/')
     return [(out, fixed)] \
         + fix_abspath_r(pattern, string[end:], install_dir, iso_name,
-                        config_fname)
+                        kept_paths)
 
 def fix_abspath(string, install_dir, iso_name, config_fname):
     """Rewrite what appear to be a path within 'string'. If a file does not exist with specified path, one with '/boot' prepended is tried."""
-    path_expression = re.compile(r'([ \t=])/(.*?)((?=[\s*])|$)')
+
+    path_expression = re.compile(r'([ \t=,])/(.*?)((?=[,|\s*])|$)')
+    kept_paths = []
     chunks = fix_abspath_r(
-        path_expression, string, install_dir, iso_name, config_fname)
+        path_expression, string, install_dir, iso_name,  kept_paths)
+    if len(kept_paths)==1:
+        log("In '%s', '/%s' is kept as is though it does not exist."
+            % (config_fname, kept_paths[0]))
+    elif 2<=len(kept_paths):
+        log("In '%s', "
+            "following paths are used as they are though they don't exist."
+            % config_fname)
+        for kept_path in kept_paths:
+            log('  /' + kept_path)
     tweaked_chunks = [c for c in chunks if c[1]]
     if len(tweaked_chunks) == 0:
         # Fallback to the legacy implementation so that
@@ -93,8 +112,8 @@ def fix_abspath(string, install_dir, iso_name, config_fname):
         return re.sub(r'([ \t =,])/', replace_text, string)
     else:
         log("Applied %s on '%s' as shown below:" %
-            (len(tweaked_chunks)==1 and 'a tweak' or
-             ('%d tweaks' % len(tweaked_chunks)), config_fname))
+            (len(tweaked_chunks)==1 and 'a rewrite exception' or
+             ('%d rewrite exceptions' % len(tweaked_chunks)), config_fname))
         count_dict = {}
         for path, op_desc in tweaked_chunks:
             count_dict.setdefault(op_desc, []).append((path,op_desc))
