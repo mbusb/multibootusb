@@ -158,7 +158,9 @@ if __name__ == '__main__':
             else:
                 config.image_path = arg.split(',')
         elif opt in ('-t', '--target'):
-            config.usb_disk = arg
+            # Convert to upper if windows drive name is given
+            config.usb_disk = len(arg)==2 and arg[0].isalpha() and arg[1]==':'\
+              and arg.upper() or arg
         elif opt in ('-c', '--command'):
             gui = False
         elif opt in ('-u', '--uninstall'):
