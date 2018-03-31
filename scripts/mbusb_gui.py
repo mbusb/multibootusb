@@ -280,7 +280,8 @@ Are you SURE you want to enable it?",
                             log('Persistence Max Size: ' + str(bytes2human(per_max_size)))
                     else:
                         config.persistence_available = False
-                        log('Persistence is not available for ' + iso_name(config.image_path))
+                        log('Persistence support is not available for '
+                            + iso_name(config.image_path))
 
                     self.ui_update_persistence()
         else:
