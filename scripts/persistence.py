@@ -48,7 +48,7 @@ def persistence_distro(distro, iso_link):
 
 #     iso_size = iso.iso_size(iso_link)
 
-    if distro in ["ubuntu", "debian", "debian-install", "fedora"]:
+    if distro in ["ubuntu", "debian", "debian-install", "fedora", "centos"]:
         gen.log("Persistence option is available.")
         return distro
     else:
@@ -159,6 +159,10 @@ creator_dict = {
         create_persistence_using_resize2fs,
         lambda C: ('persistence',)),
     'fedora' : (
+        create_persistence_using_mkfs,
+        lambda C: (os.path.join(
+            'LiveOS', 'overlay-%s-%s' % (C.usb_label, C.usb_uuid)),)),
+    'centos' : (
         create_persistence_using_mkfs,
         lambda C: (os.path.join(
             'LiveOS', 'overlay-%s-%s' % (C.usb_label, C.usb_uuid)),)),

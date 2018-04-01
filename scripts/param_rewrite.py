@@ -77,6 +77,7 @@ def contains_any_token(*tokens):
 
 def contains_key(key):
     assert type(key)==str
+    assert key[-1:] == '='
     return lambda starter, params: any(x.startswith(key) for x in params)
 
 def contains_all_keys(*keys):
