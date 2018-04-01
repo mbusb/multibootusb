@@ -77,45 +77,45 @@ def iso_install(iso_image):
     :param iso_image: Path to ISO image
     :return:
     """
-    if size_not_enough(iso_image, config.usb_disk) is True:
+    if os.path.exists(os.path.join(config.usb_mount, 'multibootusb',
+                                   iso.iso_basename(iso_image))):
+        log("'%s' is already installed. Skipping installation." %
+            iso.iso_basename(iso_image))
+    elif size_not_enough(iso_image, config.usb_disk) is True:
         log(config.usb_disk + ' does not have enough space...')
     else:
-        clean_iso_cfg_ext_dir(os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))  # Need to be cleaned everytime
+        clean_iso_cfg_ext_dir( # Need to be cleaned everytime
+            os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))
         extract_cfg_file(iso_image)
         _distro = distro(iso_cfg_ext_dir(), iso_image)
         if _distro is not None:
-            log('Initiating installation process for ' + iso.iso_basename(iso_image))
+            log('Initiating installation process for ' +
+                 iso.iso_basename(iso_image))
             log('Detected distro type is    :' + _distro)
             log('\nSelected ISO is          :' + quote(iso_name(iso_image)))
             log('Selected target device is  :' + quote(config.usb_disk), '\n')
             if config.yes is not True:
                 log('Please confirm the option.')
                 log('Y/y/Yes/yes/YES or N/n/No/no/NO')
-                if read_input_yes() is True:
-                    config.distro = _distro
-                    copy_mbusb_dir_usb(config.usb_disk)
-                    install_progress()
-                    syslinux_distro_dir(config.usb_disk, iso_image, _distro)
-                    syslinux_default(config.usb_disk)
-                    replace_grub_binary()
-                    update_distro_cfg_files(iso_image, config.usb_disk, _distro)
-                    log('Finished installing ' + iso.iso_basename(iso_image))
-                else:
+                if read_input_yes() is not True:
                     log('Not proceeding. User cancelled the operation.')
+                    return
             else:
                 log('Skipping user confirmation for ' + iso_image)
-                config.distro = _distro
-                copy_mbusb_dir_usb(config.usb_disk)
-                install_progress()
-                syslinux_distro_dir(config.usb_disk, iso_image, _distro)
-                syslinux_default(config.usb_disk)
-                replace_grub_binary()
-                update_distro_cfg_files(iso_image, config.usb_disk, _distro)
-                log('Finished installing ' + iso.iso_basename(iso_image))
+            config.distro = _distro
+            copy_mbusb_dir_usb(config.usb_disk)
+            install_progress()
+            syslinux_distro_dir(config.usb_disk, iso_image, _distro)
+            syslinux_default(config.usb_disk)
+            replace_grub_binary()
+            update_distro_cfg_files(iso_image, config.usb_disk, _distro,
+                                    config.persistence)
+            log('Finished installing ' + iso.iso_basename(iso_image))
         else:
-            log('\n\nSorry ' + iso_name(iso_image) + ' is not supported at the moment.\n'
-                'Please report tissue at https://github.com/mbusb/multibootusb/issues\n')
-
+            log('\n\nSorry ' + iso_name(iso_image) +
+                 ' is not supported at the moment.\n'
+                'Please report an issue at '
+                'https://github.com/mbusb/multibootusb/issues\n')
 
 def cli_uninstall_distro():
     distro_list = install_distro_list()
@@ -192,7 +192,8 @@ def cli_install_syslinux():
             log('Operation cancelled by user. Exiting...')
             sys.exit(2)
     else:
-        log('\nSkipping user input and installing syslinux on ' + config.usb_disk)
+        log('\nSkipping user input and installing syslinux on ' +
+            config.usb_disk)
         if syslinux.syslinux_default(config.usb_disk) is True:
             log('Syslinux successfully installed on ' + config.usb_disk)
         else:
