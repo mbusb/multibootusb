@@ -15,7 +15,7 @@ from .gen import *
 from . import _7zip
 
 
-def distro(iso_cfg_ext_dir, iso_link):
+def distro(iso_cfg_ext_dir, iso_link, expose_exception=False):
     """
     Detect if distro is supported by multibootusb.
     :param iso_cfg_ext_dir: Directory where *.cfg files are extracted.
@@ -23,7 +23,7 @@ def distro(iso_cfg_ext_dir, iso_link):
     """
 #     iso9660fs = ISO9660(iso_link)
 #     iso_file_list = iso9660fs.readDir("/")
-    iso_file_list = _7zip.list_iso(iso_link)
+    iso_file_list = _7zip.list_iso(iso_link, expose_exception=expose_exception)
     if platform.system() == "Linux" or platform.system() == "Windows":
         for path, subdirs, files in os.walk(iso_cfg_ext_dir):
             for name in files:
@@ -65,6 +65,9 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "solydx"
                         elif re.search(r'knoppix', string, re.I):
                             return "knoppix"
+                        elif re.search(r'root=live:CDLABEL=CentOS',
+                                        string, re.I):
+                            return 'centos' # centos-live
                         elif re.search(r'root=live:CDLABEL=', string, re.I) or re.search(r'root=live:LABEL=', string, re.I):
                             return "fedora"
                         elif re.search(r'redcore', string, re.I):
@@ -115,6 +118,8 @@ def distro(iso_cfg_ext_dir, iso_link):
                             return "zenwalk"
                         elif re.search(r'ubuntu server', string, re.I):
                             return "ubuntu-server"
+                        elif re.search(r'Install CentOS', string, re.I):
+                            return "centos-install"
                         elif re.search(r'CentOS', string, re.I):
                             return "centos"
                         elif re.search(r'Trinity Rescue Kit', string, re.I):
@@ -146,7 +151,7 @@ def distro(iso_cfg_ext_dir, iso_link):
                         elif re.search(r'BOOT_IMAGE=insert', string, re.I):
                             return 'insert'
 
-        distro = detect_iso_from_file_list(iso_link)
+        distro = detect_iso_from_file_list(iso_link, iso_file_list)
 
         if distro:
             return distro
@@ -166,13 +171,12 @@ def distro(iso_cfg_ext_dir, iso_link):
             return None
 
 
-def detect_iso_from_file_list(iso_link):
+def detect_iso_from_file_list(iso_link, iso_file_list):
     """
     Fallback detection script from the content of an ISO.
     :return: supported distro as string
     """
     if os.path.exists(iso_link):
-        iso_file_list = _7zip.list_iso(iso_link)
         if any("sources" in s.lower() for s in iso_file_list) and any("boot.wim" in s.lower() for s in iso_file_list):
             return "Windows"
         elif any("config.isoclient" in s.lower() for s in iso_file_list):

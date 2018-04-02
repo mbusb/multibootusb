@@ -27,20 +27,30 @@ def install_distro():
     :return:
     """
     usb_mount = config.usb_mount
-    install_dir = os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path))
+    install_dir = os.path.join(config.usb_mount, "multibootusb",
+                               iso_basename(config.image_path))
 
     if not os.path.exists(os.path.join(usb_mount, "multibootusb")):
         log("Copying multibootusb directory to " + usb_mount)
-        shutil.copytree(resource_path(os.path.join("data", "tools", "multibootusb")),
-                        os.path.join(config.usb_mount, "multibootusb"))
+        shutil.copytree(
+            resource_path(os.path.join("data", "tools", "multibootusb")),
+            os.path.join(config.usb_mount, "multibootusb"))
 
     if not os.path.exists(install_dir):
+        _iso_file_list = iso.iso_file_list(config.image_path)
         os.makedirs(install_dir)
         with open(os.path.join(install_dir, "multibootusb.cfg"), "w") as f:
             f.write(config.distro)
         with open(os.path.join(install_dir, "iso_file_list.cfg"), 'w') as f:
-            for file_path in iso.iso_file_list(config.image_path):
+            for file_path in _iso_file_list:
                 f.write(file_path + "\n")
+    else:
+        # This path is usually not taken.
+        with open(os.path.join(install_dir, "multibootusb.cfg"), "r") as f:
+            assert config.distro == f.read()
+        with open(os.path.join(install_dir, "iso_file_list.cfg"), 'r') as f:
+            _iso_file_list = [s.strip() for s in f.readlines()]
+
     log("Installing " + iso_name(config.image_path) + " on " + install_dir)
 
     # Some distros requires certain directories be at the root.
@@ -105,6 +115,12 @@ def install_distro():
     elif config.distro == 'insert':
         iso_extract_full(config.image_path, install_dir)
         relocator.move(('INSERT',))
+    elif config.distro == 'centos-install' and \
+      any(f=='.treeinfo' for f in _iso_file_list):
+        # DVD installer
+        iso.iso_extract_file(config.image_path, install_dir, '-xr-!Packages')
+        log("Copying the source iso file as is.")
+        copy_iso(config.image_path, install_dir)
     else:
         iso.iso_extract_full(config.image_path, install_dir)
 
@@ -220,7 +236,7 @@ class DirectoryRelocator:
             src = os.path.join(self.src_dir, dir_name)
             dst = os.path.join(self.dst_dir, dir_name)
             if os.path.exists(dst):
-                os.rmtree(dst)
+                shutil.rmtree(dst)
             shutil.move(src, dst)
 
 if __name__ == '__main__':

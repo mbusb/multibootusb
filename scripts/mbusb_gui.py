@@ -208,14 +208,16 @@ Are you SURE you want to enable it?",
     def browse_iso(self):
         if str(self.ui.image_path.text()):
             self.ui.image_path.clear()
-        preference_file_path = os.path.join(multibootusb_host_dir(), "preference", "iso_dir.txt")
+        preference_file_path = os.path.join(multibootusb_host_dir(),
+                                            "preference", "iso_dir.txt")
         dir_path = ''
         if os.path.exists(preference_file_path):
             dir_path = open(preference_file_path, 'r').read()
 
-        config.image_path = QtWidgets.QFileDialog.getOpenFileName(self, 'Select an iso...', dir_path,
-                                                                  'ISO Files (*.iso);; Zip Files(*.zip);; '
-                                                                  'Img Files(*.img);; All Files(*.*)')[0]
+        config.image_path = QtWidgets.QFileDialog.getOpenFileName(
+            self, 'Select an iso...', dir_path,
+            'ISO Files (*.iso);; Zip Files(*.zip);; '
+            'Img Files(*.img);; All Files(*.*)')[0]
 
         if config.image_path:
             # sanity checks
@@ -223,19 +225,37 @@ Are you SURE you want to enable it?",
                 QtWidgets.QMessageBox.critical(
                     self,
                     "ISO Not readable",
-                    "Sorry, the file \"{0}\" is not readable.".format(config.image_path)
+                    "Sorry, the file \"{0}\" is not readable.".format(
+                        config.image_path)
                 )
                 return
             if iso_size(config.image_path) == 0:
                 QtWidgets.QMessageBox.critical(
                     self,
                     "ISO is an empty file",
-                    "Sorry, the file \"{0}\" contains no data.".format(config.image_path)
+                    "Sorry, the file \"{0}\" contains no data.".format(
+                        config.image_path)
                 )
                 return
-
             default_dir_path = os.path.dirname(config.image_path)
             gen.write_to_file(preference_file_path, default_dir_path)
+
+            # Detect supported distro
+            try:
+                clean_iso_cfg_ext_dir(   # Need to be cleaned.
+                    os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))
+                extract_cfg_file(config.image_path)
+                config.distro = distro(iso_cfg_ext_dir(), config.image_path,
+                                       expose_exception=True)
+            except Exception as exc:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Failure to detect distro type",
+                    'Sorry, failed in examining "{0}" to detect distro type '
+                    'due to the following reason.\n\n"{1}".'
+                    .format(config.image_path, exc)
+                )
+                return
 
             if platform.system() == "Windows":
                 if "/" in config.image_path:
@@ -248,9 +268,6 @@ Are you SURE you want to enable it?",
             self.ui.label_image_bootable_value.setVisible(True)
 
             if os.path.exists(config.image_path):
-                clean_iso_cfg_ext_dir(os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))  # Need to be cleaned.
-                extract_cfg_file(config.image_path)
-                config.distro = distro(iso_cfg_ext_dir(), config.image_path)  # Detect supported distro
                 self.ui.label_image_type_value.setText(str(config.distro))
                 self.ui.label_image_type_value.setVisible(True)
                 if config.distro:
@@ -263,7 +280,8 @@ Are you SURE you want to enable it?",
                             log('Persistence Max Size: ' + str(bytes2human(per_max_size)))
                     else:
                         config.persistence_available = False
-                        log('Persistence is not available for ' + iso_name(config.image_path))
+                        log('Persistence support is not available for '
+                            + iso_name(config.image_path))
 
                     self.ui_update_persistence()
         else:
@@ -330,7 +348,8 @@ Are you SURE you want to enable it?",
         syslinux_distro_dir(config.usb_disk, config.image_path, config.distro)
         syslinux_default(config.usb_disk)
         replace_grub_binary()
-        update_distro_cfg_files(config.image_path, config.usb_disk, config.distro, config.persistence)
+        update_distro_cfg_files(config.image_path, config.usb_disk,
+                                config.distro, config.persistence)
         self.update_list_box(config.usb_disk)
         if sys.platform.startswith("linux"):
             self.ui.statusbar.showMessage("Status: Sync is in progress...")
@@ -453,16 +472,23 @@ Are you SURE you want to enable it?",
             QtWidgets.QMessageBox.information(self, 'No selection.', 'Please select a distro from the list.')
             self.ui_enable_controls()
         else:
-            config.uninstall_distro_dir_name = str(self.ui.installed_distros.currentItem().text()).strip()
-            reply = QtWidgets.QMessageBox.question(self, "Review selection...",
-                                                   "Are you sure to uninstall " + config.uninstall_distro_dir_name,
-                                                   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                                                   QtWidgets.QMessageBox.No)
+            config.uninstall_distro_dir_name = str(
+                self.ui.installed_distros.currentItem().text()).strip()
+            reply = QtWidgets.QMessageBox.question(
+                self, "Review selection...",
+                "Are you sure to uninstall " + config.uninstall_distro_dir_name,
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.No)
 
             if reply == QtWidgets.QMessageBox.Yes:
-                if not os.path.exists(os.path.join(config.usb_mount, 'multibootusb', config.uninstall_distro_dir_name)):
-                    log("Distro install directory not found. Just updating syslinux.cfg file.")
-                    update_sys_cfg_file()
+                if not os.path.exists(
+                        os.path.join(config.usb_mount, 'multibootusb',
+                                     config.uninstall_distro_dir_name)):
+                    log("Distro install directory not found. "
+                        "Just updating syslinux.cfg and grub.cfg.")
+                    update_sys_cfg_file(config.uninstall_distro_dir_name)
+                    update_grub_cfg_file(config.uninstall_distro_dir_name)
+                    self.uninstall_sys_file_update()
                     # self.uninstall.update_sys_cfg_file()
                     self.ui_enable_controls()
                 else:
@@ -475,7 +501,10 @@ Are you SURE you want to enable it?",
         Function to remove and update uninstall distro text.
         :return:
         """
-        update_sys_cfg_file()
+
+        # This function is already called from 'do_uninstall_distro()'
+        # update_sys_cfg_file(config.uninstall_distro_dir_name)
+
         self.update_list_box(config.usb_mount)
         if sys.platform.startswith("linux"):
             self.ui.statusbar.showMessage("Status: Sync in progress...")
