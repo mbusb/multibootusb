@@ -139,9 +139,10 @@ if __name__ == '__main__':
             admin.runAsAdmin()
             sys.exit(0)
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'i:t:yvhcudrs',
-                                   ['iso=', 'target=', 'yes', 'version', 'help', 'command', 'uninstall', 'debug',
-                                    'raw', 'syslinux'])
+        opts, args = getopt.getopt(
+            sys.argv[1:], 'i:t:yvhcudrsp:',
+            ['iso=', 'target=', 'yes', 'version', 'help', 'command',
+             'uninstall', 'debug', 'raw', 'syslinux', 'persistence-size='])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
@@ -171,6 +172,8 @@ if __name__ == '__main__':
             config.cli_dd = True
         elif opt in ('-s', '--syslinux'):
             config.cli_syslinux = True
+        elif opt in ('-p', '--persistence-size'):
+            config.persistence = int(arg) * 1024 * 1024
         else:
             gui = True
             #start_gui()
