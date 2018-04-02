@@ -377,9 +377,9 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
             lines = []
             pattern = re.compile(r'^desktop-image\s*:\s*(.*)$')
             for line in f.readlines():
-                line = line.strip()
+                line = line.rstrip()
                 m = pattern.match(line)
-                if m:
+                if m and m.group(1)[:1]=='/':
                     log("Updating '%s'" % line)
                     partial_path = m.group(1).strip('"').lstrip('/')
                     line = 'desktop-image: "%s/%s"' % \
