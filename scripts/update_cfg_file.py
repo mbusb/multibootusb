@@ -147,6 +147,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
         'gentoo'         : GentooConfigTweaker,
         'centos'         : CentosConfigTweaker,
         'centos-install' : CentosConfigTweaker,
+        'antix'          : AntixConfigTweaker,
         }
     tweaker_class = tweaker_class_dict.get(distro)
 
@@ -321,8 +322,6 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     string)
                 elif distro == "mageialive":
                     string = re.sub(r'LABEL=\S*', 'LABEL=' + usb_label, string)
-                elif distro == "antix":
-                    string = re.sub(r'APPEND', 'image_dir=/multibootusb/' + iso_basename(iso_link), string)
                 elif distro == "solydx":
                     string = re.sub(r'live-media-path=', 'live-media-path=/multibootusb/' + iso_basename(iso_link),
                                     string)
@@ -378,9 +377,9 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
             lines = []
             pattern = re.compile(r'^desktop-image\s*:\s*(.*)$')
             for line in f.readlines():
-                line = line.strip()
+                line = line.rstrip()
                 m = pattern.match(line)
-                if m:
+                if m and m.group(1)[:1]=='/':
                     log("Updating '%s'" % line)
                     partial_path = m.group(1).strip('"').lstrip('/')
                     line = 'desktop-image: "%s/%s"' % \
@@ -708,10 +707,19 @@ class ConfigTweaker:
                                 predicate))
                 break
 
-    def file_is_installed(self, path):
+    def fullpath(self, subpath):
         p = self.setup_params
-        fullpath = os.path.join(p.usb_mount, p.distro_path[1:], path)
-        return os.path.exists(fullpath)
+        return os.path.join(p.usb_mount, p.distro_path[1:], subpath)
+
+    def file_is_installed(self, subpath):
+        return os.path.exists(self.fullpath(subpath))
+
+    def file_content(self, subpath):
+        fp = self.fullpath(subpath)
+        if not os.path.exists(fp):
+            return None
+        with open(fp, errors='ignore') as f:
+            return f.read()
 
 
 class PersistenceConfigTweaker(ConfigTweaker):
@@ -858,8 +866,8 @@ class CentosConfigTweaker(PersistenceConfigTweaker):
                      'inst.repo=',
                      'hd:UUID=%s:%s' % (
                         self.setup_params.usb_uuid,
-                        self.setup_params.distro_path + '/'
-                        + self.setup_params.distro_name + '.iso')),
+                        self.setup_params.distro_path + '/' +
+                        self.setup_params.distro_name + '.iso')),
                   starter_is_either('append', 'linux')))
         return ops
 
@@ -873,6 +881,20 @@ class CentosConfigTweaker(PersistenceConfigTweaker):
               add_or_replace_kv('rd.live.overlay=', uuid_spec)],
              contains_token('rd.live.image'))
             ]
+
+class AntixConfigTweaker(NoPersistenceTweaker):
+    def param_operations(self):
+        content = self.file_content('version')
+        if content and 0 <= content.find('antiX-17'):
+            ops = [
+                add_or_replace_kv('buuid=', self.setup_params.usb_uuid),
+                add_or_replace_kv('bdir=',
+                                  self.setup_params.distro_path + '/antiX')]
+        else:
+            ops = add_or_replace_kv('image_dir=',
+                                    self.setup_params.distro_path)
+
+        return [(ops, starter_is_either('append', 'APPEND', 'linux'))]
 
 
 def test_tweak_objects():
