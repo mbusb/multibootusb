@@ -896,6 +896,11 @@ class AntixConfigTweaker(NoPersistenceTweaker):
 
         return [(ops, starter_is_either('append', 'APPEND', 'linux'))]
 
+    def post_process(self, entire_string):
+        return entire_string.replace(
+            r'UI gfxboot gfx-cpio readme.msg',
+            r'UI gfxboot gfx-cpio.renamed_to_avoid_lockup readme.msg')
+
 
 def test_tweak_objects():
     def os_path_exists(f):
