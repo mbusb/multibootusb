@@ -101,8 +101,12 @@ def create_persistence_using_resize2fs(persistence_fname, persistence_size):
     if platform.system()=='Windows':
         _7zip_exe = gen.resource_path(
             os.path.join(tools_dir, '7zip', '7z.exe'))
+        e2fsck_exe = gen.resource_path(os.path.join(tools_dir, 'cygwin', 'e2fsck.exe'))
+        resize2fs_exe = gen.resource_path(os.path.join(tools_dir, 'cygwin', 'resize2fs.exe'))
     else:
         _7zip_exe = '7z'
+        e2fsck_exe = 'e2fsck'
+        resize2fs_exe = 'resize2fs'
 
     config.status_text = 'Copying persistence file...'
     persistence_gz = gen.resource_path(
@@ -142,11 +146,11 @@ def create_persistence_using_resize2fs(persistence_fname, persistence_size):
                 bytes_left -= block_size
 
     config.status_text = 'Resizing the persistence file...'
-    fsck_cmd = ['e2fsck', '-y', '-f', persistence_path]
+    fsck_cmd = [e2fsck_exe, '-y', '-f', persistence_path]
     if subprocess.call(fsck_cmd)==0:
         gen.log("Checking the persistence file.")
 
-    resize_cmd = ['resize2fs', persistence_path]
+    resize_cmd = [resize2fs_exe, persistence_path]
     if subprocess.call(resize_cmd)==0:
         gen.log("Successfully resized the persistence file.")
 
@@ -169,12 +173,22 @@ creator_dict = {
     }
 
 def detect_missing_tools(distro):
+    tools_dir = os.path.join('data', 'tools')
+    if platform.system() == 'Windows':
+        _7zip_exe = gen.resource_path(
+            os.path.join(tools_dir, '7zip', '7z.exe'))
+        e2fsck_exe = gen.resource_path(os.path.join(tools_dir, 'cygwin', 'e2fsck.exe'))
+        resize2fs_exe = gen.resource_path(os.path.join(tools_dir, 'cygwin', 'resize2fs.exe'))
+    else:
+        _7zip_exe = '7z'
+        e2fsck_exe = 'e2fsck'
+        resize2fs_exe = 'resize2fs'
     if distro not in creator_dict or \
        creator_dict[distro][0] is not create_persistence_using_resize2fs:
         return None
     try:
         with open(os.devnull) as devnull:
-            for tool in ['e2fsck', 'resize2fs']:
+            for tool in [e2fsck_exe, resize2fs_exe]:
                 subprocess.Popen([tool], stdout=devnull, stderr=devnull)
     except FileNotFoundError:  # Windows
         return "'%s.exe' is not installed or not available for use." % tool
