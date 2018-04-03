@@ -79,7 +79,8 @@ def install_distro():
     elif config.distro == "salix-live":
         # iso.iso_extract_file(config.image_path, install_dir, "boot")
         iso.iso_extract_file(config.image_path, install_dir,
-                             ['*syslinux', '*menus', '*vmlinuz', '*initrd*'])
+                             ['*syslinux', '*menus', '*vmlinuz', '*initrd*',
+                              'EFI'])
         iso.iso_extract_file(config.image_path, usb_mount,
                              ['*modules', '*packages', '*optional',
                               '*liveboot'])
