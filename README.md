@@ -68,7 +68,8 @@ Contributor(s)
 --------------
 Ian Bruce  
 LiQiong Lee  
-Alin Trăistaru (alindt)   
+Alin Trăistaru (alindt)
+Shinji Suzuki   
 and many others who have given their valuable bug report/ feedback.
 
 Author(s)
