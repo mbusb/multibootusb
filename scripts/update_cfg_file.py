@@ -148,6 +148,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
         'centos'         : CentosConfigTweaker,
         'centos-install' : CentosConfigTweaker,
         'antix'          : AntixConfigTweaker,
+        'salix-live'     : SalixConfigTweaker,
         }
     tweaker_class = tweaker_class_dict.get(distro)
 
@@ -325,13 +326,6 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                 elif distro == "solydx":
                     string = re.sub(r'live-media-path=', 'live-media-path=/multibootusb/' + iso_basename(iso_link),
                                     string)
-                elif distro == "salix-live":
-                    string = re.sub(r'iso_path', '/multibootusb/' + iso_basename(iso_link) + '/' + iso_name(iso_link),
-                                    string)
-                    string = re.sub(r'initrd=',
-                                    'fromiso=/multibootusb/'
-                                    + iso_basename(iso_link) + '/'
-                                    + iso_name(iso_link) + ' initrd=', string)
                 elif distro == 'alt-linux':
                     string = re.sub(r':cdrom', ':disk', string)
                 elif distro == 'fsecure':
@@ -369,7 +363,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
 
     def fix_desktop_image_in_thema_callback(install_dir_for_grub,
                                             dir_, fname):
-        if fname.lower() != 'theme.txt':
+        if not fname.lower().endswith('.txt'):
             return
         log("Probing '%s'!" % fname)
         theme_file = os.path.join(dir_, fname)
@@ -379,7 +373,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
             for line in f.readlines():
                 line = line.rstrip()
                 m = pattern.match(line)
-                if m and m.group(1)[:1]=='/':
+                if m and m.group(1).startswith(('/', '"/')):
                     log("Updating '%s'" % line)
                     partial_path = m.group(1).strip('"').lstrip('/')
                     line = 'desktop-image: "%s/%s"' % \
@@ -672,7 +666,13 @@ class ConfigTweaker:
                    apply_persistence_to_all_lines,
                    param_operations, param_operations_for_persistence)
 
+    def legacy_tweak(self, content):
+        return None
+
     def tweak(self, content):
+        tweaked = self.legacy_tweak(content)
+        if tweaked:
+            return tweaked
         apply_persistence_to_all_lines = \
             0 < self.setup_params.persistence_size and \
             not self.config_is_persistence_aware(content)
@@ -897,6 +897,30 @@ class AntixConfigTweaker(NoPersistenceTweaker):
         return [(ops, starter_is_either('append', 'APPEND', 'linux'))]
 
 
+class SalixConfigTweaker(NoPersistenceTweaker):
+    def legacy_tweak(self, content):
+        if content.find('iso_path') < 0:
+            return None
+        p = self.setup_params
+        for replacee, replacer in [
+                ('iso_path', "%s/%s.iso" % (p.distro_path, p.distro_name)),
+                ('initrd=', 'fromiso=%s/%s.iso initrd=' % (
+                    p.distro_path, p.distro_name)),
+                ]:
+            content = content.replace(replacee, replacer)
+        return content
+
+    def param_operations(self):
+        ops = [
+            (add_or_replace_kv('livemedia=','%s:%s/%s.iso' % (
+                self.setup_params.usb_uuid, self.setup_params.distro_path,
+                self.setup_params.distro_name)),
+             starter_is_either('append', 'linux'))]
+        return ops
+
+    def post_process(self, entire_string):
+        return entire_string.replace('($root)', self.setup_params.distro_path)
+
 def test_tweak_objects():
     def os_path_exists(f):
         if f.endswith('liberte/boot/root-x86.sfs'):
@@ -922,6 +946,7 @@ def _test_tweak_objects():
     debian_tweaker = DebianConfigTweaker('debian', setup_params_no_persistence)
     ubuntu_tweaker = UbuntuConfigTweaker('ubuntu', setup_params_no_persistence)
     centos_tweaker = CentosConfigTweaker('centos', setup_params_no_persistence)
+    salix_tweaker = SalixConfigTweaker('centos', setup_params_no_persistence)
 
     # Test awareness on 'persistent'
     content = """
@@ -1089,7 +1114,8 @@ menuentry 'Boot LiveCD (kernel: pentoo)' --class gnu-linux --class os {
 
     print ("Testing centos tweaker on DVD-installer")
     saved = os.path.exists
-    os.path.exists = lambda f: f.endswith('/.treeinfo') or saved(f)
+    os.path.exists = lambda f: f.endswith(('/.treeinfo','\\.treeinfo')) \
+                     or saved(f)
     try:
         content = r"""label linux
   menu label ^Install CentOS 7
@@ -1152,6 +1178,21 @@ menuentry 'Boot LiveCD (kernel: pentoo)' --class gnu-linux --class os {
   append rd.live.overlay=UUID={usb-uuid} rd.live.image rd.live.dir=/multibootusb/{iso-name}/LiveOS rw
   append initrd=initrd0.img root=live:UUID={usb-uuid} rootfstype=auto ro rd.live.image quiet  rhgb rd.luks=0 rd.md=0 rd.dm=0 rd.live.dir=/multibootusb/{iso-name}/LiveOS
   menu default
+"""
+
+    print ("Testing salix tweaker on legacy tweaking")
+    content = """menu Old Salix
+append initrd=/boot/initrd.img foobar=iso_path tail-param
+"""
+    assert salix_tweaker.tweak(content)=="""menu Old Salix
+append fromiso=/multibootusb/{iso-name}/{iso-name}.iso initrd=/boot/initrd.img foobar=/multibootusb/{iso-name}/{iso-name}.iso tail-param
+"""
+    print ("Testing salix tweaker on new tweaking")
+    content = """menu New Salix
+append initrd=/boot/initrd.img tail-param
+"""
+    assert salix_tweaker.tweak(content)=="""menu New Salix
+append initrd=/boot/initrd.img tail-param livemedia={usb-uuid}:/multibootusb/{iso-name}/{iso-name}.iso
 """
 
 

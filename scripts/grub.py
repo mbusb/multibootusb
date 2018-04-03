@@ -44,6 +44,11 @@ def mbusb_update_grub_cfg():
         config.image_path,
         lambda x: os.path.basename(x).lower().startswith('grub') and
         os.path.basename(x).lower().endswith('.cfg'))
+    # favour 'grub.cfg' over variants.
+    flagged  = [(f, os.path.basename(f).lower()=='grub.cfg')
+                for f in grub_cfg_list]
+    grub_cfg_list = [ x[0] for x in flagged if x[1] ] + \
+                    [ x[0] for x in flagged if not x[1] ]
     candidates = []
     for src_list, predicate in [
             # List in the order of decreasing preference.
