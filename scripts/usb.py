@@ -17,7 +17,7 @@ from . import config
 from . import gen
 if platform.system() == 'Linux':
     from . import udisks
-    u = udisks.get_udisks(ver=None)
+    UDISKS = udisks.get_udisks(ver=None)
 if platform.system() == 'Windows':
     import psutil
     import win32com.client
@@ -198,6 +198,13 @@ def list_devices(fixed=False):
         return None
 
 
+def parent_partition(partition):
+    exploded = [c for c in partition]
+    while exploded[-1].isdigit():
+        exploded.pop()
+    return ''.join(exploded)
+
+
 def details_udev(usb_disk_part):
     """
     Get details of USB partition using udev
@@ -220,9 +227,23 @@ def details_udev(usb_disk_part):
         return None
 
     try:
-        fdisk_cmd_out = subprocess.check_output('fdisk -l ' + usb_disk_part, shell=True)
+        ppart = parent_partition(usb_disk_part)
+        fdisk_cmd_out = subprocess.check_output(
+            'LANG=C fdisk -l ' + ppart, shell=True)
+        partition_prefix = bytes(usb_disk_part, 'utf-8') + b' '
+        out = []
+        for l in fdisk_cmd_out.split(b'\n'):
+            if not l.startswith(b'/dev/'):
+                out.append(l)
+                continue
+            if l.startswith(partition_prefix):
+                out.append(l)
+            # filter out non-relevant partition info
+        fdisk_cmd_out = b'\n'.join(out)
+
     except subprocess.CalledProcessError:
-        gen.log("ERROR: fdisk failed on disk/partition (%s)" % str(usb_disk_part))
+        gen.log("ERROR: fdisk failed on disk/partition (%s)" %
+                str(usb_disk_part))
         return None
 
     if b'Extended' in fdisk_cmd_out:
@@ -233,12 +254,19 @@ def details_udev(usb_disk_part):
         model = ''
         label = ''
         devtype = "extended partition"
-
+    elif b'swap' in fdisk_cmd_out:
+        mount_point = ''
+        uuid = ''
+        file_system = ''
+        vendor = ''
+        model = ''
+        label = ''
+        devtype = "swap partition"
     elif device.get('DEVTYPE') == "partition":
         uuid = device.get('ID_FS_UUID') or ""
         file_system = device.get('ID_FS_TYPE') or ""
         label = device.get('ID_FS_LABEL') or ""
-        mount_point = u.mount(usb_disk_part) or ""
+        mount_point = UDISKS.mount(usb_disk_part) or ""
         mount_point = mount_point.replace('\\x20', ' ')
         vendor = device.get('ID_VENDOR') or ""
         model = device.get('ID_MODEL') or ""
@@ -259,7 +287,8 @@ def details_udev(usb_disk_part):
         size_free = shutil.disk_usage(mount_point)[2]
 
     else:
-        fdisk_cmd = 'fdisk -l ' + usb_disk_part + ' | grep "^Disk /" | sed -re "s/.*\s([0-9]+)\sbytes.*/\\1/"'
+        fdisk_cmd = 'LANG=C fdisk -l ' + usb_disk_part + \
+          ' | grep "^Disk /" | sed -re "s/.*\s([0-9]+)\sbytes.*/\\1/"'
         size_total = subprocess.check_output(fdisk_cmd, shell=True).strip()
         size_used = ""
         size_free = ""
@@ -302,7 +331,7 @@ def details_udisks2(usb_disk_part):
         mount_point = bytearray(mount_point[0]).replace(b'\x00', b'').decode('utf-8')
     else:
         try:
-            mount_point = u.mount(usb_disk_part)
+            mount_point = UDISKS.mount(usb_disk_part)
         except:
             mount_point = "No_Mount"
     try:
