@@ -195,26 +195,36 @@ def write_to_file(file_path, _strings):
         gen.log('Error writing to %s...' % file_path)
 
 
-def kernel_search_path(isolinux_dir):
-    return 
-    
 def locate_kernel_file(subpath, isolinux_dir):
+    subpath_original = subpath
+    if subpath[0] != '/':
+        gen.log("Accepting a relative kernel/initrd path '%s' as is."
+                % subpath)
+        return subpath
+    if os.path.exists(os.path.join(config.usb_mount, subpath[1:])):
+        gen.log("Accepting kernel/initrd path '%s' as it exists." % subpath)
+        return subpath
+    _iso_basename = iso.iso_basename(config.image_path)
+    subpath = subpath[1:]  # strip off the leading '/'
+    drive_relative_prefix = 'multibootusb/' + _iso_basename + '/'
+    if subpath.startswith(drive_relative_prefix):
+        # Paths is already drive-relative make it install-dir-relative.
+        subpath = subpath[len(drive_relative_prefix):]
+    gen.log("Trying to locate kernel/initrd file '%s'" % subpath)
     for d in [
-            '',
-            os.path.join('multibootusb',
-                         iso.iso_basename(config.image_path), isolinux_dir),
+            os.path.join('multibootusb', _iso_basename, isolinux_dir),
             # Down below are dire attemps to find.
-            os.path.join('multibootusb',
-                         iso.iso_basename(config.image_path)),
-            os.path.join('multibootusb',
-                         iso.iso_basename(config.image_path), 'arch'),
+            os.path.join('multibootusb', _iso_basename),
+            os.path.join('multibootusb', _iso_basename, 'arch'),
             ]:
-        if os.path.exists(os.path.join(config.usb_mount, d, subpath)):
+        fullpath = os.path.join(config.usb_mount, d, subpath)
+        if os.path.exists(fullpath):
+            gen.log("Digged out '%s' at '%s'" % (subpath, fullpath))
             unix_style_path = os.path.join(d, subpath).\
                               replace('\\', '/').\
                               lstrip('/')
             return ('/' + unix_style_path)
-    return subpath
+    return subpath_original
         
         
 def tweak_bootfile_path(img_file_spec, isolinux_dir):
@@ -244,23 +254,26 @@ def tweak_bootfile_path(img_file_spec, isolinux_dir):
     return ' '.join(img_file_spec.split(','))
 
 
-def extract_initrd_param(value, isolinux_dir):
-    kernel_search_path = [
-        '',
-        os.path.join('multibootusb',
-                     iso.iso_basename(config.image_path), isolinux_dir),
-        os.path.join('multibootusb', # A dire attemp to find.
-                     iso.iso_basename(config.image_path)),
-        ]
-    initrd_line, others = '', []
-    for paramdef in value.split(' '):
-        if not paramdef.lower().startswith('initrd='):
-            others.append(paramdef)
-            continue
-        paths = [locate_kernel_file(s, isolinux_dir) for s 
-                 in paramdef[len('initrd='):].split(',')]
-        initrd_line = 'initrd ' + ' '.join(paths)
-    return  initrd_line, ' '.join(others)
+def extract_initrd_params_and_fix_kernel(value, isolinux_dir):
+    initrd_line, others  = '', []
+    tokens = value.split(' ')
+    tokens.reverse()
+    while 0<len(tokens):
+        token = tokens.pop()
+        if token=='linux':
+            # deal with 'append linux /boot/bzImage' in salitaz-rolling
+            if 0<len(tokens):
+                kernel_file = locate_kernel_file(tokens.pop(), isolinux_dir)
+                others.extend(['linux', kernel_file])
+            else:
+                others.append('linux')
+        elif token.startswith('initrd='):
+            paths = [locate_kernel_file(s, isolinux_dir) for s
+                     in token[len('initrd='):].split(',')]
+            initrd_line = 'initrd ' + ' '.join(paths)
+        else:
+            others.append(token)
+    return  initrd_line, ' '.join(others),
 
 
 def iso2grub2(install_dir, loopback_cfg_path):
@@ -370,15 +383,16 @@ def iso2grub2(install_dir, loopback_cfg_path):
                         initrd_line = 'initrd ' + \
                                       tweak_bootfile_path(value, iso_bin_dir)
                     elif kw== 'append':
-                        new_initrd_line, new_value = extract_initrd_param(
-                            value, iso_bin_dir)
+                        new_initrd_line, new_value \
+                            = extract_initrd_params_and_fix_kernel(
+                                value, iso_bin_dir)
+                        appends.append(new_value)
                         if new_initrd_line:
                             if initrd_line:
                                 gen.log("Warning: found more than one initrd "
                                         "specifications in block '%s'."
                                         % menu_label)
                             initrd_line = new_initrd_line
-                        appends.append(new_value)
 
                 if menu_line in seen_menu_lines:
                     out_lines.append( "# '%s' is superceded by the previous "
@@ -387,11 +401,12 @@ def iso2grub2(install_dir, loopback_cfg_path):
                     if linux_line or initrd_line:
                         seen_menu_lines.append(menu_line)
                         out_lines.append(menu_line + ' {')
-                        for l, a in [
-                                (linux_line, ' ' + ' '.join(appends)),
+                        for starter, value in [
+                                (linux_line, ' '.join(appends)),
                                 (initrd_line, '')]:
-                            if l:
-                                out_lines.append('    ' + l + a)
+                            vec = [x for x in [starter, value] if x]
+                            if vec:
+                                out_lines.append('    ' + ' '.join(vec))
                         out_lines.append( '}' )
                     else:
                         out_lines.append("# Avoided emitting an empty "
