@@ -365,17 +365,21 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                             dir_, fname):
         if not fname.lower().endswith('.txt'):
             return
-        log("Probing '%s'!" % fname)
         theme_file = os.path.join(dir_, fname)
         updated = False
         with open(theme_file, 'r', encoding='utf-8') as f:
-            lines = []
             pattern = re.compile(r'^desktop-image\s*:\s*(.*)$')
-            for line in f.readlines():
+            try:
+                src_lines = f.readlines()
+            except UnicodeDecodeError:
+                log("Unexpected encoding in %s" % theme_file)
+                return
+            lines = []
+            for line in src_lines:
                 line = line.rstrip()
                 m = pattern.match(line)
                 if m and m.group(1).startswith(('/', '"/')):
-                    log("Updating '%s'" % line)
+                    log("Updating '%s' in %s" % (line,theme_file))
                     updated = True
                     partial_path = m.group(1).strip('"').lstrip('/')
                     line = 'desktop-image: "%s/%s"' % \
