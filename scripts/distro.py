@@ -28,6 +28,11 @@ def distro(iso_cfg_ext_dir, iso_link, expose_exception=False):
         for path, subdirs, files in os.walk(iso_cfg_ext_dir):
             for name in files:
                 if name.endswith(('.cfg', '.CFG', '.txt', '.TXT', '.lst')):
+                    if name.lower()=='i18n.cfg':
+                        # i18n.cfg in salitaz-rolling cause misdetection
+                        # of centos by the following line.
+                        # MENU LABEL English US (acentos)
+                        continue
                     try:
                         # errors='ignore' is required as some files also contain non utf character
                         string = open(os.path.join(path, name), errors='ignore').read()
