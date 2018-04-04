@@ -131,7 +131,7 @@ class pkg():
 
             with open("stdeb.cfg", "w") as f:
                 f.write(stdcfg)
-            if subprocess.call('/usr/bin/python3 setup.py --command-packages=stdeb.command bdist_deb', shell=True) == 0 and \
+            if subprocess.call('/usr/bin/python3.5 setup.py --command-packages=stdeb.command bdist_deb', shell=True) == 0 and \
                     os.path.exists(os.path.join("deb_dist", "python3-multibootusb_" + self.version + "-1_all.deb")):
                 try:
                     shutil.copy2(os.path.join("deb_dist", "python3-multibootusb_" + self.version + "-1_all.deb"),
@@ -159,7 +159,7 @@ class pkg():
                          "Requires = " + require)
             with open("setup.cfg", "w") as f:
                 f.write(setup_cfg)
-            if subprocess.call('/usr/bin/python3 setup.py bdist_rpm', shell=True) == 0 and \
+            if subprocess.call('/usr/bin/python3.5 setup.py bdist_rpm', shell=True) == 0 and \
                     os.path.exists(os.path.join("dist", "multibootusb-" + self.version + "-1.noarch.rpm")):
                 if self.pkg_name == 'suse':
                     package = "multibootusb-" + self.version + "-1suse.noarch.rpm"
