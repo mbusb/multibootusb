@@ -367,7 +367,8 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
             return
         log("Probing '%s'!" % fname)
         theme_file = os.path.join(dir_, fname)
-        with open(theme_file, 'r') as f:
+        updated = False
+        with open(theme_file, 'r', encoding='utf-8') as f:
             lines = []
             pattern = re.compile(r'^desktop-image\s*:\s*(.*)$')
             for line in f.readlines():
@@ -375,12 +376,14 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                 m = pattern.match(line)
                 if m and m.group(1).startswith(('/', '"/')):
                     log("Updating '%s'" % line)
+                    updated = True
                     partial_path = m.group(1).strip('"').lstrip('/')
                     line = 'desktop-image: "%s/%s"' % \
                            (install_dir_for_grub, partial_path)
                 lines.append(line)
-        with open(theme_file, 'w') as f:
-            f.write('\n'.join(lines))
+        if updated:
+            with open(theme_file, 'w') as f:
+                f.write('\n'.join(lines))
 
     visitor_callbacks = [
         # Ensure that isolinux.cfg file is copied as syslinux.cfg
