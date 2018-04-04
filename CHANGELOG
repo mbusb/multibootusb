@@ -1,3 +1,33 @@
+Version - 9.2.0
+---------------
+* Welcome onboard Shiniji Suzuki. The most of the bug fixes and additional features implemented are done by him. A big tanks to him.
+* Fix for crash under Windows
+* Reimplemented Debian persistence feature under Linux and Windows
+* Improved partition detection type
+* Allow target drive specification using lower case letter in command line interface
+* Added option to specify persistence option from commanl ine interface using 'persistence-size' or 'p'
+* Better conversion of syslinux config files to grub compatible one (loopback.cfg)
+* Prevent command line interface from installing over existing installation (similar to GUI)
+* Fix distro detection going out of sync after uninstalling a distro
+* Multibootusb remembers persistence size when trying next distro (having persistence feature)
+* Better detection og GPT devices under Windows
+* Fix linux (ubuntu16.04) incompatibility (7zip coding)
+* Fix crashing of multibootusb when installing default syslinux
+* Provide feedback after successful or failure of syslinux install
+* General code cleanup
+* Find and prompt for empty ISO files
+* Fixed various typographical errors
+* Fix wifi slax install issue
+* Fix Antergos booting issue
+* Fix slitaz rolling detection and install
+* Fix wifi slax install issue
+* Fix for syslinux install when USB disk is not inserted
+* Fix parted magic grub label (Thanks to gabrielmagno)
+* Intimate users if USB disk not inserted when trying to install syslinux
+* Add support for AntiX 17.1
+* Added Parabola Linux
+* Sync with other multibootusb project
+
 Version - 9.1.0
 ---------------
 * Included missing EFI modules
