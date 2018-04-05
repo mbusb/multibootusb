@@ -181,23 +181,24 @@ def detect_iso_from_file_list(iso_link, iso_file_list):
     Fallback detection script from the content of an ISO.
     :return: supported distro as string
     """
+    keys_to_distro = [
+        (['sources', 'boot.wim'], 'Windows'),
+        (['config.isoclient'], 'opensuse'),
+        (['dban'], 'slitaz'),
+        (['memtest.img'], 'memtest'),
+        (['mt86.png', 'isolinux'], 'raw_iso'),
+        (['menu.lst'], 'grub4dos'),
+        (['bootwiz.cfg', 'bootmenu_logo.png'], 'grub4dos_iso') ]
+
     if os.path.exists(iso_link):
-        if any("sources" in s.lower() for s in iso_file_list) and any("boot.wim" in s.lower() for s in iso_file_list):
-            return "Windows"
-        elif any("config.isoclient" in s.lower() for s in iso_file_list):
-            return "opensuse"
-        elif any("dban" in s.lower() for s in iso_file_list):
-            return "slitaz"
-        elif any("memtest.img" in s.lower() for s in iso_file_list):
-            return "memtest"
-        elif any("mt86.png" in s.lower() for s in iso_file_list) and any("isolinux" in s.lower() for s in iso_file_list):
-            return 'raw_iso'
-        elif any("menu.lst" in s.lower() for s in iso_file_list):
-            return "grub4dos"
-        elif any("bootwiz.cfg" in s.lower() for s in iso_file_list) and any("bootmenu_logo.png" in s.lower() for s in iso_file_list):
-            return "grub4dos_iso"
-        else:
-            log(iso_file_list)
+        filenames = [f.lower() for f in iso_file_list]
+        for keys, distro in keys_to_distro:
+            if all(k in filenames for k in keys):
+                return distro
+        log("Examined %d %s in the iso but could not determine the distro."
+            % (len(filenames), len(filenames)==1 and 'filename' or 'filenames'))
+    return None
+
 
 if __name__ == '__main__':
     iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
