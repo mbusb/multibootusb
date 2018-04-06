@@ -116,7 +116,7 @@ def distro(iso_cfg_ext_dir, iso_link, expose_exception=False):
                             return "ipfire"
                         elif re.search(r'zenwalk|slack|salix', string, re.I) and re.search(r'live', string, re.I):
                             return "salix-live"
-                        elif re.search(r'zenwalk|slack|salix', string, re.I) and not re.search(r'slacko', string, re.I):
+                        elif re.search(r'zenwalk|slack|salix', string, re.I):
                             return "zenwalk"
                         elif re.search(r'ubuntu server', string, re.I):
                             return "ubuntu-server"
