@@ -63,8 +63,6 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
         :param usb_disk: Path to usb disk.
         :return:
         """
-        qemu = self.check_qemu_exist()
-
         if not config.usb_disk:
             QtWidgets.QMessageBox.information(self, 'No disk...', 'No USB disk selected.\n\nPlease choose a disk first.')
         else:
@@ -83,12 +81,16 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
                     ram = " -m " + ram
                 else:
                     ram = ""
+                haxm = (hasattr(config, 'qemu_use_haxm') and \
+                        config.qemu_use_haxm) and ' -accel hax' or ''
 
                 if platform.system() == "Windows":
                     disk_number = get_physical_disk_number(qemu_usb_disk)
+                    qemu_exe = find_qemu_exe()
+                    qemu_dir = os.path.split(qemu_exe)[0]
                     parent_dir = os.getcwd()
-                    os.chdir(resource_path(os.path.join("data", "tools", "qemu")))
-                    cmd = quote(qemu) + ' -L . -boot c' + ram \
+                    os.chdir(qemu_dir)
+                    cmd = quote(qemu_exe) + ' -L . -boot c' + ram + haxm \
                           + ' -hda //./PhysicalDrive' + str(disk_number)
 
                     try:
@@ -147,8 +149,7 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
                 qemu = ""
 
         elif platform.system() == "Windows":
-            qemu = resource_path(os.path.join("data", "tools", "qemu", "qemu-system-x86_64.exe"))
-            log(qemu)
+            qemu = find_qemu_exe()
 
         if qemu:
             log("QEMU: using " + qemu)
@@ -157,3 +158,17 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
 
         return qemu
 
+def find_qemu_exe():
+    exe_name = 'qemu-system-x86_64.exe'
+    if hasattr(config, 'qemu_exe_path'):
+        return config.qemu_exe_path
+    if (not hasattr(config, 'qemu_use_builtin')) or not config.qemu_use_builtin:
+        for wellknown_path in [
+                r'c:\Program Files\qemu',
+                r'd:\Program Files\qemu',
+                r'e:\Program Files\qemu',
+                ]:
+            exe_path = os.path.join(wellknown_path, exe_name)
+            if os.path.exists(exe_path):
+                return exe_path
+    return resource_path(os.path.join("data", "tools", "qemu", exe_name))
