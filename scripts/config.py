@@ -44,3 +44,16 @@ editors_win = ["notepad++.exe", "notepad.exe"]
 imager_usb_disk = []
 
 debug = False
+
+# If turned off, qemu will be sought at a few preset locations
+# first before deciding to use the bundled exe.
+# Set 'qemu_exe_path' to explicitly specify.
+qemu_use_builtin = True # Relevant on Windows only
+
+# qemu_exe_path = r"C:\pkgs\qemu\qemu-system-x86_64.exe"
+# Relevant on Windows only
+
+# Enable QEMU accelaration by Intel HAXM hypervisor.
+# Bundled QEMU does not support this.
+# See https://www.qemu.org/2017/11/22/haxm-usage-windows/ for setup.
+qemu_use_haxm = not qemu_use_builtin  # Relevant on Windows only
