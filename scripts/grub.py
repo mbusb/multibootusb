@@ -197,10 +197,13 @@ def write_to_file(file_path, _strings):
 
 def locate_kernel_file(subpath, isolinux_dir):
     subpath_original = subpath
-    if subpath[0] != '/':
-        gen.log("Accepting a relative kernel/initrd path '%s' as is."
-                % subpath)
-        return subpath
+    # Looks like relative paths don't work in grub.
+    #if subpath[0] != '/':
+    #    gen.log("Accepting a relative kernel/initrd path '%s' as is."
+    #            % subpath)
+    #    return subpath
+    if subpath[:1] != '/':
+        subpath = '/' + subpath
     if os.path.exists(os.path.join(config.usb_mount, subpath[1:])):
         gen.log("Accepting kernel/initrd path '%s' as it exists." % subpath)
         return subpath
@@ -212,7 +215,7 @@ def locate_kernel_file(subpath, isolinux_dir):
         subpath = subpath[len(drive_relative_prefix):]
     gen.log("Trying to locate kernel/initrd file '%s'" % subpath)
     for d in [
-            os.path.join('multibootusb', _iso_basename, isolinux_dir),
+            os.path.join('multibootusb', _iso_basename, isolinux_dir or ''),
             # Down below are dire attemps to find.
             os.path.join('multibootusb', _iso_basename),
             os.path.join('multibootusb', _iso_basename, 'arch'),
@@ -319,8 +322,8 @@ def iso2grub2(install_dir, loopback_cfg_path):
                 # Append the block after the last matching position
                 matching_blocks.append(data[matching_blocks_re[-1].span()[1]:])
             else:
-                m = re.match('^(label)(.*?)',
-                             data, re.I|re.DOTALL|re.MULTILINE)
+                m = re.search('^(label)(.*?)',
+                              data, re.I|re.DOTALL|re.MULTILINE)
                 matching_blocks = m and [data[m.start():]] or []
 
             if not matching_blocks:
