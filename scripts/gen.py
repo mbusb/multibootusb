@@ -174,12 +174,12 @@ def clean_iso_cfg_ext_dir(iso_cfg_ext_dir):
     :return:
     """
     if os.path.exists(iso_cfg_ext_dir):
-        filelist = [f for f in os.listdir(iso_cfg_ext_dir)]
-        for f in filelist:
-            if os.path.isdir(os.path.join(iso_cfg_ext_dir, f)):
-                shutil.rmtree(os.path.join(iso_cfg_ext_dir, f))
+        for f in os.listdir(iso_cfg_ext_dir):
+            fullpath = os.path.join(iso_cfg_ext_dir, f)
+            if os.path.isdir(fullpath):
+                shutil.rmtree(fullpath)
             else:
-                os.remove(os.path.join(iso_cfg_ext_dir, f))
+                os.remove(fullpath)
     else:
         log('iso_cfg_ext_dir directory does not exist.')
 
