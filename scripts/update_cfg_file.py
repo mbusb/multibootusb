@@ -242,7 +242,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                         string)
                 elif distro == "slax":
                     string = re.sub(r'initrd=',
-                                    r'from=/multibootusb/' + iso_basename(iso_link) + '/slax fromusb initrd=', string)
+                                    r'from=/multibootusb/' + iso_basename(iso_link) + '/slax changes=/multibootusb/' + iso_basename(iso_link) + '/slax fromusb initrd=', string)
                 elif distro == "finnix":
                     string = re.sub(r'initrd=',
                                     r'finnixdir=/multibootusb/' + iso_basename(iso_link) + '/finnix initrd=', string)
