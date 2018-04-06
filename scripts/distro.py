@@ -79,7 +79,7 @@ def distro(iso_cfg_ext_dir, iso_link, expose_exception=False):
                         elif re.search(
                                 r'slitaz|dban |ophcrack|tinycore|rescue.cpi|xpud|untangle|4mlinux|partition wizard|android-x86.png|'
                                 r'riplinux|lebel dummy|http://pogostick.net/~pnh/ntpasswd/|AVG Rescue CD|AntivirusLiveCD|'
-                                r'lkrn|Nanolinux|OSForensics|acentos|PING', string, re.I):  # acentos is a text found in slitaz distro
+                                r'lkrn|Nanolinux|OSForensics|PING', string, re.I):  # acentos is a text found in slitaz distro
                             return "slitaz"
                         elif re.search(r'minimal Slackware|Slackware-HOWTO', string, re.I):
                             # for minimal slackware detection
