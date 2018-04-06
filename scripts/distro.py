@@ -70,6 +70,9 @@ def distro(iso_cfg_ext_dir, iso_link, expose_exception=False):
                             return "solydx"
                         elif re.search(r'knoppix', string, re.I):
                             return "knoppix"
+                        elif re.search(r'root=live:CDLABEL=CentOS',
+                                        string, re.I):
+                            return 'centos' # centos-live
                         elif re.search(r'root=live:CDLABEL=', string, re.I) or re.search(r'root=live:LABEL=', string, re.I):
                             return "fedora"
                         elif re.search(r'redcore', string, re.I):
@@ -120,9 +123,6 @@ def distro(iso_cfg_ext_dir, iso_link, expose_exception=False):
                             return "zenwalk"
                         elif re.search(r'ubuntu server', string, re.I):
                             return "ubuntu-server"
-                        elif re.search(r'root=live:CDLABEL=CentOS',
-                                        string, re.I):
-                            return 'centos' # centos-live
                         elif re.search(r'Install CentOS', string, re.I):
                             return "centos-install"
                         elif re.search(r'CentOS', string, re.I):
