@@ -45,6 +45,8 @@ imager_usb_disk = []
 
 debug = False
 
+# protected_drives = ['C:','D:','E:', '/dev/sda', '/dev/sdb']
+
 # If turned off, qemu will be sought at a few preset locations
 # first before deciding to use the bundled exe.
 # Set 'qemu_exe_path' to explicitly specify.
