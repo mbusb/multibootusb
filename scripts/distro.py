@@ -222,6 +222,8 @@ def perform_strict_detections(iso_cfg_ext_dir, iso_file_list):
 
     def run_contains(filepath, keyword, cfg_dir=iso_cfg_ext_dir):
         fullpath = os.path.join(cfg_dir, filepath.replace('/', os.sep))
+        if not os.path.exists(fullpath):
+            return False
         try:
             with open(fullpath, 'rb') as f:
                 data = f.read().lower()
