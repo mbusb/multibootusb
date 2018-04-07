@@ -226,9 +226,6 @@ def perform_strict_detections(iso_cfg_ext_dir, iso_file_list):
             with open(fullpath, 'rb') as f:
                 data = f.read().lower()
                 return keyword in data
-        except UnicodeDecodeError:
-            log("Couldn't decode %s" % fullpath)
-            return False
         except (IOError, OSError):
             log("Failed to open %s" % fullpath)
             return False
