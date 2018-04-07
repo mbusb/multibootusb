@@ -12,14 +12,13 @@ class DistoDetection(unittest.TestCase):
         mock_isobin_exists = MM(return_value=isobin_exists)
         mock_iso_list = MM(return_value=filelist_in_iso)
         mock_os_walk = MM(return_value=[('/', [], ['grub.cfg'])])
-        @patch('scripts.distro.isolinux_bin_exist', mock_isobin_exists)
+        @patch('scripts.iso.isolinux_bin_exist', mock_isobin_exists)
         @patch('os.walk', mock_os_walk)
         @patch('scripts._7zip.list_iso', mock_iso_list)
         @patch('builtins.open', mock_open(read_data=input_text))
         def test_when_isolinux_bin_is_available():
             return (distro.distro('{iso-cfg-dir}', 'ProDOS2.iso'))
         return test_when_isolinux_bin_is_available()
-
 
 
     def test_filebased_detection(self):
@@ -68,7 +67,6 @@ class DistoDetection(unittest.TestCase):
             ('kaos',            'kdeosisolabel'),
             ('memdisk_iso',     'grml'),
             ('grml',            'grml live-media-path=/dev/sda1'),
-            ('debian-install',  'debian-installer'),
             ('solydx',          'solydx'),
             ('knoppix',         'knoppix'),
             ('fedora',          'root=live:CDLABEL=|redcore'),
@@ -115,7 +113,7 @@ class DistoDetection(unittest.TestCase):
             ]
 
         for expected_distro, input_texts in test_inputs:
-            for input_text in input_texts.split('|'):
+            for input_text in input_texts.lower().split('|'):
                 distro = self.distro(False, [], input_text)
                 assert distro==expected_distro, (
                     "From \"%s\", '%s' is expected but got '%s'" %
@@ -133,18 +131,16 @@ class DistoDetection(unittest.TestCase):
         @patch('scripts.distro.log', log_mock)
         def _():
             fn = distro.detect_iso_from_file_list
-            assert fn('fake.iso', ['BOOT.wim', 'Sources']) == 'Windows'
-            assert fn('fake.iso', ['BOOT.wim', 'Sause']) is None
-            assert fn('fake.iso', ['config.isoclient', 'foo']) == 'opensuse'
-            assert fn('fake.iso', ['bar', 'dban', 'foo']) == 'slitaz'
-            assert fn('fake.iso', ['memtest.img']) == 'memtest'
-            assert fn('fake.iso', ['mt86.png','isolinux']) == 'raw_iso'
-            assert fn('fake.iso', ['menu.lst']) == 'grub4dos'
-            assert fn('fake.iso', ['bootwiz.cfg', 'bootmenu_logo.png']) == \
+            assert fn(['BOOT.wim', 'Sources']) == 'Windows'
+            assert fn(['BOOT.wim', 'Sause']) is None
+            assert fn(['config.isoclient', 'foo']) == 'opensuse'
+            assert fn(['bar', 'dban', 'foo']) == 'slitaz'
+            assert fn(['memtest.img']) == 'memtest'
+            assert fn(['mt86.png','isolinux']) == 'raw_iso'
+            assert fn(['menu.lst']) == 'grub4dos'
+            assert fn(['bootwiz.cfg', 'bootmenu_logo.png']) == \
                 'grub4dos_iso'
         _()
-        log_mock.assert_called_with('Examined 2 filenames in the iso '
-                                    'but could not determine the distro.')
     
 if __name__ == '__main__':
     unittest.main()
