@@ -38,7 +38,9 @@ def distro(iso_cfg_ext_dir, iso_link, expose_exception=False):
     # of a false positive.
 
     if iso_file_list:
-        
+        distro = perform_strict_detections(iso_cfg_ext_dir, iso_file_list)
+        if distro:
+            return distro
         distro = detect_iso_from_file_list(iso_file_list)
         if distro:
             return distro
@@ -72,6 +74,10 @@ def distro(iso_cfg_ext_dir, iso_link, expose_exception=False):
     def not_(predicate):
         return partial(run_not, predicate)
 
+    # contains(X) predicates that X is contained in an examined text file.
+    # Multiple keywords can be concatenated by '|'. Predicates gets aaserted
+    # if anyone of the keywords is found in the text file.
+    # Sorry you can't include | in a keyword for now.
     test_vector = [
         ('ubcd',       contains('ubcd')),
         ('sgrubd2',    contains('Super Grub Disk')),
@@ -210,6 +216,44 @@ def detect_iso_from_file_list(iso_file_list):
     #log("Examined %d %s in the iso but could not determine the distro."
     #  % (len(filenames), len(filenames)==1 and 'filename' or 'filenames'))
     return None
+
+
+def perform_strict_detections(iso_cfg_ext_dir, iso_file_list):
+
+    def run_contains(filepath, keyword, cfg_dir=iso_cfg_ext_dir):
+        fullpath = os.path.join(cfg_dir, filepath.replace('/', os.sep))
+        try:
+            with open(fullpath, 'rb') as f:
+                data = f.read().lower()
+                return keyword in data
+        except UnicodeDecodeError:
+            log("Couldn't decode %s" % fullpath)
+            return False
+        except (IOError, OSError):
+            log("Failed to open %s" % fullpath)
+            return False
+
+    def contains(relataive_filepath, keyword):
+        return partial(run_contains, relataive_filepath,
+                       bytes(keyword.lower(),'us-ascii'))
+
+    # contains(P, K) predicates that file P contains the specified
+    # string K. The predicate get never asserted if P has not been
+    # extracted into the staging area (iso_cfg_ext_dir).
+    test_vector = [
+        ('wifislax',   contains('boot/syslinux/menu/vesamenu.cfg',
+                                'menu label Wifislax64 Live')),
+        ('salix-live', contains('boot/menus/mainmenu.cfg',
+                                'MENU LABEL SALIX LIVE')),
+        ('grml',       contains('boot/isolinux/vesamenu.cfg',
+                                'menu title  Grml - Live Linux'))
+        ]
+    for distro, predicate in test_vector:
+        predicates = [predicate] if callable(predicate) else predicate
+        if all(p() for p in predicates):
+            return distro
+    return None
+
 
 if __name__ == '__main__':
     iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
