@@ -149,7 +149,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
         'centos-install' : CentosConfigTweaker,
         'antix'          : AntixConfigTweaker,
         'salix-live'     : SalixConfigTweaker,
-        'wifislax'       : SalixConfigTweaker,
+        'wifislax'       : WifislaxConfigTweaker,
         }
     tweaker_class = tweaker_class_dict.get(distro)
 
@@ -933,6 +933,14 @@ class SalixConfigTweaker(NoPersistenceTweaker):
             content = content.replace(replacee, replacer)
         return content
 
+    # salixlive-xfce-14.2.1 assumes that the installation media is
+    # labeled "LIVE" and the file tree is exploded at the root.
+    # (See /init for details.) Supporing it in harmony with installation
+    # of other distros is very hard to impossible. Do nothing here.
+    def param_operations(self):
+        return []
+
+class WifislaxConfigTweaker(NoPersistenceTweaker):
     def param_operations(self):
         ops = [
             (add_or_replace_kv('livemedia=','%s:%s/%s.iso' % (
