@@ -77,7 +77,7 @@ def install_distro():
         config.status_text = "Copying ISO..."
         iso.iso_extract_file(config.image_path, install_dir, "kernel")
         copy_iso(config.image_path, install_dir)
-    elif config.distro == "salix-live":
+    elif config.distro in ["salix-live", 'wifislax']:
         # iso.iso_extract_file(config.image_path, install_dir, "boot")
         iso.iso_extract_file(config.image_path, install_dir,
                              ['*syslinux', '*menus', '*vmlinuz', '*initrd*',

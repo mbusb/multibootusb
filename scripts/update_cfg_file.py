@@ -149,6 +149,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
         'centos-install' : CentosConfigTweaker,
         'antix'          : AntixConfigTweaker,
         'salix-live'     : SalixConfigTweaker,
+        'wifislax'       : SalixConfigTweaker,
         }
     tweaker_class = tweaker_class_dict.get(distro)
 
@@ -495,13 +496,16 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
             config_file.write("LABEL " + label + "\n")
             config_file.write("MENU LABEL " + label + "\n")
             if distro == "salix-live":
-                if os.path.exists(os.path.join(config.usb_mount, 'multibootusb', name_from_iso, 'boot', 'grub2-linux.img')):
+                if os.path.exists(
+                        os.path.join(install_dir, 'boot', 'grub2-linux.img')):
                     config_file.write(
-                        "LINUX " + '/multibootusb/' + name_from_iso + '/boot/grub2-linux.img' + "\n")
+                        "LINUX " + '/multibootusb/' + name_from_iso +
+                        '/boot/grub2-linux.img' + "\n")
                 else:
                     config_file.write("BOOT " + '/multibootusb/' + name_from_iso + '/' + _isolinux_bin_dir.replace("\\", "/") + '/' + distro + '.bs' + "\n")
             elif distro == "pclinuxos":
-                config_file.write("kernel " + '/multibootusb/' + name_from_iso + '/isolinux/vmlinuz' + "\n")
+                config_file.write("kernel " + '/multibootusb/' + name_from_iso
+                                  + '/isolinux/vmlinuz' + "\n")
                 config_file.write("append livecd=livecd root=/dev/rd/3 acpi=on vga=788 keyb=us vmalloc=256M nokmsboot "
                                   "fromusb root=UUID=" + usb_uuid + " bootfromiso=/multibootusb/" +
                                   name_from_iso + "/" + name_of_iso + " initrd=/multibootusb/"
