@@ -224,17 +224,14 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
 #             log(distro_syslinux_install_dir)
 
         if usb_fs in syslinux_fs:
-            if config.syslinux_version == str(3):
-                if distro == "generic" and iso_linux_bin_dir == "/":
-                    option = ""
-                else:
-                    option = " -d "
-            else:
-                if distro == "generic" and iso_linux_bin_dir == "/":
-                    option = " -i "
-                else:
-                    option = " -i -d "
-
+            options = []
+            if getattr(config, 'allow_syslinux_on_fixed_drive', None):
+                options.append('-f')
+            if config.syslinux_version != '3':
+                options.append('-i')
+            if not (distro == "generic" and iso_linux_bin_dir == "/"):
+                options.append('-d')
+            option = ' ' + ' '.join(options) + ' '
             if platform.system() == "Linux":
                 syslinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux") + config.syslinux_version
                 if os.access(syslinux_path, os.X_OK) is False:
