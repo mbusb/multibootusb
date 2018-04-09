@@ -273,7 +273,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'isodevice=/dev/disk/by-uuid/' + usb_uuid, string, flags=re.I)
                     string = re.sub(r'isobasedir=',
                                     'isobasedir=/multibootusb/' + iso_basename(iso_link) + '/', string, flags=re.I)
-                    string = re.sub(r'ui gfxboot', '# ui gfxboot', string)  # Bug in the isolinux package
+                    string = commentout_gfxboot(string)
                     string = string.replace('%INSTALL_DIR%', 'arch')
                     if 'manjaro' in string:
                         if not os.path.exists(os.path.join(usb_mount, '.miso')):
@@ -284,7 +284,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'kdeosisodevice=/dev/disk/by-uuid/' + usb_uuid, string, flags=re.I)
                     string = re.sub(r'append',
                                     'append kdeosisobasedir=/multibootusb/' + iso_basename(iso_link) + '/kdeos/', string, flags=re.I)
-                    string = re.sub(r'ui gfxboot', '# ui gfxboot', string)  # Bug in the isolinux package
+                    string = commentout_gfxboot(string)
                 elif distro in ["suse", "opensuse"]:
                     if re.search(r'opensuse_12', string, re.I):
                         string = re.sub(r'append',
@@ -303,7 +303,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'fromusb livecd=' + '/multibootusb/' + iso_basename(iso_link) + '/',
                                     string)
                     string = re.sub(r'prompt', '#prompt', string)
-                    string = re.sub(r'ui gfxboot.com', '#ui gfxboot.com', string)
+                    string = commentout_gfxboot(string)
                     string = re.sub(r'timeout', '#timeout', string)
                 elif distro == "wifislax":
                     string = re.sub(r'vmlinuz',
@@ -427,6 +427,11 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
     else:
         gen.log('multibootusb EFI image already exist. Not copying...')
 
+
+# Bug in the isolinux package
+def commentout_gfxboot(input_text):
+    return re.sub(r'(ui\s+.*?gfxboot\.c32.*)$', r'# \1', input_text,
+                  flags=re.I | re.MULTILINE)
 
 def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
     """
