@@ -149,7 +149,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
         'centos-install' : CentosConfigTweaker,
         'antix'          : AntixConfigTweaker,
         'salix-live'     : SalixConfigTweaker,
-        'wifislax'       : SalixConfigTweaker,
+        'wifislax'       : WifislaxConfigTweaker,
         }
     tweaker_class = tweaker_class_dict.get(distro)
 
@@ -273,7 +273,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'isodevice=/dev/disk/by-uuid/' + usb_uuid, string, flags=re.I)
                     string = re.sub(r'isobasedir=',
                                     'isobasedir=/multibootusb/' + iso_basename(iso_link) + '/', string, flags=re.I)
-                    string = re.sub(r'ui gfxboot', '# ui gfxboot', string)  # Bug in the isolinux package
+                    string = commentout_gfxboot(string)
                     string = string.replace('%INSTALL_DIR%', 'arch')
                     if 'manjaro' in string:
                         if not os.path.exists(os.path.join(usb_mount, '.miso')):
@@ -284,7 +284,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'kdeosisodevice=/dev/disk/by-uuid/' + usb_uuid, string, flags=re.I)
                     string = re.sub(r'append',
                                     'append kdeosisobasedir=/multibootusb/' + iso_basename(iso_link) + '/kdeos/', string, flags=re.I)
-                    string = re.sub(r'ui gfxboot', '# ui gfxboot', string)  # Bug in the isolinux package
+                    string = commentout_gfxboot(string)
                 elif distro in ["suse", "opensuse"]:
                     if re.search(r'opensuse_12', string, re.I):
                         string = re.sub(r'append',
@@ -303,7 +303,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'fromusb livecd=' + '/multibootusb/' + iso_basename(iso_link) + '/',
                                     string)
                     string = re.sub(r'prompt', '#prompt', string)
-                    string = re.sub(r'ui gfxboot.com', '#ui gfxboot.com', string)
+                    string = commentout_gfxboot(string)
                     string = re.sub(r'timeout', '#timeout', string)
                 elif distro == "wifislax":
                     string = re.sub(r'vmlinuz',
@@ -428,6 +428,11 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
         gen.log('multibootusb EFI image already exist. Not copying...')
 
 
+# Bug in the isolinux package
+def commentout_gfxboot(input_text):
+    return re.sub(r'(ui\s+.*?gfxboot\.c32.*)$', r'# \1', input_text,
+                  flags=re.I | re.MULTILINE)
+
 def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
     """
     Update main multibootusb suslinux.cfg file after distro is installed.
@@ -436,50 +441,55 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
     if platform.system() == 'Linux':
         os.sync()
     log('Updating multibootusb config file...')
+    name_from_iso = iso_basename(iso_link)
+    name_of_iso = iso_name(iso_link)
+    _isolinux_bin_exists = isolinux_bin_exist(config.image_path)
+    _isolinux_bin_dir = isolinux_bin_dir(iso_link)
     sys_cfg_file = os.path.join(usb_mount, "multibootusb", "syslinux.cfg")
-    install_dir = os.path.join(usb_mount, "multibootusb", iso_basename(iso_link))
-    if os.path.exists(sys_cfg_file):
+    install_dir = os.path.join(usb_mount, "multibootusb", name_from_iso)
+    label = name_from_iso + ('' if _isolinux_bin_exists else ' via GRUB')
 
+    if os.path.exists(sys_cfg_file):
         if distro == "hbcd":
             if os.path.exists(os.path.join(usb_mount, "multibootusb", "menu.lst")):
                 _config_file = os.path.join(usb_mount, "multibootusb", "menu.lst")
                 config_file = open(_config_file, "w")
-                string = re.sub(r'/HBCD', '/multibootusb/' + iso_basename(iso_link) + '/HBCD', _config_file)
+                string = re.sub(r'/HBCD', '/multibootusb/' + name_from_iso + '/HBCD', _config_file)
                 config_file.write(string)
                 config_file.close()
             with open(sys_cfg_file, "a") as f:
                 f.write("#start " + iso_basename(config.image_path) + "\n")
-                f.write("LABEL " + iso_basename(config.image_path) + "\n")
-                f.write("MENU LABEL " + iso_basename(config.image_path) + "\n")
-                f.write("BOOT " + '/multibootusb/' + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '/' + distro + '.bs' + "\n")
+                f.write("LABEL " + label + "\n")
+                f.write("MENU LABEL " + label + "\n")
+                f.write("BOOT " + '/multibootusb/' + name_from_iso + '/' + _isolinux_bin_dir.replace("\\", "/") + '/' + distro + '.bs' + "\n")
                 f.write("#end " + iso_basename(config.image_path) + "\n")
         elif distro == "Windows":
             if os.path.exists(sys_cfg_file):
                 config_file = open(sys_cfg_file, "a")
-                config_file.write("#start " + iso_basename(iso_link) + "\n")
-                config_file.write("LABEL " + iso_basename(iso_link) + "\n")
-                config_file.write("MENU LABEL " + iso_basename(iso_link) + "\n")
+                config_file.write("#start " + name_from_iso + "\n")
+                config_file.write("LABEL " + label + "\n")
+                config_file.write("MENU LABEL " + label + "\n")
                 config_file.write("KERNEL chain.c32 hd0 1 ntldr=/bootmgr" + "\n")
-                config_file.write("#end " + iso_basename(iso_link) + "\n")
+                config_file.write("#end " + name_from_iso + "\n")
                 config_file.close()
         elif distro == 'f4ubcd':
             if os.path.exists(sys_cfg_file):
                 config_file = open(sys_cfg_file, "a")
-                config_file.write("#start " + iso_basename(iso_link) + "\n")
-                config_file.write("LABEL " + iso_basename(iso_link) + "\n")
-                config_file.write("MENU LABEL " + iso_basename(iso_link) + "\n")
+                config_file.write("#start " + name_from_iso + "\n")
+                config_file.write("LABEL " + label + "\n")
+                config_file.write("MENU LABEL " + label + "\n")
                 config_file.write("KERNEL grub.exe" + "\n")
                 config_file.write('APPEND --config-file=/multibootusb/' + iso_basename(config.image_path) + '/menu.lst' + "\n")
-                config_file.write("#end " + iso_basename(iso_link) + "\n")
+                config_file.write("#end " + name_from_iso + "\n")
                 config_file.close()
         elif distro == 'kaspersky':
             if os.path.exists(sys_cfg_file):
                 config_file = open(sys_cfg_file, "a")
-                config_file.write("#start " + iso_basename(iso_link) + "\n")
-                config_file.write("LABEL " + iso_basename(iso_link) + "\n")
-                config_file.write("MENU LABEL " + iso_basename(iso_link) + "\n")
+                config_file.write("#start " + name_from_iso + "\n")
+                config_file.write("LABEL " + label + "\n")
+                config_file.write("MENU LABEL " + label + "\n")
                 config_file.write("CONFIG " + '/multibootusb/' + iso_basename(config.image_path) + '/kaspersky.cfg' + "\n")
-                config_file.write("#end " + iso_basename(iso_link) + "\n")
+                config_file.write("#end " + name_from_iso + "\n")
                 config_file.close()
         elif distro == 'grub4dos':
             update_menu_lst()
@@ -487,21 +497,30 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
             update_grub4dos_iso_menu()
         else:
             config_file = open(sys_cfg_file, "a")
-            config_file.write("#start " + iso_basename(iso_link) + "\n")
-            config_file.write("LABEL " + iso_basename(iso_link) + "\n")
-            config_file.write("MENU LABEL " + iso_basename(iso_link) + "\n")
-            if distro == "pclinuxos":
-                config_file.write("kernel " + '/multibootusb/' + iso_basename(iso_link) + '/isolinux/vmlinuz' + "\n")
+            config_file.write("#start " + name_from_iso + "\n")
+            config_file.write("LABEL " + label + "\n")
+            config_file.write("MENU LABEL " + label + "\n")
+            if distro == "salix-live":
+                if os.path.exists(
+                        os.path.join(install_dir, 'boot', 'grub2-linux.img')):
+                    config_file.write(
+                        "LINUX " + '/multibootusb/' + name_from_iso +
+                        '/boot/grub2-linux.img' + "\n")
+                else:
+                    config_file.write("BOOT " + '/multibootusb/' + name_from_iso + '/' + _isolinux_bin_dir.replace("\\", "/") + '/' + distro + '.bs' + "\n")
+            elif distro == "pclinuxos":
+                config_file.write("kernel " + '/multibootusb/' + name_from_iso
+                                  + '/isolinux/vmlinuz' + "\n")
                 config_file.write("append livecd=livecd root=/dev/rd/3 acpi=on vga=788 keyb=us vmalloc=256M nokmsboot "
                                   "fromusb root=UUID=" + usb_uuid + " bootfromiso=/multibootusb/" +
-                                  iso_basename(iso_link) + "/" + iso_name(iso_link) + " initrd=/multibootusb/"
-                                  + iso_basename(iso_link) + '/isolinux/initrd.gz' + "\n")
+                                  name_from_iso + "/" + name_of_iso + " initrd=/multibootusb/"
+                                  + name_from_iso + '/isolinux/initrd.gz' + "\n")
             elif distro == "memtest":
-                config_file.write("kernel " + '/multibootusb/' + iso_basename(iso_link) + '/BOOT/MEMTEST.IMG\n')
+                config_file.write("kernel " + '/multibootusb/' + name_from_iso + '/BOOT/MEMTEST.IMG\n')
 
             elif distro == "sgrubd2" or config.distro == 'raw_iso':
                 config_file.write("LINUX memdisk\n")
-                config_file.write("INITRD " + "/multibootusb/" + iso_basename(iso_link) + '/' + iso_name(iso_link) + '\n')
+                config_file.write("INITRD " + "/multibootusb/" + name_from_iso + '/' + name_of_iso + '\n')
                 config_file.write("APPEND iso\n")
 
             elif distro == 'ReactOS':
@@ -519,30 +538,37 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
             elif distro == 'memdisk_img':
                 config_file.write(menus.memdisk_img_cfg(syslinux=True, grub=False))
             else:
-                if isolinux_bin_exist(config.image_path) is True:
+                if _isolinux_bin_exists is True:
                     if distro == "generic":
-                        distro_syslinux_install_dir = isolinux_bin_dir(iso_link)
-                        if isolinux_bin_dir(iso_link) != "/":
-                            distro_sys_install_bs = os.path.join(usb_mount, isolinux_bin_dir(iso_link)) + '/' + distro + '.bs'
+                        distro_syslinux_install_dir = _isolinux_bin_dir
+                        if _isolinux_bin_dir != "/":
+                            distro_sys_install_bs = os.path.join(usb_mount, _isolinux_bin_dir) + '/' + distro + '.bs'
                         else:
                             distro_sys_install_bs = '/' + distro + '.bs'
                     else:
                         distro_syslinux_install_dir = install_dir
                         distro_syslinux_install_dir = distro_syslinux_install_dir.replace(usb_mount, '')
-                        distro_sys_install_bs = distro_syslinux_install_dir + '/' + isolinux_bin_dir(iso_link) + '/' + distro + '.bs'
+                        distro_sys_install_bs = distro_syslinux_install_dir + '/' + _isolinux_bin_dir + '/' + distro + '.bs'
 
                     distro_sys_install_bs = "/" + distro_sys_install_bs.replace("\\", "/")  # Windows path issue.
 
                     if config.syslinux_version == '3':
-                        config_file.write("CONFIG /multibootusb/" + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '/isolinux.cfg\n')
-                        config_file.write("APPEND /multibootusb/" + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '\n')
+                        config_file.write("CONFIG /multibootusb/" + name_from_iso + '/' + _isolinux_bin_dir.replace("\\", "/") + '/isolinux.cfg\n')
+                        config_file.write("APPEND /multibootusb/" + name_from_iso + '/' + _isolinux_bin_dir.replace("\\", "/") + '\n')
                         config_file.write("# Delete or comment above two lines using # and remove # from below line if "
                                           "you get not a COM module error.\n")
                         config_file.write("#BOOT " + distro_sys_install_bs.replace("//", "/") + "\n")
                     else:
                         config_file.write("BOOT " + distro_sys_install_bs.replace("//", "/") + "\n")
-
-            config_file.write("#end " + iso_basename(iso_link) + "\n")
+                else:
+                    # isolinux_bin does not exist.
+                    config_file.write('Linux /multibootusb/grub/lnxboot.img\n')
+                    config_file.write('INITRD /multibootusb/grub/core.img\n')
+                    config_file.write('TEXT HELP\n')
+                    config_file.write('Booting via syslinux is not supported. '
+                                      'Please boot via GRUB\n')
+                    config_file.write('ENDTEXT\n')
+            config_file.write("#end " + name_from_iso + "\n")
             config_file.close()
             # Update extlinux.cfg file by copying updated syslinux.cfg
             shutil.copy(os.path.join(usb_mount, 'multibootusb', 'syslinux.cfg'),
@@ -914,6 +940,14 @@ class SalixConfigTweaker(NoPersistenceTweaker):
             content = content.replace(replacee, replacer)
         return content
 
+    # salixlive-xfce-14.2.1 assumes that the installation media is
+    # labeled "LIVE" and the file tree is exploded at the root.
+    # (See /init for details.) Supporing it in harmony with installation
+    # of other distros is very hard to impossible. Do nothing here.
+    def param_operations(self):
+        return []
+
+class WifislaxConfigTweaker(NoPersistenceTweaker):
     def param_operations(self):
         ops = [
             (add_or_replace_kv('livemedia=','%s:%s/%s' % (

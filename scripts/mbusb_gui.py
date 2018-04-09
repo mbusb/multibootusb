@@ -110,13 +110,16 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 			self.onRefreshClick()
 			return
 
-		reply = QtWidgets.QMessageBox.warning(self, "WARNING!",
-											  "This option enables working with fixed drives\n\
-and is potentially VERY DANGEROUS\n\n\
-Are you SURE you want to enable it?",
-											  QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-											  QtWidgets.QMessageBox.No)
-
+		if getattr(config, 'protected_drives', []):
+			reply = QtWidgets.QMessageBox.Yes
+		else:
+			reply = QtWidgets.QMessageBox.warning(
+				self, "WARNING!",
+				"This option enables working with fixed drives\n"
+				"and is potentially VERY DANGEROUS\n\n"
+				"Are you SURE you want to enable it?",
+				QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+				QtWidgets.QMessageBox.No)
 		if reply == QtWidgets.QMessageBox.No:
 			self.ui.checkbox_all_drives.setChecked(False)
 		elif reply == QtWidgets.QMessageBox.Yes:
@@ -184,11 +187,13 @@ Are you SURE you want to enable it?",
 			detected_devices = usb.list_devices(fixed=True)
 		else:
 			detected_devices = usb.list_devices()
-
-		if detected_devices:
-			for device in detected_devices:
+		if not detected_devices:
+                        return
+		protected_drives = getattr(config, 'protected_drives', [])
+		for device in detected_devices:
+			if all(not device.startswith(d) for d in protected_drives):
 				self.ui.combo_drives.addItem(str(device))
-			self.ui.combo_drives.setCurrentIndex(0)
+		self.ui.combo_drives.setCurrentIndex(0)
 
 	def update_list_box(self, usb_disk):
 		"""
