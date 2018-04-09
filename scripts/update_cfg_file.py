@@ -138,7 +138,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
     log('Updating distro specific config files...')
 
     tweaker_params = ConfigTweakerParam(
-        _iso_name, install_dir_for_grub,
+        iso_link, install_dir_for_grub,
         persistence, usb_uuid, usb_mount, usb_disk)
     tweaker_class_dict = {
         'ubuntu'         : UbuntuConfigTweaker,
@@ -602,9 +602,11 @@ def update_grub4dos_iso_menu():
             f.write("#end " + iso_basename(config.image_path) + "\n")
 
 class ConfigTweakerParam:
-    def __init__(self, distro_name, distro_path, persistence_size, 
+    # 'iso_link' is also known as 'image_path'
+    def __init__(self, iso_link, distro_path, persistence_size, 
                  usb_uuid, usb_mount, usb_disk):
-        self.distro_name = distro_name
+        self.iso_fname   = os.path.split(iso_link)[1]
+        self.distro_name = os.path.splitext(self.iso_fname)[0]
         assert distro_path[0] == '/'
         self.distro_path = distro_path           # drive relative
         self.persistence_size = persistence_size
@@ -867,9 +869,9 @@ class CentosConfigTweaker(PersistenceConfigTweaker):
                  (add_or_replace_kv(
                      'inst.repo=',
                      'hd:UUID=%s:%s' % (
-                        self.setup_params.usb_uuid,
-                        self.setup_params.distro_path + '/' +
-                        self.setup_params.distro_name + '.iso')),
+                         self.setup_params.usb_uuid,
+                         self.setup_params.distro_path + '/' +
+                         self.setup_params.iso_fname)),
                   starter_is_either('append', 'linux')))
         return ops
 
@@ -905,18 +907,18 @@ class SalixConfigTweaker(NoPersistenceTweaker):
             return None
         p = self.setup_params
         for replacee, replacer in [
-                ('iso_path', "%s/%s.iso" % (p.distro_path, p.distro_name)),
-                ('initrd=', 'fromiso=%s/%s.iso initrd=' % (
-                    p.distro_path, p.distro_name)),
+                ('iso_path', "%s/%s" % (p.distro_path, p.iso_fname)),
+                ('initrd=', 'fromiso=%s/%s initrd=' % (
+                    p.distro_path, p.iso_fname)),
                 ]:
             content = content.replace(replacee, replacer)
         return content
 
     def param_operations(self):
         ops = [
-            (add_or_replace_kv('livemedia=','%s:%s/%s.iso' % (
+            (add_or_replace_kv('livemedia=','%s:%s/%s' % (
                 self.setup_params.usb_uuid, self.setup_params.distro_path,
-                self.setup_params.distro_name)),
+                self.setup_params.iso_fname)),
              starter_is_either('append', 'linux'))]
         return ops
 
