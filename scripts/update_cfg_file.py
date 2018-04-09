@@ -925,6 +925,11 @@ class AntixConfigTweaker(NoPersistenceTweaker):
                                     self.setup_params.distro_path)
 
         return [(ops, starter_is_either('append', 'APPEND', 'linux'))]
+    def post_process(self, s):
+        s = re.sub(r'^(\s*UI\s+(.*?gfxboot(\.c32|)))\s+(.*?)\s+(.*)$',
+                   r'# \1 \4.renamed-to-avoid-lockup \5', s,
+                   flags=re.I + re.MULTILINE)
+        return s
 
 
 class SalixConfigTweaker(NoPersistenceTweaker):
