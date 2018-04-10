@@ -76,32 +76,36 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
                 log("ERROR: USB Boot: qemu not found!")
                 QtWidgets.QMessageBox.information(self, 'No QEMU...', 'Please install qemu to use this feature.')
             else:
+                options = []
                 ram = self.qemu_usb_ram()
                 if ram:
-                    ram = " -m " + ram
-                else:
-                    ram = ""
-                haxm = (hasattr(config, 'qemu_use_haxm') and \
-                        config.qemu_use_haxm) and ' -accel hax' or ''
-
+                    options.extend(['-m', ram])
+                if getattr(config, 'qemu_use_haxm', False):
+                    options.extend(['-accel', 'hax'])
+                bios = getattr(config, 'qemu_bios', None)
+                if bios:
+                    options.extend(['-bios', bios])
+                optstr = (' ' + ' '.join(options)) if options else ''
                 if platform.system() == "Windows":
                     disk_number = get_physical_disk_number(qemu_usb_disk)
                     qemu_exe = find_qemu_exe()
                     qemu_dir = os.path.split(qemu_exe)[0]
                     parent_dir = os.getcwd()
                     os.chdir(qemu_dir)
-                    cmd = quote(qemu_exe) + ' -L . -boot c' + ram + haxm \
+                    cmd = quote(qemu_exe) + ' -L . -boot c' + optstr \
                           + ' -hda //./PhysicalDrive' + str(disk_number)
-
                     try:
                         log("Executing ==>  " + cmd)
                         subprocess.Popen(cmd, shell=True)
                     except:
-                        QtWidgets.QMessageBox.information(self, 'Error...', 'Error booting USB\nUnable to start QEMU.')
+                        QtWidgets.QMessageBox.information(
+                            self, 'Error...',
+                            'Error booting USB\nUnable to start QEMU.')
                     os.chdir(parent_dir)
 
                 elif platform.system() == "Linux":
-                    cmd = qemu + ' -enable-kvm -hda "' + qemu_usb_disk + '"' + ram + ' -vga std'
+                    cmd = qemu + ' -enable-kvm -hda "' + qemu_usb_disk + \
+                      '"' + optstr + ' -vga std'
                     try:
                         log('Executing ==> ' + cmd)
                         subprocess.Popen(cmd, shell=True)
