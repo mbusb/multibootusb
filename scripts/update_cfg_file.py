@@ -145,8 +145,9 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
         'debian'         : DebianConfigTweaker,
         'debian-install' : DebianConfigTweaker,
         'gentoo'         : GentooConfigTweaker,
-        'centos'         : CentosConfigTweaker,
-        'centos-install' : CentosConfigTweaker,
+        'centos'         : FedoraConfigTweaker,
+        'centos-install' : FedoraConfigTweaker,
+        'fedora'         : FedoraConfigTweaker,
         'antix'          : AntixConfigTweaker,
         'salix-live'     : SalixConfigTweaker,
         'wifislax'       : WifislaxConfigTweaker,
@@ -177,24 +178,6 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                     string = re.sub(r'file',
                                     'cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid ignore_bootid root=UUID=' +
                                     usb_uuid + ' file', string)
-                elif distro == "fedora":
-                    string = re.sub(r'root=\S*', 'root=live:UUID=' + usb_uuid, string)
-                    if re.search(r'liveimg', string, re.I):
-                        string = re.sub(r'liveimg', 'liveimg live_dir=/multibootusb/' +
-                                        iso_basename(iso_link) + '/LiveOS', string)
-                    elif re.search(r'rd.live.image', string, re.I):
-                        string = re.sub(r'rd.live.image', 'rd.live.image rd.live.dir=/multibootusb/' +
-                                        iso_basename(iso_link) + '/LiveOS', string)
-                    elif re.search(r'Solus', string, re.I):
-                        string = re.sub(r'initrd=', 'rd.live.dir=/multibootusb/' + iso_basename(iso_link) +
-                                        '/LiveOS initrd=', string)
-
-                    if persistence != 0:
-                        if re.search(r'liveimg', string, re.I):
-                            string = re.sub(r'liveimg', 'liveimg overlay=UUID=' + usb_uuid, string)
-                        elif re.search(r'rd.live.image', string, re.I):
-                            string = re.sub(r'rd.live.image', 'rd.live.image rw rd.live.overlay=UUID=' + usb_uuid, string)
-                        string = re.sub(r' ro ', '', string)
                 elif distro == 'kaspersky':
                     if not os.path.exists(os.path.join(usb_mount, 'multibootusb', iso_basename(iso_link), 'kaspersky.cfg')):
                         shutil.copyfile(resource_path(os.path.join('data', 'multibootusb', 'syslinux.cfg')),
@@ -858,13 +841,13 @@ class GentooConfigTweaker(NoPersistenceTweaker):
         return ops
 
 
-class CentosConfigTweaker(PersistenceConfigTweaker):
+class FedoraConfigTweaker(PersistenceConfigTweaker):
 
     def __init__(self, *args, **kw):
         persistence_awareness_checking_re = re.compile(
             r'^\s*(%s).*?\s(rd.live.overlay|overlay)=.+?' %
             self.BOOT_PARAMS_STARTER,  flags=re.I|re.MULTILINE)
-        super(CentosConfigTweaker, self).__init__(
+        super(FedoraConfigTweaker, self).__init__(
             persistence_awareness_checking_re, *args, **kw)
 
     def has_persistency_param(self, params):
@@ -988,7 +971,7 @@ def _test_tweak_objects():
         '{usb-uuid}', usb_mount, usb_disk)
     debian_tweaker = DebianConfigTweaker('debian', setup_params_no_persistence)
     ubuntu_tweaker = UbuntuConfigTweaker('ubuntu', setup_params_no_persistence)
-    centos_tweaker = CentosConfigTweaker('centos', setup_params_no_persistence)
+    centos_tweaker = FedoraConfigTweaker('centos', setup_params_no_persistence)
     salix_tweaker = SalixConfigTweaker('centos', setup_params_no_persistence)
 
     # Test awareness on 'persistent'
@@ -1069,7 +1052,7 @@ append foo"""
         'debian', setup_params_persistent)
     ubuntu_persistence_tweaker = UbuntuConfigTweaker(
         'ubuntu', setup_params_persistent)
-    centos_persistence_tweaker = CentosConfigTweaker(
+    centos_persistence_tweaker = FedoraConfigTweaker(
         'centos', setup_params_persistent)
 
     print ("Testing if debian tweaker appends persistence parameters.")
