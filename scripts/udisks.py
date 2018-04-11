@@ -69,9 +69,7 @@ class UDisks(object):
         d.FilesystemUnmount(['force'])
 
     def eject(self, device_node_path):
-        parent = device_node_path
-        while parent[-1] in '0123456789':
-            parent = parent[:-1]
+        parent = device_node_path.rstrip('0123456789')
         d = self.device(parent)
         d.DriveEject([])
 
@@ -143,7 +141,6 @@ class UDisks2(object):
                     'options':','.join(mount_options)
                 },
                 dbus_interface=self.FILESYSTEM))
-            print(mp)
         except:
             # May be already mounted, check
             mp = node_mountpoint(str(device_node_path))

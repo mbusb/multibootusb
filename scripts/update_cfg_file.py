@@ -126,7 +126,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
     Main function to modify/update distro specific strings on distro config files.
     :return:
     """
-    usb_details = details(usb_disk)
+    usb_details = config.usb_details
     usb_mount = usb_details['mount_point']
     usb_uuid = usb_details['uuid']
     usb_label = usb_details['label']

@@ -163,7 +163,7 @@ def install_progress():
     """
     from . import progressbar
 
-    usb_details = details(config.usb_disk)
+    usb_details = config.usb_details
     config.usb_mount = usb_details['mount_point']
     usb_size_used = usb_details['size_used']
     thrd = threading.Thread(target=install_distro, name="install_progress")
