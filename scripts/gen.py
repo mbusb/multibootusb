@@ -76,7 +76,7 @@ def resource_path(relativePath):
             #basePath = os.path.abspath(".")
             basePath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-    for dir_ in [basePath, os.path.abspath('.'), os.path.abspath('..')]:
+    for dir_ in [os.path.abspath('.'), os.path.abspath('..'), basePath]:
         fullpath = os.path.join(dir_, relativePath)
         if os.path.exists(fullpath):
             return fullpath

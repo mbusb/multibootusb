@@ -221,10 +221,13 @@ def install_patch():
     This is required to make sure that same version (32/64 bit) of modules present is the isolinux directory
     :return:
     """
+    isobin_path = isolinux_bin_path(config.image_path)
+    if not isobin_path:
+        return
+
     iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(),
                                    "iso_cfg_ext_dir")
-    isolinux_path = os.path.join(iso_cfg_ext_dir,
-                                 isolinux_bin_path(config.image_path))
+    isolinux_path = os.path.join(iso_cfg_ext_dir, isobin_path)
 #   iso_linux_bin_dir = isolinux_bin_dir(config.image_path)
     distro_install_dir = os.path.join(
         config.usb_mount, "multibootusb", iso_basename(config.image_path))
