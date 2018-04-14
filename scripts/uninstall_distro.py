@@ -66,7 +66,7 @@ def delete_files_at_drive_root(iso_file_list, uninstall_distro_dir_name):
             gen.log('Could not remove ldlinux.sys')
 
     for f in iso_file_list:
-        f = f.replace('\n/')
+        f = f.rstrip('\n/')
         if platform.system() == "Windows":
             f = f.replace("/", "\\")
         fullpath = os.path.join(usb_mount, f)
