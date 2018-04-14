@@ -23,7 +23,8 @@ def install_distro_list():
     """
     usb_details = details(config.usb_disk)
     config.usb_mount = usb_details['mount_point']
-    sys_cfg_file = os.path.join(config.usb_mount, "multibootusb", "syslinux.cfg")
+    sys_cfg_file = os.path.join(config.usb_mount, "multibootusb",
+                                 "syslinux.cfg")
 
     if os.path.exists(sys_cfg_file):
         distro_list = []
@@ -46,7 +47,7 @@ class UninstallThread(threading.Thread):
         do_uninstall_distro(self.target_distro, self.uninstall_distro_dir_name)
 
 
-def delete_frm_file_list(iso_file_list, uninstall_distro_dir_name):
+def delete_files_at_drive_root(iso_file_list, uninstall_distro_dir_name):
     """
     Generic way to remove files from USB disk.
     :param config.usb_disk:
@@ -56,45 +57,34 @@ def delete_frm_file_list(iso_file_list, uninstall_distro_dir_name):
     """
     usb_details = details(config.usb_disk)
     usb_mount = usb_details['mount_point']
-    if iso_file_list is not None:
-        for f in iso_file_list:
-            f = f.replace('\n', '').strip("/")
-            if platform.system() == "Windows":
-                f = f.replace("/", "\\")
-            if os.path.exists(os.path.join(usb_mount, "ldlinux.sys")):
-                try:
-                    os.chmod(os.path.join(usb_mount, "ldlinux.sys"), 0o777)
-                    os.unlink(os.path.join(usb_mount, "ldlinux.sys"))
-                except:
-                    gen.log('Could not remove ldlinux.sys')
+    ldlinux_sys = os.path.join(usb_mount, "ldlinux.sys")
+    if os.path.exists(ldlinux_sys):
+        try:
+            os.chmod(ldlinux_sys, 0o777)
+            os.unlink(ldlinux_sys)
+        except:
+            gen.log('Could not remove ldlinux.sys')
 
-            if os.path.exists(os.path.join(usb_mount, f)):
+    for f in iso_file_list:
+        f = f.replace('\n/')
+        if platform.system() == "Windows":
+            f = f.replace("/", "\\")
+        fullpath = os.path.join(usb_mount, f)
+        if os.path.exists(fullpath):
+            if os.path.isdir(fullpath) and not f.lower().startswith('efi'):
+                gen.log("Removing directory " + fullpath)
+                shutil.rmtree(fullpath)
+            elif os.path.isfile(fullpath):
+                gen.log("Removing file " + fullpath)
+                os.remove(fullpath)
 
-                if os.path.isdir(os.path.join(usb_mount, f)):
-                    gen.log("Removing directory " + (os.path.join(usb_mount, f)))
-                    shutil.rmtree(os.path.join(usb_mount, f))
-
-                elif os.path.isfile(os.path.join(usb_mount, f)):
-                    gen.log("Removing file " + (os.path.join(usb_mount, f)))
-                    os.remove(os.path.join(usb_mount, f))
-
-        generic_cfg_fullpath = os.path.join(
-            usb_mount, "multibootusb", uninstall_distro_dir_name,
-            "generic.cfg")
-        if os.path.exists(generic_cfg_fullpath):
-            with open(generic_cfg_fullpath, "r") as generic_cfg:
-                generic = generic_cfg.read().replace('\n', '')
-                if platform.system() == "Windows":
-                    generic = generic_cfg.read().replace("/", "\\")
-                if os.path.exists(os.path.join(usb_mount, generic.strip("/"))):
-                    os.remove(os.path.join(usb_mount, generic.strip("/")))
+    # Code for removing 'generic.cfg' has been deleted
+    # because the file does not get created anymore.
+    # See install.install_distro().
     gen.log('Removed files from ' + uninstall_distro_dir_name)
     if platform.system() == 'Linux':
         gen.log('Syncing....')
         os.sync()
-
-
-
 
 def do_uninstall_distro(target_distro, uninstall_distro_dir_name):
     """
@@ -153,7 +143,7 @@ def do_uninstall_distro(target_distro, uninstall_distro_dir_name):
             os.sync()
         shutil.rmtree(uninstall_distro_dir_name_fullpath)
 
-    delete_frm_file_list(iso_file_list, uninstall_distro_dir_name)
+    delete_files_at_drive_root(iso_file_list, uninstall_distro_dir_name)
 
     update_sys_cfg_file(uninstall_distro_dir_name)
     update_grub_cfg_file(uninstall_distro_dir_name)
