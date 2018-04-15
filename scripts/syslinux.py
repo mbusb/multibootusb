@@ -197,17 +197,17 @@ def syslinux_default(usb_disk):
                 return False
 
 
-def build_distro_bootsector(usb_disk, option,
+def build_distro_bootsector(usb_disk, options,
                             distro_syslinux_install_dir,
                             distro_sys_install_bs):
     with usb.UnmountedContext(config.usb_disk, config.update_usb_mount):
         tmp_bs = build_distro_bootsector_impl(
-            usb_disk, option, distro_syslinux_install_dir)
+            usb_disk, options, distro_syslinux_install_dir)
     if tmp_bs:
         shutil.copy(tmp_bs, distro_sys_install_bs)
 
 
-def build_distro_bootsector_impl(usb_disk, option,
+def build_distro_bootsector_impl(usb_disk, options,
                                  distro_syslinux_install_dir):
     syslinux_path = os.path.join(
         multibootusb_host_dir(), "syslinux", "bin", "syslinux") \
@@ -215,7 +215,8 @@ def build_distro_bootsector_impl(usb_disk, option,
 
     if os.access(syslinux_path, os.X_OK) is False:
         subprocess.call('chmod +x ' + syslinux_path, shell=True)
-    sys_cmd = [syslinux_path] + option + [distro_syslinux_install_dir, usb_disk]
+    sys_cmd = [syslinux_path] + options + [
+        distro_syslinux_install_dir, usb_disk]
     log("Executing ==> %s" % sys_cmd)
     if subprocess.call(sys_cmd) == 0:
         config.status_text = \
@@ -292,9 +293,8 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
                 options.append('-i')
             if not (distro == "generic" and iso_linux_bin_dir == "/"):
                 options.append('-d')
-            option = ' ' + ' '.join(options) + ' '
             if platform.system() == "Linux":
-                build_distro_bootsector(usb_disk, option,
+                build_distro_bootsector(usb_disk, options,
                                         distro_syslinux_install_dir,
                                         distro_sys_install_bs)
             elif platform.system() == "Windows":

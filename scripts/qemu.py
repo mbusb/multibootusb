@@ -52,9 +52,10 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
 
         cmd = [qemu] + options + qemu_more_params
         try:
-            old_wd = os.getcwd()
             new_wd = os.path.split(qemu)[0]
-            os.chdir(new_wd)
+            if new_wd:
+                old_wd = os.getcwd()
+                os.chdir(new_wd)
             try:
                 with usb.UnmountedContext(config.usb_disk,
                                         config.update_usb_mount):
@@ -63,7 +64,8 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
                     if out:
                         log('%s => %s' % (cmd, out))
             finally:
-                os.chdir(old_wd)
+                if new_wd:
+                    os.chdir(old_wd)
         except (KeyboardInterrupt, SystemExit):
             raise
         except:

@@ -197,8 +197,11 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		else:
 			detected_devices = usb.list_devices()
 
-		if detected_devices:
-			for device in detected_devices:
+		if not detected_devices:
+			return
+		protected_drives = getattr(config, 'protected_drives', [])
+		for device in detected_devices:
+			if all(not device.startswith(d) for d in protected_drives):
 				self.ui.combo_drives.addItem(str(device))
 			self.ui.combo_drives.setCurrentIndex(0)
 
