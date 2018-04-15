@@ -421,8 +421,6 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
     Update main multibootusb suslinux.cfg file after distro is installed.
     :return:
     """
-    if platform.system() == 'Linux':
-        os.sync()
     log('Updating multibootusb config file...')
     name_from_iso = iso_basename(iso_link)
     name_of_iso = iso_name(iso_link)

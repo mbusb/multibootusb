@@ -126,9 +126,6 @@ def install_distro():
     else:
         iso.iso_extract_full(config.image_path, install_dir)
 
-    if platform.system() == 'Linux':
-        log('ISO extracted successfully. Sync is in progress...')
-        os.sync()
 
     if config.persistence != 0:
         log('Creating persistence...')
@@ -236,8 +233,6 @@ def install_patch():
                                    'c32box.c32')
 
     elif config.distro == 'debian':
-        if platform.system() == 'Linux':  # Need to syn under Linux. Otherwise, USB disk becomes random read only.
-            os.sync()
         iso_file_list = iso.iso_file_list(config.image_path)
         if not any(s.strip().lower().endswith("makeboot.sh")
                    for s in iso_file_list):

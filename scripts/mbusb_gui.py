@@ -368,9 +368,6 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		update_distro_cfg_files(config.image_path, config.usb_disk,
 								config.distro, config.persistence)
 		self.update_list_box(config.usb_disk)
-		if sys.platform.startswith("linux"):
-			self.ui.statusbar.showMessage("Status: Sync is in progress...")
-			os.sync()
 		self.ui.statusbar.showMessage("Status: Idle")
 		self.ui_disable_persistence()
 		log(iso_name(config.image_path) + ' has been successfully installed.')
@@ -555,9 +552,6 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		# update_sys_cfg_file(config.uninstall_distro_dir_name)
 
 		self.update_list_box(config.usb_mount)
-		if sys.platform.startswith("linux"):
-			self.ui.statusbar.showMessage("Status: Sync in progress...")
-			os.sync()
 		self.ui.statusbar.showMessage("Status: Idle")
 		QtWidgets.QMessageBox.information(self, 'Uninstall Complete...',
 										  config.uninstall_distro_dir_name + ' has been successfully removed.')

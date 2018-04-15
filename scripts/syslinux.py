@@ -236,7 +236,6 @@ def build_distro_bootsector_impl(usb_disk, options,
         else:
             config.status_text = 'Failed to copy boot sector...'
             log("\nFailed to copy boot sector...\n")
-        print ("RETURNING tmp_bs_File")
         return tmp_bs_file
     else:
         config.status_text = 'Failed to install syslinux on distro directory...'
