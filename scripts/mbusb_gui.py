@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Name:		mbusb_gui.py
-# Purpose:	Module to handle multibootusb through gui
-# Authors:	Sundar
-# Licence:	This file is a part of multibootusb package. You can redistribute it or modify
+# Name:     mbusb_gui.py
+# Purpose:  Module to handle multibootusb through gui
+# Authors:  Sundar
+# Licence:  This file is a part of multibootusb package. You can redistribute it or modify
 # under the terms of GNU General Public License, v.2 or above
 from functools import partial
 import io
@@ -51,7 +51,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		self.ui.setupUi(self)
 
 		self.ui.tabWidget.setCurrentIndex(0)
-		#		self.qemu = Qemu()
+		#       self.qemu = Qemu()
 
 		self.ui.label_persistence_value.setVisible(False)
 		self.ui.label_persistence.setVisible(False)
@@ -66,12 +66,12 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		self.ui.action_Quit.triggered.connect(self.on_close_Click)
 		self.ui.action_About.triggered.connect(self.onAboutClick)
 		self.ui.button_browse_image.clicked.connect(self.browse_iso)
-		#		  self.ui.combo_drives.activated[str].connect(self.onComboChange)
+		#         self.ui.combo_drives.activated[str].connect(self.onComboChange)
 		self.ui.combo_drives.currentIndexChanged.connect(self.onComboChange)
 		self.ui.button_install_distro.clicked.connect(self.onCreateClick)
 		self.ui.button_uninstall_distro.clicked.connect(self.OnUninstallClick)
 		self.ui.slider_persistence.valueChanged.connect(self.update_slider_text)
-		#		  self.ui.slider_persistence.sliderReleased.connect(self.ui_update_persistence)
+		#         self.ui.slider_persistence.sliderReleased.connect(self.ui_update_persistence)
 
 		# ISO Imager Tab
 		self.ui.button_write_image_to_disk.clicked.connect(self.dd_write)
@@ -174,8 +174,6 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 
 			self.update_list_box(config.usb_disk)
 			self.ui_update_persistence()
-
-			self.ui.usb_mount.setText(config.usb_mount)
 		else:
 			self.ui.usb_dev.clear()
 			self.ui.usb_vendor.clear()
@@ -303,9 +301,9 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 			log("File not selected...")
 
 	def ui_update_persistence(self):
-		#		  log("===== config.persistence_available = " + str(config.persistence_available))
-		#		  log("===== config.persistence_max_size = " + str(config.persistence_max_size))
-		#		  log("===== config.persistence = " + str(config.persistence))
+		#         log("===== config.persistence_available = " + str(config.persistence_available))
+		#         log("===== config.persistence_max_size = " + str(config.persistence_max_size))
+		#         log("===== config.persistence = " + str(config.persistence))
 		if config.persistence_available and config.persistence_max_size:
 			self.ui.label_persistence_value.setVisible(True)
 			self.ui.label_persistence.setVisible(True)
@@ -316,7 +314,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 			self.ui.slider_persistence.setTickInterval(10)
 			self.ui.slider_persistence.setSingleStep(10)
 			self.ui.slider_persistence.setMaximum(config.persistence_max_size / 1024 / 1024)
-		#			  log("===== getMaximum = " + self.ui.slider_persistence.getMaximum()
+		#             log("===== getMaximum = " + self.ui.slider_persistence.getMaximum()
 		else:
 			self.ui.label_persistence_value.setEnabled(False)
 			self.ui.label_persistence.setEnabled(False)
@@ -721,7 +719,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		"""
 		self.ui.progressbar.setValue(0)
 		self.ui.statusbar.showMessage("Status: Idle")
-		# FIXME		   self.ui.lineEdit_3.clear()
+		# FIXME        self.ui.lineEdit_3.clear()
 		self.ui.button_browse_image.setEnabled(False)
 		self.ui.combo_drives.setEnabled(False)
 		# FIXME self.ui.pushbtn_imager_refreshusb.setEnabled(False)
@@ -762,10 +760,10 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 													  " size is larger than the size of " + config.usb_disk)
 					self.ui_enable_controls()
 				# elif gen.process_exist('explorer.exe') is not False:
-				#	 # Check if windows explorer is running and inform user to close it.
-				#	 QtWidgets.QMessageBox.information(self, "Windows Explorer", "Windows Explorer is running\n"
-				#																 "You need to close it before writing ISO "
-				#																 "image to disk...")
+				#    # Check if windows explorer is running and inform user to close it.
+				#    QtWidgets.QMessageBox.information(self, "Windows Explorer", "Windows Explorer is running\n"
+				#                                                                "You need to close it before writing ISO "
+				#                                                                "image to disk...")
 				else:
 					reply = QtWidgets.QMessageBox.question \
 						(self, 'Review selection',
@@ -998,8 +996,8 @@ def show_admin_info():
 
 def main_gui():
 	app = QtWidgets.QApplication(sys.argv)
-	#	 ui_about = Ui_About()
-	#	 ui = Ui_MainWindow()
+	#    ui_about = Ui_About()
+	#    ui = Ui_MainWindow()
 
 	if platform.system() == 'Linux' and os.getuid() != 0:
 		show_admin_info()
