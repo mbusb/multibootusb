@@ -51,18 +51,17 @@ class UDisks(object):
         return dbus.Interface(self.bus.get_object('org.freedesktop.UDisks',
                         devpath), 'org.freedesktop.UDisks.Device')
 
-    def mount(self, device_node_path):
-        d = self.device(device_node_path)
-        try:
-            return str(d.FilesystemMount('',
-                ['auth_no_user_interaction', 'rw', 'noexec', 'nosuid',
-                 'nodev', 'uid=%d'%os.geteuid(), 'gid=%d'%os.getegid()]))
-        except:
-            # May be already mounted, check
-            mp = node_mountpoint(str(device_node_path))
-            if mp is None:
-                raise
+    def mount(self, device_node_path, remounted=None):
+        mp = node_mountpoint(str(device_node_path))
+        if mp:
             return mp
+        d = self.device(device_node_path)
+        r = str(d.FilesystemMount(
+            '', ['auth_no_user_interaction', 'rw', 'noexec', 'nosuid',
+                 'nodev', 'uid=%d'%os.geteuid(), 'gid=%d'%os.getegid()]))
+        if remounted is not None:
+            remounted.append(True)
+        return r
 
     def unmount(self, device_node_path):
         d = self.device(device_node_path)
@@ -130,23 +129,20 @@ class UDisks2(object):
 
         raise ValueError('%r not known to UDisks2'%device_node_path)
 
-    def mount(self, device_node_path):
+    def mount(self, device_node_path, remounted=None):
+        mp = node_mountpoint(str(device_node_path))
+        if mp:
+            return mp
         d = self.device(device_node_path)
         mount_options = ['rw', 'noexec', 'nosuid', 'nodev']
-
-        try:
-            mp = str(d.Mount(
-                {
-                    'auth.no_user_interaction':True,
-                    'options':','.join(mount_options)
+        mp = str(d.Mount(
+            {
+                'auth.no_user_interaction':True,
+                'options':','.join(mount_options)
                 },
                 dbus_interface=self.FILESYSTEM))
-        except:
-            # May be already mounted, check
-            mp = node_mountpoint(str(device_node_path))
-            if mp is None:
-                raise
-
+        if remounted is not None:
+            remounted.append(True)
         return mp
 
     def unmount(self, device_node_path):

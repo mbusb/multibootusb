@@ -244,7 +244,6 @@ def details_udev(usb_disk_part):
                 out.append(l)
             # filter out non-relevant partition info
         fdisk_cmd_out = b'\n'.join(out)
-        print("FDISK CMDOUT=>%s" % fdisk_cmd_out)
 
     except subprocess.CalledProcessError:
         gen.log("ERROR: fdisk failed on disk/partition (%s)" %
@@ -270,7 +269,10 @@ def details_udev(usb_disk_part):
         uuid = device.get('ID_FS_UUID') or ""
         file_system = device.get('ID_FS_TYPE') or ""
         label = device.get('ID_FS_LABEL') or ""
-        mount_point = UDISKS.mount(usb_disk_part) or ""
+        remounted = []
+        mount_point = UDISKS.mount(usb_disk_part, remounted) or ""
+        if remounted and remounted[0]:
+            config.add_remounted(usb_disk_part)
         mount_point = mount_point.replace('\\x20', ' ')
         vendor = device.get('ID_VENDOR') or ""
         model = device.get('ID_MODEL') or ""
@@ -336,6 +338,7 @@ def details_udisks2(usb_disk_part):
     else:
         try:
             mount_point = UDISKS.mount(usb_disk_part)
+            config.add_remounted(usb_disk_part)
         except:
             mount_point = "No_Mount"
     try:
@@ -416,18 +419,43 @@ def gpt_device(dev_name):
 def unmount(usb_disk):
     UDISKS.unmount(usb_disk)
 
+class RemountError(Exception):
+    def __init__(self, caught_exception, *args, **kw):
+        super(RemountError, self).__init__(*args, **kw)
+        self.caught_exception = caught_exception
+    def __str__(self):
+        return "%s due to '%s'" % (
+            self.__class__.__name__, self.caught_exception)
+
+class UnmountError(RemountError):
+    def __init__(self, *args, **kw):
+        super(UnmountError, self).__init__(*args, **kw)
+
+class MountError(RemountError):
+    def __init__(self, *args, **kw):
+        super(MountError, self).__init__(*args, **kw)
+
 class UnmountedContext:
     def __init__(self, usb_disk, exit_callback):
         self.usb_disk = usb_disk
         self.exit_callback = exit_callback
-        self.unmounted = False
-        self.success = False
+        self.is_relevant = platform.system() != 'Windows' and \
+          self.usb_disk[-1:].isdigit()
+
+    def assert_no_access(self):
+        p = subprocess.Popen(['lsof', self.usb_disk],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            stdin=subprocess.PIPE)
+        output = p.communicate()
+        if len(output[0].strip()) != 0:
+            gen.log("Open handle exists.")
+            gen.log(output[0])
+            raise UnmountError(Exception('open handle exists.'))
 
     def __enter__(self):
-        if platform.system() == 'Windows':
-            return self
-        if not(self.usb_disk and self.usb_disk[-1:].isdigit()):
-            return self
+        if not self.is_relevant:
+            return
+        self.assert_no_access()
         try:
             gen.log("Unmounting %s" % self.usb_disk)
             UDISKS.unmount(self.usb_disk)
@@ -435,24 +463,22 @@ class UnmountedContext:
             gen.log("Unmount of %s has failed." % self.usb_disk)
             # This may get the partition mounted. Don't call!
             # self.exit_callback(details(self.usb_disk))
-            return self
-        self.unmounted = True
+            raise UnmountError(e)
         gen.log("Unmounted %s" % self.usb_disk)
         os.sync()
         return self
 
     def __exit__(self, type, value, traceback_):
-        if not self.unmounted:
+        if not self.is_relevant:
             return
         os.sync()     # This should not be strictly necessary
         time.sleep(1) # Yikes, mount always fails without this sleep().
         try:
             mount_point = UDISKS.mount(self.usb_disk)
-        except dbus.exceptions.DBusException:
-            pass
-        else:
-            self.success = True
-        self.exit_callback(details(self.usb_disk))
+            config.add_remounted(self.usb_disk)
+            self.exit_callback(details(self.usb_disk))
+        except dbus.exceptions.DBusException as e:
+            raise MountError(e)
         gen.log("Mounted %s" % (self.usb_disk))
 
 
@@ -499,26 +525,33 @@ def win_disk_details(disk_drive):
             'vendor': vendor, 'model': model, 'devtype': devtype}
 
 
-def check_vfat_filesystem(usb_disk):
+def check_vfat_filesystem(usb_disk, result=None):
     p = subprocess.Popen(['fsck.vfat', '-n', usb_disk],
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          stdin=subprocess.PIPE)
     output = p.communicate()
-    gen.log("fsck -n returned %d" % p.returncode)
-    gen.log(b"fsck -n said:" + b'\n---\n'.join(f for f in output if f))
-    gen.log(output)
-    gen.log('len=>%d' % len(output[0].split(b'\n')))
+    gen.log("fsck.vfat -n returned %d" % p.returncode)
+    gen.log(b"fsck.vfat -n said:" + b'\n---\n'.join(f for f in output if f))
+    if result is not None:
+        result.append((p.returncode, output, 'fsck.vfat -n'))
     return len(output[0].split(b'\n'))==3 and output[1]==b'' \
            and p.returncode==0
 
 
-def repair_vfat_filesystem(usb_disk):
-    p = subprocess.Popen(['fsck.vfat', '-r', usb_disk],
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                         stdin=subprocess.PIPE)
-    output = p.communicate(input=b'1\ny\n')
-    gen.log("fsck -r returned %d" % p.returncode)
-    gen.log(b"fsck -r said:" + b'\n---\n'.join(f for f in output if f))
+def repair_vfat_filesystem(usb_disk, result=None):
+    for args, input_ in [
+            (['-a', usb_disk], None,      ),
+            (['-r', usb_disk], b'1\ny\n', ),
+            ]:
+        cmd = ['fsck.vfat'] + args
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+        output = p.communicate(input=input_)
+        gen.log("%s returned %d" % (' '.join(cmd), p.returncode))
+        gen.log(b"It said:" + b'\n---\n'.join(f for f in output if f))
+        if result is not None:
+            result.append((p.returncode, output, ' '.join(cmd)))
+    return None
 
 def details(usb_disk_part):
     """

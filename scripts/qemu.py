@@ -16,7 +16,7 @@ from PyQt5 import QtWidgets
 from .gui.ui_multibootusb import Ui_MainWindow
 from .gen import *
 from . import config
-from .usb import UnmountedContext
+from . import usb
 
 class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
     """
@@ -56,8 +56,8 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
             new_wd = os.path.split(qemu)[0]
             os.chdir(new_wd)
             try:
-                with UnmountedContext(config.usb_disk,
-                                      config.update_usb_mount):
+                with usb.UnmountedContext(config.usb_disk,
+                                        config.update_usb_mount):
                     log("Executing ==> %s" % cmd)
                     out = subprocess.check_output(cmd)
                     if out:

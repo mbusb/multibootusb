@@ -5,6 +5,8 @@
 # Authors:	Sundar
 # Licence:	This file is a part of multibootusb package. You can redistribute it or modify
 # under the terms of GNU General Public License, v.2 or above
+from functools import partial
+import io
 import os
 import platform
 import sys
@@ -12,6 +14,7 @@ import signal
 from PyQt5 import QtCore, QtGui, QtWidgets
 import subprocess
 import time
+import traceback
 import webbrowser
 
 if platform.system() == 'Linux':
@@ -80,9 +83,15 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		# QEMU Tab
 		self.ui.boot_iso_qemu.clicked.connect(self.on_Qemu_Boot_iso_Click)
 		self.ui.boot_usb_qemu.clicked.connect(self.on_Qemu_Boot_usb_Click)
-		#		  self.ui.combo_iso_boot_ram.activated[str].connect(self.qemu_iso_ram)
-		#		  self.ui.combo_usb_boot_ram.activated[str].connect(self.qemu_usb_ram)
-		#		  self.ui.boot_usb_qemu.clicked.connect(lambda: self.on_Qemu_Boot_usb_Click(str(self.ui.combo_drives.currentText())))
+		#         self.ui.combo_iso_boot_ram.activated[str].connect(self.qemu_iso_ram)
+		#         self.ui.combo_usb_boot_ram.activated[str].connect(self.qemu_usb_ram)
+		#         self.ui.boot_usb_qemu.clicked.connect(lambda: self.on_Qemu_Boot_usb_Click(str(self.ui.combo_drives.currentText())))
+
+		self.ui.run_fsck_repair.clicked.connect(
+            partial(self.onFsckClick, usb.repair_vfat_filesystem))
+		self.ui.run_fsck_check.clicked.connect(
+            partial(self.onFsckClick, usb.check_vfat_filesystem))
+
 		#  Update progressbar and status  (Main ISO install)
 		self.progress_thread_install = GuiInstallProgress()
 		self.progress_thread_install.finished.connect(self.install_syslinux)
@@ -100,6 +109,11 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		self.progress_thread_dd.update.connect(self.ui.progressbar.setValue)
 		self.progress_thread_dd.finished.connect(self.dd_finished)
 		self.progress_thread_dd.status.connect(self.ui.statusbar.showMessage)
+
+		if platform.system() == 'Windows' or os.system('which fsck.vfat') != 0:
+			i = self.ui.tabWidget.indexOf(self.ui.tab_fsck)
+			if 0<=i:
+				self.ui.tabWidget.removeTab(i)
 
 		prepare_mbusb_host_dir()
 		self.onRefreshClick()
@@ -153,7 +167,6 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		if config.usb_disk:
 			log("Selected device " + config.usb_disk)
 			config.usb_details = usb.details(config.usb_disk)
-			self.check_remount()
 			self.update_target_info()
 
 			# Get the GPT status of the disk and store it on a variable
@@ -317,21 +330,23 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		self.ui.label_persistence.setVisible(False)
 		self.ui.slider_persistence.setVisible(False)
 
+	def get_controls(self):
+		return [
+			self.ui.combo_drives,
+			self.ui.checkbox_all_drives,
+			self.ui.button_detect_drives,
+			self.ui.button_browse_image,
+			self.ui.image_path,
+			self.ui.tabWidget,
+			self.ui.button_install_distro,
+			self.ui.button_uninstall_distro,
+		]
+
 	def ui_disable_controls(self):
-		self.ui.combo_drives.setEnabled(False)
-		self.ui.checkbox_all_drives.setEnabled(False)
-		self.ui.button_detect_drives.setEnabled(False)
-		self.ui.button_browse_image.setEnabled(False)
-		self.ui.image_path.setEnabled(False)
-		self.ui.tabWidget.setEnabled(False)
+		[c.setEnabled(False) for c in self.get_controls()]
 
 	def ui_enable_controls(self):
-		self.ui.combo_drives.setEnabled(True)
-		self.ui.checkbox_all_drives.setEnabled(True)
-		self.ui.button_detect_drives.setEnabled(True)
-		self.ui.button_browse_image.setEnabled(True)
-		self.ui.image_path.setEnabled(True)
-		self.ui.tabWidget.setEnabled(True)
+		[c.setEnabled(True) for c in self.get_controls()]
 
 	def update_slider_text(self):
 		slide_value = self.ui.slider_persistence.value() * 1024 * 1024
@@ -418,6 +433,38 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 												  'Please select one of the option from above.')
 
 		self.ui_enable_controls()
+
+
+	def onFsckClick(self, fsck_func):
+		try:
+			self.onFsckClick_impl(fsck_func)
+		except (KeyboardInterrupt, SystemExit):
+			raise
+		except:
+			o = io.StringIO()
+			traceback.print_exc(None, o)
+			QtWidgets.QMessageBox.information(
+				self, 'Failed to run fsck',
+				o.getvalue())
+
+	def onFsckClick_impl(self, fsck_func):
+		if not config.usb_disk:
+			QtWidgets.QMessageBox.information(
+				self, 'No partition is selected',
+				'Please select the partition to check.')
+			return
+		if not config.usb_disk[-1:].isdigit():
+			QtWidgets.QMessageBox.information(
+				self, 'Selected device is not partition',
+				'Please select a partition not a disk.')
+			return
+		output = []
+		with usb.UnmountedContext(config.usb_disk, self.update_usb_mount):
+			fsck_func(config.usb_disk, output)
+		for resultcode, msgout, cmd in output:
+			QtWidgets.QMessageBox.information(
+                self, 'Integrity Check',
+                 cmd + ' said:\n' + str(msgout[0], 'utf-8'))
 
 	def onedit_syslinux(self):
 		"""
@@ -514,11 +561,13 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		self.ui_enable_controls()
 
 	def onCreateClick(self):
+		installing = False
 		self.ui_disable_controls()
 		try:
-			self.onCreateClick_impl()
+			installing = self.onCreateClick_impl()
 		finally:
-			self.ui_enable_controls()
+			if not installing:
+				self.ui_enable_controls()
 
 	def onCreateClick_impl(self):
 		"""
@@ -534,13 +583,13 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 				self,"No Device...",
 				"No USB device found.\n\nInsert USB and "
 				"use Refresh USB button to detect USB.")
-			return
+			return False
 		if not config.image_path:
 			log("No ISO selected.")
 			QtWidgets.QMessageBox.information(
 				self, "No ISO...",
 				"No ISO found.\n\nPlease select an ISO.")
-			return
+			return False
 
 		usb_details = config.usb_details
 		if usb_details['mount_point'] == 'No_Mount':
@@ -550,9 +599,9 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 				"USB disk is not mounted.\n"
 				"Please mount USB disk and press refresh "
 				"USB button.")
-			return
+			return False
 		if platform.system() == 'Linux' and \
-		       config.usb_disk[-1].isdigit() is False:
+			   config.usb_disk[-1].isdigit() is False:
 			gen.log('Selected USB is a disk. Please select '
 				'a disk partition from the drop down list')
 			QtWidgets.QMessageBox.information(
@@ -562,17 +611,17 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 				'Please select the partition (ending '
 				'with a digit eg. /dev/sdb1)\n'
 				'from the drop down list.')
-			return
+			return False
 		if 0 < config.persistence and \
 			 persistence.detect_missing_tools(config.distro):
 			QtWidgets.QMessageBox.information(
 				self, 'Missing tools...!',
 				persistence.detect_missing_tools(
 				config.distro))
-			return
+			return False
 		if not self.check_remount():
 			self.update_target_info()
-			return
+			return False
 		
 		if 1: # Redundant if to keep indentation level.
 			# clean_iso_cfg_ext_dir(os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))  # Need to be cleaned.
@@ -591,7 +640,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 			log("MultiBoot Install: ISO file: " + iso_name(config.image_path))
 
 			if not os.path.exists(config.image_path):
-				return
+				return False
 			# self.ui.image_path.clear()
 			if not config.distro:
 				QtWidgets.QMessageBox.information(
@@ -600,7 +649,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 						' is not supported at the moment.\n'
 						'Please email this issue to '
 						'feedback.multibootusb@gmail.com')
-				return
+				return False
 
 			log("MultiBoot Install: Distro type detected: " + config.distro)
 			if os.path.exists(
@@ -608,7 +657,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 				QtWidgets.QMessageBox.information(self, 'Already exists...',
 								  os.path.basename(
 													  config.image_path) + ' is already installed.')
-				return
+				return False
 
 
 			config.persistence = self.ui.slider_persistence.value() * 1024 * 1024
@@ -618,6 +667,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 				log("ERROR: Not enough space available on " + config.usb_disk)
 				QtWidgets.QMessageBox.information(self, "No Space.",
 												  "No space available on " + config.usb_disk)
+				return False
 			else:
 				if config.distro == 'memdisk_iso':
 					reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
@@ -642,8 +692,9 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 					copy_mbusb_dir_usb(config.usb_disk)
 					config.process_exist = True
 					self.progress_thread_install.start()
+					return True
 				elif reply == QtWidgets.QMessageBox.No:
-					pass
+					return False
 
 			# Added to refresh usb disk remaining size after distro installation
 			# self.update_gui_usb_info()
@@ -740,22 +791,26 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		"""
 		self.close()
 
+	def update_usb_mount(self, new_usb_details):
+		config.update_usb_mount(new_usb_details)
+		self.ui.usb_mount.setText(config.usb_mount)
+
 	def check_remount(self):
 		if config.usb_details['file_system'] != 'vfat':
 			return True
-		with UnmountedContext(config.usb_disk,
-				      config.update_usb_mount) as m:
-			pass
-		if m.success:
+		try:
+			with UnmountedContext(config.usb_disk,
+								  self.update_usb_mount) as m:
+				pass
 			return True
-		QtWidgets.QMessageBox.critical(
-			self,"Remount failed.",
-			"Could not remount '{0}'. "
-			"Please make sure no process has open "
-			"handle(s) to previously mounted subtree "
-			"and detect drives again."
-			.format(config.usb_disk))
-		return False
+		except usb.RemountError:
+			QtWidgets.QMessageBox.critical(
+				self,"Remount failed.",
+				"Could not remount '{0}'. "
+				"Please make sure no process has open "
+				"handle(s) to previously mounted filesystem."
+				.format(config.usb_disk))
+			return False
 
 	def update_target_info(self):
 		config.persistence_max_size = persistence.max_disk_persistence(config.usb_disk)
