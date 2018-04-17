@@ -58,7 +58,7 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
                 os.chdir(new_wd)
             try:
                 with usb.UnmountedContext(config.usb_disk,
-                                        config.update_usb_mount):
+                                          self.update_usb_mount):
                     log("Executing ==> %s" % cmd)
                     out = subprocess.check_output(cmd)
                     if out:
