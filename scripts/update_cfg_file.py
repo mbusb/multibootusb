@@ -130,6 +130,8 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
     usb_mount = usb_details['mount_point']
     usb_uuid = usb_details['uuid']
     usb_label = usb_details['label']
+    usb_fs_type = usb_details['file_system']
+
 #     iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
     config.status_text = "Updating config files..."
     _iso_name = iso_basename(iso_link)
@@ -139,7 +141,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
 
     tweaker_params = ConfigTweakerParam(
         iso_link, install_dir_for_grub,
-        persistence, usb_uuid, usb_mount, usb_disk)
+        persistence, usb_uuid, usb_mount, usb_disk, usb_fs_type)
     tweaker_class_dict = {
         'ubuntu'         : UbuntuConfigTweaker,
         'debian'         : DebianConfigTweaker,
@@ -613,7 +615,7 @@ def update_grub4dos_iso_menu():
 class ConfigTweakerParam:
     # 'iso_link' is also known as 'image_path'
     def __init__(self, iso_link, distro_path, persistence_size, 
-                 usb_uuid, usb_mount, usb_disk):
+                 usb_uuid, usb_mount, usb_disk, usb_fs_type):
         self.iso_fname   = os.path.split(iso_link)[1]
         self.distro_name = os.path.splitext(self.iso_fname)[0]
         assert distro_path[0] == '/'
@@ -622,6 +624,7 @@ class ConfigTweakerParam:
         self.usb_uuid = usb_uuid
         self.usb_mount = usb_mount
         self.usb_disk = usb_disk
+        self.usb_fs_type = usb_fs_type
 
 
 class ConfigTweaker:
@@ -819,8 +822,9 @@ class NoPersistenceTweaker(ConfigTweaker):
 class GentooConfigTweaker(NoPersistenceTweaker):
 
     def param_operations(self):
+        uuid_spec = 'UUID=%s' % self.setup_params.usb_uuid
         ops = [
-            ([add_or_replace_kv('real_root=', self.setup_params.usb_disk),
+            ([add_or_replace_kv('real_root=', uuid_spec),
               add_tokens('slowusb'),
               add_or_replace_kv('subdir=', self.setup_params.distro_path),
               remove_keys('cdroot_hash='),
@@ -834,6 +838,10 @@ class GentooConfigTweaker(NoPersistenceTweaker):
               ],
              starter_is_either('append', 'linux')),
             ]
+        fs_type = self.setup_params.usb_fs_type
+        if  fs_type == 'vfat':
+            ops.append( (add_or_replace_kv('cdroot_type=', fs_type),
+                         always) )
         self.add_op_if_file_exists(
             ops, add_or_replace_kv,
             'loop=', ['liberte/boot/root-x86.sfs', 'image.squashfs'],
