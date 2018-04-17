@@ -237,6 +237,8 @@ def install_patch():
         replace_syslinux_modules(config.syslinux_version, distro_install_dir)
         c32box_path = os.path.join(distro_install_dir, 'boot', 'isolinux',
                                    'c32box.c32')
+    elif config.distro == 'gentoo':
+        replace_syslinux_modules(config.syslinux_version, distro_install_dir)
 
     elif config.distro == 'debian':
         if platform.system() == 'Linux':  # Need to syn under Linux. Otherwise, USB disk becomes random read only.
