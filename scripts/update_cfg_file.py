@@ -819,8 +819,9 @@ class NoPersistenceTweaker(ConfigTweaker):
 class GentooConfigTweaker(NoPersistenceTweaker):
 
     def param_operations(self):
+        uuid_spec = 'UUID=%s' % self.setup_params.usb_uuid
         ops = [
-            ([add_or_replace_kv('real_root=', self.setup_params.usb_disk),
+            ([add_or_replace_kv('real_root=', uuid_spec),
               add_tokens('slowusb'),
               add_or_replace_kv('subdir=', self.setup_params.distro_path),
               remove_keys('cdroot_hash='),
