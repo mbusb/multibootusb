@@ -17,6 +17,7 @@ import tempfile
 import re
 import ctypes
 
+from . import config
 
 def scripts_dir_path():
     return os.path.dirname(os.path.realpath(__file__))
@@ -190,10 +191,8 @@ def copy_mbusb_dir_usb(usb_disk):
     :param usb_mount_path: Path to USB mount.
     :return:
     """
-#     from .iso import iso_size
-    from .usb import details
 
-    usb_details = details(usb_disk)
+    usb_details = config.usb_details
     usb_mount_path = usb_details['mount_point']
     result = ''
     if not os.path.exists(os.path.join(usb_mount_path, "multibootusb")):
@@ -299,9 +298,8 @@ def strings(filename, _min=4):
 
 def size_not_enough(iso_link, usb_disk):
     from .iso import iso_size
-    from .usb import details
     isoSize = iso_size(iso_link)
-    usb_details = details(usb_disk)
+    usb_details = config.usb_details
     usb_size = usb_details['size_free']
 
     return bool(isoSize > usb_size)

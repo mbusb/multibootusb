@@ -42,10 +42,11 @@ editors_linux = ["xdg-open", "gedit", "kate", "kwrite"]
 editors_win = ["notepad++.exe", "notepad.exe"]
 
 imager_usb_disk = []
+remounted_partitions = []
 
 debug = False
 
-# protected_drives = ['C:','D:','E:', '/dev/sda', '/dev/sdb']
+# protected_drives = ['C:','D:','E:', '/dev/sda', '/dev/sdb', '/dev/sdc']
 
 # If turned off, qemu will be sought at a few preset locations
 # first before deciding to use the bundled exe.
@@ -59,3 +60,14 @@ qemu_use_builtin = True # Relevant on Windows only
 # Bundled QEMU does not support this.
 # See https://www.qemu.org/2017/11/22/haxm-usage-windows/ for setup.
 qemu_use_haxm = not qemu_use_builtin  # Relevant on Windows only
+# qemu_use_kvm = False
+# qemu_bios = 'OVMF.fd'
+
+def update_usb_mount(new_usb_details):
+    global usb_mount, usb_details
+    usb_mount = new_usb_details['mount_point'].replace('\\x20', ' ')
+    usb_details = new_usb_details
+
+def add_remounted(usb_disk):
+    if usb_disk not in remounted_partitions:
+        remounted_partitions.append(usb_disk)

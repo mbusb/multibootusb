@@ -30,10 +30,11 @@ def max_disk_persistence(usb_disk):
     config.usb_uuid = usb_details['uuid']
     config.usb_label = usb_details['label']
 
-    if usb_details['file_system'] in ['vfat', 'FAT32'] and usb_details['size_free'] > fat_max_size:
-        _max_size = fat_max_size
+    size_free = usb_details['size_free']
+    if usb_details['file_system'] in ['vfat', 'FAT32']:
+        _max_size = min(fat_max_size, size_free)
     else:
-        _max_size = usb_details['size_free']
+        _max_size = size_free
 
     return _max_size
 

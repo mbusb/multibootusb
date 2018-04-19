@@ -126,9 +126,6 @@ def install_distro():
     else:
         iso.iso_extract_full(config.image_path, install_dir)
 
-    if platform.system() == 'Linux':
-        log('ISO extracted successfully. Sync is in progress...')
-        os.sync()
 
     if config.persistence != 0:
         log('Creating persistence...')
@@ -163,7 +160,7 @@ def install_progress():
     """
     from . import progressbar
 
-    usb_details = details(config.usb_disk)
+    usb_details = config.usb_details
     config.usb_mount = usb_details['mount_point']
     usb_size_used = usb_details['size_used']
     thrd = threading.Thread(target=install_distro, name="install_progress")
@@ -241,8 +238,6 @@ def install_patch():
         replace_syslinux_modules(config.syslinux_version, distro_install_dir)
 
     elif config.distro == 'debian':
-        if platform.system() == 'Linux':  # Need to syn under Linux. Otherwise, USB disk becomes random read only.
-            os.sync()
         iso_file_list = iso.iso_file_list(config.image_path)
         if not any(s.strip().lower().endswith("makeboot.sh")
                    for s in iso_file_list):

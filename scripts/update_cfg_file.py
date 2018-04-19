@@ -126,7 +126,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
     Main function to modify/update distro specific strings on distro config files.
     :return:
     """
-    usb_details = details(usb_disk)
+    usb_details = config.usb_details
     usb_mount = usb_details['mount_point']
     usb_uuid = usb_details['uuid']
     usb_label = usb_details['label']
@@ -423,8 +423,6 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
     Update main multibootusb suslinux.cfg file after distro is installed.
     :return:
     """
-    if platform.system() == 'Linux':
-        os.sync()
     log('Updating multibootusb config file...')
     name_from_iso = iso_basename(iso_link)
     name_of_iso = iso_name(iso_link)
