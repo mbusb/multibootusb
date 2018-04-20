@@ -904,7 +904,7 @@ class FedoraConfigTweaker(PersistenceConfigTweaker):
 class AntixConfigTweaker(NoPersistenceTweaker):
     def param_operations(self):
         content = self.file_content('version')
-        if content and 0 <= content.find('antiX-17'):
+        if content and ('antiX-17' in content or 'MX-17' in content):
             ops = [
                 add_or_replace_kv('buuid=', self.setup_params.usb_uuid),
                 add_or_replace_kv('bdir=',
