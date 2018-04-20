@@ -458,14 +458,14 @@ class UnmountedContext:
         self.assert_no_access()
         try:
             gen.log("Unmounting %s" % self.usb_disk)
+            os.sync() # This is needed because UDISK.unmount() can timeout.
             UDISKS.unmount(self.usb_disk)
-        except dbus.exceptions.DBusException:
+        except dbus.exceptions.DBusException as e:
             gen.log("Unmount of %s has failed." % self.usb_disk)
             # This may get the partition mounted. Don't call!
             # self.exit_callback(details(self.usb_disk))
             raise UnmountError(e)
         gen.log("Unmounted %s" % self.usb_disk)
-        os.sync()
         return self
 
     def __exit__(self, type, value, traceback_):
