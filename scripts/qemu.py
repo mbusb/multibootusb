@@ -47,7 +47,7 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
         bios = getattr(config, 'qemu_bios', None)
         if bios:
             options.extend(['-bios', bios])
-        if platform.system()=='Linux' and getattr(config,'use_kvm', True):
+        if platform.system()=='Linux' and getattr(config,'qemu_use_kvm', True):
             options.append('-enable-kvm')
 
         cmd = [qemu] + options + qemu_more_params
