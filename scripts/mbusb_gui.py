@@ -571,20 +571,25 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		:param iso_link: LineEdit text as selected ISO link.
 		:return:
 		"""
-
-		if not config.usb_disk:
-			log("ERROR: No USB device found.")
-			QtWidgets.QMessageBox.information(
-				self,"No Device...",
-				"No USB device found.\n\nInsert USB and "
-				"use Refresh USB button to detect USB.")
-			return False
-		if not config.image_path:
-			log("No ISO selected.")
-			QtWidgets.QMessageBox.information(
-				self, "No ISO...",
-				"No ISO found.\n\nPlease select an ISO.")
-			return False
+		for cond, log_msg, dialog_title, dialog_msg in [
+				(not config.usb_disk,
+				 'ERROR: No USB device found.',
+				 'No Device...',
+				 'No USB device found.\n\nInsert USB and '
+				 'use Refresh USB button to detect USB.'),
+				(not config.image_path,
+				 'No ISO selected.',
+				 'No ISO...',
+				 'No ISO found.\n\nPlease select an ISO.'),
+				(' ' in os.path.basename(config.image_path),
+				 'Spaces in iso-file name is not allowed.',
+				 'Bad ISO filename...',
+				 'Filename that contains space(s) is not '
+				 'supported.')]:
+			if cond:
+				QtWidgets.QMessageBox.information(
+					self, dialog_title, dialog_msg)
+				return False
 
 		usb_details = config.usb_details
 		if usb_details['mount_point'] == 'No_Mount':
