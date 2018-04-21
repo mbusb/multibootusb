@@ -420,7 +420,7 @@ def commentout_gfxboot(input_text):
 
 def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
     """
-    Update main multibootusb suslinux.cfg file after distro is installed.
+    Update main multibootusb syslinux.cfg file after distro is installed.
     :return:
     """
     log('Updating multibootusb config file...')
@@ -723,7 +723,8 @@ class ConfigTweaker:
 
     def fullpath(self, subpath):
         p = self.setup_params
-        return os.path.join(p.usb_mount, p.distro_path[1:], subpath)
+        return os.path.join(p.usb_mount, p.distro_path[1:],
+                            subpath).replace('/', os.sep)
 
     def file_is_installed(self, subpath):
         return os.path.exists(self.fullpath(subpath))
@@ -735,6 +736,26 @@ class ConfigTweaker:
         with open(fp, errors='ignore') as f:
             return f.read()
 
+    def extract_distroinfo_from_file(self, subpath, regex, distro_group,
+                                    version_group):
+        content = self.file_content(subpath)
+        if not content:
+            return None
+        m = re.compile(regex, re.I).search(content)
+        if not m:
+            return None
+        return (m.group(distro_group),
+                [int(x) for x in m.group(version_group).split('.')])
+
+    def extract_distroinfo_from_fname(self, which_dir, regex, distro_group,
+                                      version_group):
+        p = re.compile(regex, re.I)
+        for fname in os.listdir(self.fullpath(which_dir)):
+            m = p.match(fname)
+            if m:
+                return (m.group(distro_group),
+                        [int(x) for x in m.group(version_group).split('.')])
+        return None
 
 class PersistenceConfigTweaker(ConfigTweaker):
     def __init__(self, pac_re, *args, **kw):
@@ -903,8 +924,15 @@ class FedoraConfigTweaker(PersistenceConfigTweaker):
 
 class AntixConfigTweaker(NoPersistenceTweaker):
     def param_operations(self):
-        content = self.file_content('version')
-        if content and ('antiX-17' in content or 'MX-17' in content):
+        dinfo = self.extract_distroinfo_from_file(
+            'version', r'(antiX|MX)-(\d+\.\d+)', 1, 2)
+        if not dinfo:
+            dinfo = self.extract_distroinfo_from_file(
+                'boot/isolinux/isolinux.cfg', r'(antiX|MX)-(\d+\.\d+)', 1, 2)
+        if not dinfo:
+            dinfo = self.extract_distroinfo_from_fname(
+                '', r'(MX)-(\d+\.\d+).*', 1, 2)
+        if dinfo and 17<=dinfo[1][0]:
             ops = [
                 add_or_replace_kv('buuid=', self.setup_params.usb_uuid),
                 add_or_replace_kv('bdir=',
