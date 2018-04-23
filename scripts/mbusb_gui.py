@@ -623,81 +623,80 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 			self.update_target_info()
 			return False
 		
-		if 1: # Redundant if to keep indentation level.
-			# clean_iso_cfg_ext_dir(os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))  # Need to be cleaned.
-			# extract_cfg_file(config.image_path)  # Extract files from ISO
-			# config.distro = distro(iso_cfg_ext_dir(), config.image_path)	# Detect supported distro
-			log("MultiBoot Install: USB Disk: " + config.usb_disk)
-			log("MultiBoot Install: USB Label: " + config.usb_label)
-			log("MultiBoot Install: USB UUID: " + config.usb_uuid)
-			log("MultiBoot Install: USB mount path: " + config.usb_mount)
-			log("MultiBoot Install: Disk total size: " + str(usb.bytes2human(usb_details['size_total'])))
-			log("MultiBoot Install: Disk used size: " + str(usb.bytes2human(usb_details['size_used'])))
-			log("MultiBoot Install: Disk free size: " + str(usb.bytes2human(usb_details['size_free'])))
-			log("MultiBoot Install: Filesystem: " + usb_details['file_system'])
-			log("MultiBoot Install: Disk vendor: " + usb_details['vendor'])
-			log("MultiBoot Install: Disk model: " + usb_details['model'])
-			log("MultiBoot Install: ISO file: " + iso_name(config.image_path))
+                # clean_iso_cfg_ext_dir(os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))  # Need to be cleaned.
+                # extract_cfg_file(config.image_path)  # Extract files from ISO
+                # config.distro = distro(iso_cfg_ext_dir(), config.image_path)	# Detect supported distro
+		log("MultiBoot Install: USB Disk: " + config.usb_disk)
+		log("MultiBoot Install: USB Label: " + config.usb_label)
+		log("MultiBoot Install: USB UUID: " + config.usb_uuid)
+		log("MultiBoot Install: USB mount path: " + config.usb_mount)
+		log("MultiBoot Install: Disk total size: " + str(usb.bytes2human(usb_details['size_total'])))
+		log("MultiBoot Install: Disk used size: " + str(usb.bytes2human(usb_details['size_used'])))
+		log("MultiBoot Install: Disk free size: " + str(usb.bytes2human(usb_details['size_free'])))
+		log("MultiBoot Install: Filesystem: " + usb_details['file_system'])
+		log("MultiBoot Install: Disk vendor: " + usb_details['vendor'])
+		log("MultiBoot Install: Disk model: " + usb_details['model'])
+		log("MultiBoot Install: ISO file: " + iso_name(config.image_path))
 
-			if not os.path.exists(config.image_path):
-				return False
-			# self.ui.image_path.clear()
-			if not config.distro:
-				QtWidgets.QMessageBox.information(
-						self, 'No support...',
-						'Sorry.\n' + os.path.basename(config.image_path) +
-						' is not supported at the moment.\n'
-						'Please email this issue to '
-						'feedback.multibootusb@gmail.com')
-				return False
+		if not os.path.exists(config.image_path):
+			return False
+		# self.ui.image_path.clear()
+		if not config.distro:
+			QtWidgets.QMessageBox.information(
+					self, 'No support...',
+					'Sorry.\n' + os.path.basename(config.image_path) +
+					' is not supported at the moment.\n'
+					'Please email this issue to '
+					'feedback.multibootusb@gmail.com')
+			return False
 
-			log("MultiBoot Install: Distro type detected: " + config.distro)
-			if os.path.exists(
-					os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path))):
-				QtWidgets.QMessageBox.information(self, 'Already exists...',
-								  os.path.basename(
-													  config.image_path) + ' is already installed.')
-				return False
+		log("MultiBoot Install: Distro type detected: " + config.distro)
+		if os.path.exists(
+				os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path))):
+			QtWidgets.QMessageBox.information(self, 'Already exists...',
+							  os.path.basename(
+												  config.image_path) + ' is already installed.')
+			return False
 
 
-			config.persistence = self.ui.slider_persistence.value() * 1024 * 1024
-			log("Persistence chosen is " + str(bytes2human(config.persistence)))
-			install_size = iso_size(config.image_path) + config.persistence
-			if install_size >= disk_usage(config.usb_mount).free:
-				log("ERROR: Not enough space available on " + config.usb_disk)
-				QtWidgets.QMessageBox.information(self, "No Space.",
-												  "No space available on " + config.usb_disk)
-				return False
+		config.persistence = self.ui.slider_persistence.value() * 1024 * 1024
+		log("Persistence chosen is " + str(bytes2human(config.persistence)))
+		install_size = iso_size(config.image_path) + config.persistence
+		if install_size >= disk_usage(config.usb_mount).free:
+			log("ERROR: Not enough space available on " + config.usb_disk)
+			QtWidgets.QMessageBox.information(self, "No Space.",
+											  "No space available on " + config.usb_disk)
+			return False
+		else:
+			if config.distro == 'memdisk_iso':
+				reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
+													   'The ISO sleceted is not supported at the moment.\n'
+													   'You can try booting ISO using memdisk.\n'
+													   'Distro can be uninstalled anytime from main menu.\n\n'
+													   'Proceed with installation?',
+													   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+													   QtWidgets.QMessageBox.No)
 			else:
-				if config.distro == 'memdisk_iso':
-					reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
-														   'The ISO sleceted is not supported at the moment.\n'
-														   'You can try booting ISO using memdisk.\n'
-														   'Distro can be uninstalled anytime from main menu.\n\n'
-														   'Proceed with installation?',
-														   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-														   QtWidgets.QMessageBox.No)
-				else:
-					reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
-														   'Selected USB disk: %s\n' % config.usb_disk +
-														   'USB mount point: %s\n' % config.usb_mount +
-														   'Selected distro: %s\n\n' % iso_name(
-															   config.image_path) +
-														   'Proceed with installation?',
-														   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-														   QtWidgets.QMessageBox.No)
+				reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
+													   'Selected USB disk: %s\n' % config.usb_disk +
+													   'USB mount point: %s\n' % config.usb_mount +
+													   'Selected distro: %s\n\n' % iso_name(
+														   config.image_path) +
+													   'Proceed with installation?',
+													   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+													   QtWidgets.QMessageBox.No)
 
-				if reply == QtWidgets.QMessageBox.Yes:
-					self.ui.slider_persistence.setEnabled(False)
-					copy_mbusb_dir_usb(config.usb_disk)
-					config.process_exist = True
-					self.progress_thread_install.start()
-					return True
-				elif reply == QtWidgets.QMessageBox.No:
-					return False
+			if reply == QtWidgets.QMessageBox.Yes:
+				self.ui.slider_persistence.setEnabled(False)
+				copy_mbusb_dir_usb(config.usb_disk)
+				config.process_exist = True
+				self.progress_thread_install.start()
+				return True
+			elif reply == QtWidgets.QMessageBox.No:
+				return False
 
-			# Added to refresh usb disk remaining size after distro installation
-			# self.update_gui_usb_info()
+		# Added to refresh usb disk remaining size after distro installation
+		# self.update_gui_usb_info()
 
 	def dd_finished(self):
 		"""
