@@ -57,9 +57,6 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		self.ui.label_persistence.setVisible(False)
 		self.ui.slider_persistence.setVisible(False)
 
-		config.usb_disk = None
-		config.image_path = None
-
 		#  Main Tab
 		self.ui.checkbox_all_drives.clicked.connect(self.onAllDrivesClicked)
 		self.ui.button_detect_drives.clicked.connect(self.onRefreshClick)
@@ -572,21 +569,22 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		:return:
 		"""
 		for cond, log_msg, dialog_title, dialog_msg in [
-				(not config.usb_disk,
+				(lambda: not config.usb_disk,
 				 'ERROR: No USB device found.',
 				 'No Device...',
 				 'No USB device found.\n\nInsert USB and '
 				 'use Refresh USB button to detect USB.'),
-				(not config.image_path,
+				(lambda: not config.image_path,
 				 'No ISO selected.',
 				 'No ISO...',
 				 'No ISO found.\n\nPlease select an ISO.'),
-				(' ' in os.path.basename(config.image_path),
+				(lambda: ' ' in
+				 os.path.basename(config.image_path),
 				 'Spaces in iso-file name is not allowed.',
 				 'Bad ISO filename...',
 				 'Filename that contains space(s) is not '
 				 'supported.')]:
-			if cond:
+			if cond():
 				QtWidgets.QMessageBox.information(
 					self, dialog_title, dialog_msg)
 				return False

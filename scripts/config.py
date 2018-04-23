@@ -7,12 +7,12 @@
 # under the terms of GNU General Public License, v.2 or above
 
 iso_link = ""
-usb_disk = ""
+usb_disk = None
 usb_mount = ""
 usb_uuid = ""
 usb_label = ""
 usb_details = ''
-image_path = ""
+image_path = None
 persistence = 0
 persistence_available = False
 persistence_max_size = 0
