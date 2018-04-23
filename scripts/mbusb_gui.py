@@ -640,63 +640,67 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 
 		if not os.path.exists(config.image_path):
 			return False
+
 		# self.ui.image_path.clear()
 		if not config.distro:
 			QtWidgets.QMessageBox.information(
-					self, 'No support...',
-					'Sorry.\n' + os.path.basename(config.image_path) +
-					' is not supported at the moment.\n'
-					'Please email this issue to '
-					'feedback.multibootusb@gmail.com')
+				self, 'No support...',
+				'Sorry.\n' +
+				os.path.basename(config.image_path) +
+				' is not supported at the moment.\n'
+				'Please email this issue to '
+				'feedback.multibootusb@gmail.com')
 			return False
 
 		log("MultiBoot Install: Distro type detected: " + config.distro)
-		if os.path.exists(
-				os.path.join(config.usb_mount, "multibootusb", iso_basename(config.image_path))):
-			QtWidgets.QMessageBox.information(self, 'Already exists...',
-							  os.path.basename(
-												  config.image_path) + ' is already installed.')
+		full_image_path = os.path.join(
+			config.usb_mount, "multibootusb",
+			iso_basename(config.image_path))
+		if os.path.exists(full_image_path):
+			QtWidgets.QMessageBox.information(
+				self, 'Already exists...',
+				os.path.basename(config.image_path) +
+				' is already installed.')
 			return False
 
-
-		config.persistence = self.ui.slider_persistence.value() * 1024 * 1024
-		log("Persistence chosen is " + str(bytes2human(config.persistence)))
+		config.persistence = self.ui.slider_persistence.value() \
+				     * 1024 * 1024
+		log("Persistence chosen is " +
+		    str(bytes2human(config.persistence)))
 		install_size = iso_size(config.image_path) + config.persistence
 		if install_size >= disk_usage(config.usb_mount).free:
-			log("ERROR: Not enough space available on " + config.usb_disk)
-			QtWidgets.QMessageBox.information(self, "No Space.",
-											  "No space available on " + config.usb_disk)
+			log("ERROR: Not enough space available on " +
+			    config.usb_disk)
+			QtWidgets.QMessageBox.information(
+				self, "No Space.",
+				"No space available on " + config.usb_disk)
 			return False
-		else:
-			if config.distro == 'memdisk_iso':
-				reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
-													   'The ISO sleceted is not supported at the moment.\n'
-													   'You can try booting ISO using memdisk.\n'
-													   'Distro can be uninstalled anytime from main menu.\n\n'
-													   'Proceed with installation?',
-													   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-													   QtWidgets.QMessageBox.No)
-			else:
-				reply = QtWidgets.QMessageBox.question(self, 'Review selection...',
-													   'Selected USB disk: %s\n' % config.usb_disk +
-													   'USB mount point: %s\n' % config.usb_mount +
-													   'Selected distro: %s\n\n' % iso_name(
-														   config.image_path) +
-													   'Proceed with installation?',
-													   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-													   QtWidgets.QMessageBox.No)
 
-			if reply == QtWidgets.QMessageBox.Yes:
-				self.ui.slider_persistence.setEnabled(False)
-				copy_mbusb_dir_usb(config.usb_disk)
-				config.process_exist = True
-				self.progress_thread_install.start()
-				return True
-			elif reply == QtWidgets.QMessageBox.No:
-				return False
+		msg = '''
+The ISO sleceted is not supported at the moment.
+You can try booting ISO using memdisk.
+Distro can be uninstalled anytime from main menu.
 
-		# Added to refresh usb disk remaining size after distro installation
-		# self.update_gui_usb_info()
+Proceed with installation?'''.lstrip() if config.distro == 'memdisk_iso' else \
+        '''
+Selected USB disk: %s
+USB mount point: %s
+Selected distro: %s
+
+Proceed with installation?'''.lstrip() % \
+	(config.usb_disk, config.usb_mount, iso_name(config.image_path))
+
+		reply = QtWidgets.QMessageBox.question(
+			self, 'Review selection...', msg)
+		if reply == QtWidgets.QMessageBox.Yes:
+			self.ui.slider_persistence.setEnabled(False)
+			copy_mbusb_dir_usb(config.usb_disk)
+			config.process_exist = True
+			self.progress_thread_install.start()
+			return True
+
+		return False
+
 
 	def dd_finished(self):
 		"""
