@@ -57,9 +57,6 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		self.ui.label_persistence.setVisible(False)
 		self.ui.slider_persistence.setVisible(False)
 
-		config.usb_disk = None
-		config.image_path = None
-
 		#  Main Tab
 		self.ui.checkbox_all_drives.clicked.connect(self.onAllDrivesClicked)
 		self.ui.button_detect_drives.clicked.connect(self.onRefreshClick)
