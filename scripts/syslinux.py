@@ -285,9 +285,7 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
 #             log(distro_syslinux_install_dir)
 
         if usb_fs in syslinux_fs:
-            options = []
-            if getattr(config, 'allow_syslinux_on_fixed_drive', None):
-                options.append('-f')
+            options = ['-f']
             if config.syslinux_version != '3':
                 options.append('-i')
             if not (distro == "generic" and iso_linux_bin_dir == "/"):
