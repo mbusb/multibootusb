@@ -65,19 +65,19 @@ def resource_path(relativePath):
     :param relativePath: Path to file/data.
     :return: Modified path to file/data.
     """
-
-    try:
-        basePath = sys._MEIPASS  # Try if we are running as standalone executable
-        # log('Running stand alone executable.')
-    except:
-        basePath = '/usr/share/multibootusb'  # Check if we run in installed environment
-        #if os.path.exists('/usr/share/multibootusb'):
-            #log('Running from installed machine.')
-        if not os.path.exists(basePath):
-            #basePath = os.path.abspath(".")
-            basePath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-
-    for dir_ in [os.path.abspath('.'), os.path.abspath('..'), basePath]:
+    # This is not strictly needed because Windows recognize '/'
+    # as a path separator but we follow the discipline here.
+    relativePath = relativePath.replace('/', os.sep)
+    for dir_ in [
+            os.path.abspath('.'),
+            os.path.abspath('..'),
+            getattr(sys, '_MEIPASS', None),
+            os.path.dirname(os.path.dirname( # go up two levels
+                os.path.realpath(__file__))),
+            '/usr/share/multibootusb'.replace('/', os.sep),
+            ]:
+        if dir_ is None:
+            continue
         fullpath = os.path.join(dir_, relativePath)
         if os.path.exists(fullpath):
             return fullpath
