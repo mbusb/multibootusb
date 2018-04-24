@@ -416,24 +416,30 @@ def gpt_device(dev_name):
             gen.log('Device ' + dev_name + ' is a GPT disk...')
             return True
 
+
 def unmount(usb_disk):
     UDISKS.unmount(usb_disk)
+
 
 class RemountError(Exception):
     def __init__(self, caught_exception, *args, **kw):
         super(RemountError, self).__init__(*args, **kw)
         self.caught_exception = caught_exception
+
     def __str__(self):
         return "%s due to '%s'" % (
             self.__class__.__name__, self.caught_exception)
+
 
 class UnmountError(RemountError):
     def __init__(self, *args, **kw):
         super(UnmountError, self).__init__(*args, **kw)
 
+
 class MountError(RemountError):
     def __init__(self, *args, **kw):
         super(MountError, self).__init__(*args, **kw)
+
 
 class UnmountedContext:
     def __init__(self, usb_disk, exit_callback):
@@ -472,7 +478,7 @@ class UnmountedContext:
         if not self.is_relevant:
             return
         os.sync()     # This should not be strictly necessary
-        time.sleep(1) # Yikes, mount always fails without this sleep().
+        time.sleep(1)  # Yikes, mount always fails without this sleep().
         try:
             mount_point = UDISKS.mount(self.usb_disk)
             config.add_remounted(self.usb_disk)

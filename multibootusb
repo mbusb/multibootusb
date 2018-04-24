@@ -102,7 +102,7 @@ Example for installing multiple distros without user intervention:
 
     Windows:
         python3 multibootusb -c -y -i ../../favourite.iso,../../other-distro.iso -t G:
-        
+
 Example for writing ISO image to target USB disk (will destroy data on USB disk):
 
     Linux:
@@ -216,6 +216,7 @@ def main():
     elif gui is True:
         running_from()
         start_gui()
+
 
 if __name__ == '__main__':
     try:

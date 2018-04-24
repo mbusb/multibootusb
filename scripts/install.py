@@ -80,7 +80,7 @@ def install_distro():
     elif config.distro in ["salix-live", 'wifislax']:
         # iso.iso_extract_file(config.image_path, install_dir, "boot")
         iso.iso_extract_file(config.image_path, install_dir,
-                             ['*syslinux', '*menus', '*vmlinuz', '*initrd*',
+                             ['*syslinux', '*isolinux', '*system_tools', '*menus', '*vmlinuz', '*initrd*',
                               'EFI'])
         iso.iso_extract_file(config.image_path, usb_mount,
                              ['*modules', '*packages', '*optional',

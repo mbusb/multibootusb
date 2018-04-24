@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>629</width>
-    <height>605</height>
+    <width>747</width>
+    <height>609</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -23,16 +23,7 @@
    <layout class="QVBoxLayout" name="verticalLayout_7">
     <item>
      <layout class="QVBoxLayout" name="verticalLayout_5">
-      <property name="leftMargin">
-       <number>5</number>
-      </property>
-      <property name="topMargin">
-       <number>5</number>
-      </property>
-      <property name="rightMargin">
-       <number>5</number>
-      </property>
-      <property name="bottomMargin">
+      <property name="margin">
        <number>5</number>
       </property>
       <item>
@@ -318,30 +309,12 @@
         <string>MultiBootUSB</string>
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
+        <property name="margin">
          <number>0</number>
         </property>
         <item>
          <layout class="QGridLayout" name="gridLayout">
-          <property name="leftMargin">
-           <number>5</number>
-          </property>
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <property name="rightMargin">
-           <number>5</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>5</number>
           </property>
           <item row="0" column="3">
@@ -457,33 +430,35 @@
         <string>Write Image to disk</string>
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_7">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
+        <property name="margin">
          <number>0</number>
         </property>
         <item>
          <layout class="QGridLayout" name="gridLayout_9">
-          <property name="leftMargin">
+          <property name="margin">
            <number>5</number>
           </property>
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <property name="rightMargin">
-           <number>5</number>
-          </property>
-          <property name="bottomMargin">
-           <number>5</number>
-          </property>
-          <item row="3" column="2">
+          <item row="2" column="1">
+           <widget class="QPushButton" name="button_write_image_to_disk">
+            <property name="text">
+             <string>Write image to USB</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <spacer name="verticalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="5" column="2">
            <spacer name="horizontalSpacer_7">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -496,32 +471,16 @@
             </property>
            </spacer>
           </item>
-          <item row="3" column="1">
-           <widget class="QPushButton" name="button_write_image_to_disk">
-            <property name="text">
-             <string>Write image to USB</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="3" colspan="2">
+          <item row="5" column="3" colspan="2">
            <widget class="QWidget" name="widget_7" native="true">
             <layout class="QVBoxLayout" name="verticalLayout_6">
-             <property name="leftMargin">
-              <number>5</number>
-             </property>
-             <property name="topMargin">
-              <number>5</number>
-             </property>
-             <property name="rightMargin">
-              <number>5</number>
-             </property>
-             <property name="bottomMargin">
+             <property name="margin">
               <number>5</number>
              </property>
             </layout>
            </widget>
           </item>
-          <item row="3" column="0">
+          <item row="5" column="0">
            <spacer name="horizontalSpacer_5">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -534,7 +493,7 @@
             </property>
            </spacer>
           </item>
-          <item row="4" column="1">
+          <item row="6" column="1">
            <spacer name="verticalSpacer_3">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -567,20 +526,7 @@
             </property>
            </spacer>
           </item>
-          <item row="2" column="1">
-           <spacer name="verticalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="3" column="0" colspan="3">
+          <item row="3" column="1">
            <widget class="QLabel" name="label_waning">
             <property name="text">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;&lt;span style=&quot; font-weight:600; color:#ff0000;&quot;&gt;WARNING&lt;/span&gt; : Any bootable USB made using&lt;span style=&quot; font-weight:600;&quot;&gt; ISO Imager will destroy all data &lt;/span&gt;on the selected USB disk. &lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;Use it at your own risk. Developers are not responsile for loss of any data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1014,7 +960,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>629</width>
+     <width>747</width>
      <height>21</height>
     </rect>
    </property>
