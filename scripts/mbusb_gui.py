@@ -25,7 +25,7 @@ from scripts.gui.ui_about import Ui_About
 from . import usb
 from .gen import *
 from .install import *
-from .uninstall_distro import *
+from . import uninstall_distro
 from .syslinux import *
 from .distro import *
 from .qemu import *
@@ -206,7 +206,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		:param usb_mount: Selected USB disk from combobox.
 		:return:
 		"""
-		distro_list = install_distro_list()
+		distro_list = uninstall_distro.install_distro_list()
 		if distro_list is not None:
 			self.ui.installed_distros.clear()
 			for name in distro_list:
@@ -352,6 +352,26 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		config.persistence = slide_value
 
 	def install_syslinux(self):
+		try:
+			try:
+				self.install_syslinux_impl()
+			finally:
+				config.process_exist = None
+				self.ui_enable_controls()
+		except (KeyboardInterrupt, SystemExit):
+			raise
+		except:
+			uninstall_distro.do_uninstall_distro(
+				config.distro, iso_basename(config.image_path))
+			o = io.StringIO()
+			traceback.print_exc(None, o)
+			QtWidgets.QMessageBox.information(
+				self, 'install_syslinux() failed',
+				o.getvalue())
+			log("install_syslinux() failed.")
+			log(o.getvalue())
+
+	def install_syslinux_impl(self):
 		"""
 		Function to install syslinux on distro directory and on selected USB disks.
 		:return:
@@ -361,15 +381,13 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		syslinux_default(config.usb_disk)
 		replace_grub_binary()
 		update_distro_cfg_files(config.image_path, config.usb_disk,
-								config.distro, config.persistence)
+					config.distro, config.persistence)
 		self.update_list_box(config.usb_disk)
 		self.ui.statusbar.showMessage("Status: Idle")
 		self.ui_disable_persistence()
 		log(iso_name(config.image_path) + ' has been successfully installed.')
 		QtWidgets.QMessageBox.information(self, 'Finished...',
 										  iso_name(config.image_path) + ' has been successfully installed.')
-		config.process_exist = None
-		self.ui_enable_controls()
 
 	def onInstall_syslinuxClick(self):
 		"""
@@ -527,8 +545,8 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 									 config.uninstall_distro_dir_name)):
 					log("Distro install directory not found. "
 						"Just updating syslinux.cfg and grub.cfg.")
-					update_sys_cfg_file(config.uninstall_distro_dir_name)
-					update_grub_cfg_file(config.uninstall_distro_dir_name)
+					uninstall_distro.update_sys_cfg_file(config.uninstall_distro_dir_name)
+					uninstall_distro.update_grub_cfg_file(config.uninstall_distro_dir_name)
 					self.uninstall_sys_file_update()
 					# self.uninstall.update_sys_cfg_file()
 					self.ui_enable_controls()
@@ -897,7 +915,7 @@ class GuiUninstallProgress(QtCore.QThread):
 
 	def __init__(self):
 		QtCore.QThread.__init__(self)
-		self.thread = GenericThread(uninstall_progress)
+		self.thread = GenericThread(uninstall_distro.uninstall_progress)
 
 	def __del__(self):
 		self.wait()
