@@ -33,13 +33,13 @@ try:
     from scripts import admin
     from scripts import gen
     from scripts import config
-except:
+except ImportError:
     try:
         from .scripts.mbusb_cli import *
         from .scripts import admin
         from .scripts import gen
         from .scripts import config
-    except:
+    except ImportError:
         import scripts
 
 gui = True
