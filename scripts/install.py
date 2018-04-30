@@ -97,8 +97,12 @@ def install_distro():
         iso.iso_extract_file(config.image_path, install_dir, '-xr!*rescue')
         iso.iso_extract_file(config.image_path, config.usb_mount, 'rescue')
     elif config.distro == "generic":
-        #with open(os.path.join(install_dir, "generic.cfg"), "w") as f:
-        #    f.write(os.path.join(isolinux_bin_dir(config.image_path), "generic") + ".bs")
+        # If you uncomment the code below, make sure you update
+        # uninstall.delete_files_at_drive_root() accordingly.
+        #
+        # with open(os.path.join(install_dir, "generic.cfg"), "w") as f:
+        #     f.write(os.path.join(isolinux_bin_dir(config.image_path), "generic") + ".bs")
+
         iso_extract_full(config.image_path, usb_mount)
     elif config.distro == 'grub4dos':
         iso_extract_full(config.image_path, usb_mount)
