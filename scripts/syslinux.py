@@ -13,6 +13,7 @@ from .gen import *
 from . import usb
 from .iso import *
 from . import config
+from . import osdriver
 
 extlinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "extlinux4")
 syslinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux4")
@@ -96,7 +97,7 @@ def linux_install_default_bootsector(usb_disk, mbr_install_cmd):
     with usb.UnmountedContext(usb_disk, config.update_usb_mount):
         syslinux_cmd = [syslinux_path, '-i', '-d', 'multibootusb', usb_disk]
         if os.access(syslinux_path, os.X_OK) is False:
-            subprocess.call('chmod +x ' + syslinux_path)
+            subprocess.call('chmod +x ' + syslinux_path, shell=True)
         log("\nExecuting ==> %s\n" % syslinux_cmd)
         config.status_text = 'Installing default syslinux version 4...'
         if subprocess.call(syslinux_cmd) == 0:
@@ -120,6 +121,11 @@ def linux_install_default_bootsector(usb_disk, mbr_install_cmd):
     return None
 
 
+def create_syslinux_bs(usb_disk, usb_mount):
+    osdriver.run_dd(osdriver.physical_disk(usb_disk),
+                    os.path.join(usb_mount, 'multibootusb', 'syslinux.bin'),
+                    512, 1)
+
 def syslinux_default(usb_disk):
     """
     Install Syslinux of a selected drive
@@ -135,14 +141,16 @@ def syslinux_default(usb_disk):
         mbr_install_cmd = 'dd bs=440 count=1 conv=notrunc if=' + mbr_bin \
                           + ' of=' + usb_disk[:-1]
     else:
-        win_usb_disk_no = get_physical_disk_number(config.usb_disk)
+        win_usb_disk_no = get_physical_disk_number(usb_disk)
         _windd = resource_path(os.path.join("data", "tools", "dd", "dd.exe"))
         _input = "if=" + mbr_bin
         _output = 'of=\\\.\\physicaldrive' + str(win_usb_disk_no)
         mbr_install_cmd = _windd + ' ' + _input + ' ' + _output + ' count=1'
 
+
     if usb_fs in extlinux_fs:
-        extlinu_cmd = extlinux_path + ' --install ' + os.path.join(usb_mount, 'multibootusb')
+        extlinu_cmd = extlinux_path + ' --install ' + \
+                      os.path.join(usb_mount, 'multibootusb')
         if os.access(extlinux_path, os.X_OK) is False:
             subprocess.call('chmod +x ' + extlinux_path, shell=True)
         log("\nExecuting ==> " + extlinu_cmd)
@@ -156,12 +164,16 @@ def syslinux_default(usb_disk):
                 config.status_text = 'mbr install is successful...'
                 log("\nmbr install is success...\n")
                 if set_boot_flag(usb_disk) is True:
+                    create_syslinux_bs(usb_disk, usb_mount)
                     return True
 
     elif usb_fs in syslinux_fs:
 
         if platform.system() == "Linux":
-            return linux_install_default_bootsector(usb_disk, mbr_install_cmd)
+            r = linux_install_default_bootsector(usb_disk, mbr_install_cmd)
+            if r:
+                create_syslinux_bs(usb_disk, usb_mount)
+            return r
         elif platform.system() == "Windows":
             syslinux = resource_path(os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux4.exe"))
             config.status_text = 'Installing default syslinux version 4...'
@@ -192,6 +204,7 @@ def syslinux_default(usb_disk):
                 else:
                     log('Disk uses GPT and mbr install is not required...')
                 '''
+                create_syslinux_bs(usb_disk, usb_mount)
                 return True
 
             else:
