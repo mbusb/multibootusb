@@ -96,7 +96,7 @@ def linux_install_default_bootsector(usb_disk, mbr_install_cmd):
     with usb.UnmountedContext(usb_disk, config.update_usb_mount):
         syslinux_cmd = [syslinux_path, '-i', '-d', 'multibootusb', usb_disk]
         if os.access(syslinux_path, os.X_OK) is False:
-            subprocess.call('chmod +x ' + syslinux_path)
+            subprocess.call('chmod +x ' + syslinux_path, shell=True)
         log("\nExecuting ==> %s\n" % syslinux_cmd)
         config.status_text = 'Installing default syslinux version 4...'
         if subprocess.call(syslinux_cmd) == 0:
