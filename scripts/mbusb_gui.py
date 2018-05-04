@@ -36,6 +36,7 @@ from . import persistence
 from . import config
 from . import admin
 from . import qemu
+from . import osdriver
 from .update_cfg_file import update_distro_cfg_files
 import scripts.gui.resources
 
@@ -685,9 +686,11 @@ Selected USB disk: %s
 USB mount point: %s
 Selected distro: %s
 
-Proceed with installation?'''.lstrip() % \
-	(config.usb_disk, config.usb_mount, iso_name(config.image_path))
+Log location: %s
 
+Proceed with installation?'''.lstrip() % \
+	(config.usb_disk, config.usb_mount, iso_name(config.image_path),
+	 osdriver.mbusb_log_file())
 		reply = QtWidgets.QMessageBox.question(
 			self, 'Review selection...', msg)
 		if reply == QtWidgets.QMessageBox.Yes:

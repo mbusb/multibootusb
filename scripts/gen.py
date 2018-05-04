@@ -18,70 +18,12 @@ import re
 import ctypes
 
 from . import config
+from .osdriver import get_physical_disk_number, wmi_get_drive_info, \
+      log, resource_path
 
 def scripts_dir_path():
     return os.path.dirname(os.path.realpath(__file__))
 
-
-def log(message, info=True, error=False, debug=False, _print=True):
-    """
-    Dirty function to log messages to file and also print on screen.
-    :param message:
-    :param info:
-    :param error:
-    :param debug:
-    :return:
-    """
-    # LOG_FILE_PATH = os.path.join(multibootusb_host_dir(), 'multibootusb.log')
-    LOG_FILE_PATH = mbusb_log_file()
-    if os.path.exists(LOG_FILE_PATH):
-        log_file_size = os.path.getsize(LOG_FILE_PATH) / (1024.0 * 1024.0)
-        if log_file_size > 1:
-            print('Removing log file as it crosses beyond 1mb')
-            os.remove(LOG_FILE_PATH)
-    logging.basicConfig(filename=LOG_FILE_PATH,
-                        filemode='a',
-                        format='%(asctime)s.%(msecs)03d %(name)s %(levelname)s %(message)s',
-                        datefmt='%H:%M:%S',
-                        level=logging.DEBUG)
-    if _print is True:
-        print(message)
-
-    # remove ANSI color codes from logs
-    # message_clean = re.compile(r'\x1b[^m]*m').sub('', message)
-
-    if info is True:
-        logging.info(message)
-    elif error is not False:
-        logging.error(message)
-    elif debug is not False:
-        logging.debug(message)
-
-
-
-def resource_path(relativePath):
-    """
-    Function to detect the correct path of file when working with sourcecode/install or binary.
-    :param relativePath: Path to file/data.
-    :return: Modified path to file/data.
-    """
-    # This is not strictly needed because Windows recognize '/'
-    # as a path separator but we follow the discipline here.
-    relativePath = relativePath.replace('/', os.sep)
-    for dir_ in [
-            os.path.abspath('.'),
-            os.path.abspath('..'),
-            getattr(sys, '_MEIPASS', None),
-            os.path.dirname(os.path.dirname( # go up two levels
-                os.path.realpath(__file__))),
-            '/usr/share/multibootusb'.replace('/', os.sep),
-            ]:
-        if dir_ is None:
-            continue
-        fullpath = os.path.join(dir_, relativePath)
-        if os.path.exists(fullpath):
-            return fullpath
-    log("Could not find resource '%s'." % relativePath)
 
 def print_version():
     """
@@ -127,23 +69,6 @@ def sys_64bits():
     :return:    True if system is 64 bit.
     """
     return sys.maxsize > 2**32
-
-
-def mbusb_log_file():
-    """
-    Function to genrate path to log file.
-    Under linux path is created as /tmp/multibootusb.log
-    Under Windows the file is created under installation directory
-    """
-    if platform.system() == "Linux":
-        # home_dir = os.path.expanduser('~')
-        # log_file = os.path.join(home_dir, "multibootusb.log")
-        log_file = os.path.join(tempfile.gettempdir(), "multibootusb.log")
-    elif platform.system() == "Windows":
-        # log_file = os.path.join(tempfile.gettempdir(), "multibootusb", "multibootusb.log")
-        log_file = os.path.join("multibootusb.log")
-
-    return log_file
 
 
 def multibootusb_host_dir():
@@ -486,28 +411,7 @@ class MemoryCheck():
         """
         totalMemory = os.popen("free -m").readlines()[1].split()[1]
         return int(totalMemory)
-
-def wmi_get_drive_info(usb_disk):
-    assert platform.system() == 'Windows'
-    import wmi
-    c = wmi.WMI()
-    for partition in c.Win32_DiskPartition():
-        logical_disks = partition.associators("Win32_LogicalDiskToPartition")
-        # Here, 'disk' is a windows logical drive rather than a physical drive
-        for disk in logical_disks:
-            if disk.Caption == usb_disk:
-                return (partition, disk)
-    raise RuntimeError('Failed to obtain drive information ' + usb_disk)
     
-def get_physical_disk_number(usb_disk):
-    """
-    Get the physical disk number as detected ny Windows.
-    :param usb_disk: USB disk (Like F:)
-    :return: Disk number.
-    """
-    partition, logical_disk = wmi_get_drive_info(usb_disk)
-    log("Physical Device Number is %d" % partition.DiskIndex)
-    return partition.DiskIndex
 
 if __name__ == '__main__':
     log(quote("""Test-string"""))
