@@ -16,6 +16,7 @@ from .gen import *
 from . import iso
 from .isodump3 import ISO9660
 
+
 def distro(iso_cfg_ext_dir, iso_link, expose_exception=False):
     """
     Detect if distro is supported by multibootusb.

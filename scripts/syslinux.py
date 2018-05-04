@@ -16,6 +16,7 @@ from . import config
 
 extlinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "extlinux4")
 syslinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux4")
+syslinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux4")
 mbr_bin = resource_path(os.path.join("data", "tools", "mbr.bin"))
 win_gdisk = resource_path(os.path.join('data', 'tools', 'gdisk', 'gdisk.exe'))
 # Force Linux to install extlinux on NTFS
@@ -100,7 +101,9 @@ def linux_install_default_bootsector(usb_disk, mbr_install_cmd):
         config.status_text = 'Installing default syslinux version 4...'
         if subprocess.call(syslinux_cmd) == 0:
 
-            usb.repair_vfat_filesystem(usb_disk)
+            # On my system, it takes hours long to complete a single check
+            # So not included as of now
+            # usb.repair_vfat_filesystem(usb_disk)
 
             log("\nDefault syslinux install is success...\n")
             config.status_text = 'Default syslinux successfully installed...'
@@ -178,7 +181,7 @@ def syslinux_default(usb_disk):
                 config.status_text = 'Default syslinux successfully installed...'
                 log("\nDefault syslinux install is success...\n")
                 # We will need to flash gptmbr.bin only for GPT disk. As of version 8.9.0 this corrupts the gpt disk.
-                # Therefore not included for BIOS booting. GPT disk may work on UEFI system. 
+                # Therefore not included for BIOS booting. GPT disk may work on UEFI system.
                 # if gpt_part_table(config.usb_disk) is True:
                 '''
                 if config.usb_gpt is False:
@@ -223,7 +226,9 @@ def build_distro_bootsector_impl(usb_disk, options,
             'Syslinux install on distro directory is successful...'
         log("\nSyslinux install on distro directory is successful...\n")
 
-        usb.repair_vfat_filesystem(usb_disk)
+        # On my system, it takes hours long to complete a single check
+        # So not included as of now
+        # usb.repair_vfat_filesystem(usb_disk)
 
         tmp_bs_file = '/tmp/mbusb_temp.bs'
         dd_cmd = ['dd', 'if=' + usb_disk, 'of=' + tmp_bs_file, 'count=1']
@@ -335,7 +340,7 @@ def replace_grub_binary():
     This function checks if correct binary is installed on grub and EFI directory.
     If mismatch is found between partition table and binary, replace it correct one.
     Default binaries will work for msdos partition table and therefore need not be replaced.
-    :return: 
+    :return:
     """
 
     # There used to be msdos/gpt specific files installed and relevant
