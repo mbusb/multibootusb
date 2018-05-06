@@ -2,12 +2,19 @@
 # Generic wrapper for locating multibootusb file and execute pkexec accordingly
 # Bin pat of this file and policy file have to match
 
+# Ensure that root is added in to xhost list to access X-Server
+# Otherwise script will fail to launch GUI
+if type "xhost" > /dev/null; then
+    xhost local:root > /dev/null
+fi
+
+
 if [ $(which pkexec) ]; then
-    if [ -f /usr/bin/multibootusb ]; then
+    if [ -f /usr/bin/multibootusb ]; then  # path to debian based distros
         pkexec --disable-internal-agent "/usr/bin/multibootusb" "$@"
     fi
 
-    if [ -f /usr/local/bin/multibootusb ]; then
+    if [ -f /usr/local/bin/multibootusb ]; then  # path to fedora based distros
         pkexec --disable-internal-agent "/usr/local/bin/multibootusb" "$@"
     fi
 else

@@ -9,6 +9,7 @@ import os
 import getopt
 import sys
 import platform
+import shutil
 
 # The following line is required for distros based on rpm so as to avoid import errors when running from
 # installed system
@@ -160,7 +161,7 @@ if __name__ == '__main__':
                 config.image_path = arg.split(',')
         elif opt in ('-t', '--target'):
             # Convert to upper if windows drive name is given
-            config.usb_disk = len(arg)==2 and arg[0].isalpha() and arg[1]==':'\
+            config.usb_disk = len(arg) == 2 and arg[0].isalpha() and arg[1] == ':'\
                               and arg.upper() or arg
         elif opt in ('-c', '--command'):
             gui = False
