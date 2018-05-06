@@ -64,6 +64,7 @@ setup(
                 ('/usr/share/pixmaps', ["data/tools/multibootusb.png"]),
                 ('/usr/share/polkit-1/actions/', ['org.debian.pkexec.run-multibootusb.policy']),
                 ('/usr/share/multibootusb/data/tools', ["data/tools/mbr.bin"]),
+                ('/usr/share/multibootusb/data/tools', ["data/tools/gptmbr.bin"]),
                 ('/usr/share/multibootusb/data', ["data/version.txt"]),
                 ('/usr/share/multibootusb/data/tools', ["data/tools/multibootusb.png"]),
                 ('/usr/share/multibootusb/data/tools/dd', ["data/tools/dd/dd.exe"]),
