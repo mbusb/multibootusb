@@ -96,7 +96,6 @@ def delete_frm_file_list(iso_file_list, uninstall_distro_dir_name):
 def do_uninstall_distro(target_distro, uninstall_distro_dir_name):
     """
     Uninstall selected distro from selected USB disk.
-    :param config.usb_disk: Path of the USB disk
     :param target_distro: Generic name applied to distro to be uninstalled
     :param uninstall_distro_dir_name: Directory where the distro is installed
     :return:
