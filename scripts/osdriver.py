@@ -131,11 +131,11 @@ for func_name in [
         ]:
     globals()[func_name] = getattr(osdriver, func_name)
 
-
-logging.root.setLevel(logging.DEBUG)
-fmt = '%(asctime)s.%(msecs)03d %(name)s %(levelname)s %(message)s'
-datefmt = '%H:%M:%S'
-the_handler = logging.handlers.RotatingFileHandler(
-    osdriver.mbusb_log_file(), 'a', 1024*1024, 5)
-the_handler.setFormatter(logging.Formatter(fmt, datefmt))
-logging.root.addHandler(the_handler)
+def init_logging():
+    logging.root.setLevel(logging.DEBUG)
+    fmt = '%(asctime)s.%(msecs)03d %(name)s %(levelname)s %(message)s'
+    datefmt = '%H:%M:%S'
+    the_handler = logging.handlers.RotatingFileHandler(
+        osdriver.mbusb_log_file(), 'a', 1024*1024, 5)
+    the_handler.setFormatter(logging.Formatter(fmt, datefmt))
+    logging.root.addHandler(the_handler)
