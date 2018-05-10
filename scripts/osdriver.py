@@ -2,6 +2,7 @@ import logging
 import logging.handlers
 import os
 import platform
+import shutil
 import subprocess
 import sys
 
@@ -62,6 +63,7 @@ def get_physical_disk_number(usb_disk):
     log("Physical Device Number is %d" % partition.DiskIndex)
     return partition.DiskIndex
 
+
 def wmi_get_drive_info(usb_disk):
     assert platform.system() == 'Windows'
     import wmi
@@ -74,6 +76,53 @@ def wmi_get_drive_info(usb_disk):
                 return (partition, disk)
     raise RuntimeError('Failed to obtain drive information ' + usb_disk)
 
+
+def wmi_get_drive_info_ex(usb_disk):
+    assert platform.system() == 'Windows'
+    partition, disk = wmi_get_drive_info(usb_disk)
+    #print (disk.Caption, partition.StartingOffset, partition.DiskIndex,
+    #       disk.FileSystem, disk.VolumeName)
+
+    # Extract Volume serial number off of the boot sector because 
+    # retrieval via COM object 'Scripting.FileSystemObject' or wmi interface
+    # truncates NTFS serial number to 32 bits.
+    with open('//./Physicaldrive%d'%partition.DiskIndex, 'rb') as f:
+        f.seek(int(partition.StartingOffset))
+        bs_ = f.read(512)
+        serial_extractor = {
+            'NTFS'  : lambda bs: \
+            ''.join('%02X' % c for c in reversed(bs[0x48:0x48+8])),
+            'FAT32' : lambda bs: \
+            '%02X%02X-%02X%02X' % tuple(
+                map(int,reversed(bs[67:71])))
+            }.get(disk.FileSystem, lambda bs: None)
+        uuid = serial_extractor(bs_)
+    mount_point = usb_disk + '\\'
+    size_total, size_used, size_free \
+        = shutil.disk_usage(mount_point)[:3]
+    r = {
+        'uuid' : uuid,
+        'file_system' : disk.FileSystem,
+        'label' : disk.VolumeName.strip() or 'No_label',
+        'mount_point' : mount_point,
+        'size_total' : size_total,
+        'size_used'  : size_used,
+        'size_free'  : size_free,
+        'vendor'     : 'Not_Found',
+        'model'      : 'Not_Found',
+        'devtype'    : {
+            0 : 'Unknown',
+            1 : 'Fixed Disk',
+            2 : 'Removable Disk',
+            3 : 'Local Disk',
+            4 : 'Network Drive',
+            5 : 'Compact Disc',
+            6 : 'RAM Disk',
+        }.get(disk.DriveType, 'DiskType(%d)' % disk.DriveType),
+        'disk_index' : partition.DiskIndex,
+    }
+    # print (r)
+    return r
 
 
 class Base:
