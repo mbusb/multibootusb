@@ -20,6 +20,8 @@ if platform.system()=='Linux':
 
 from . import config
 from . import gen
+from . import osdriver
+
 if platform.system() == 'Linux':
     from . import udisks
     UDISKS = udisks.get_udisks(ver=None)
@@ -488,49 +490,6 @@ class UnmountedContext:
         gen.log("Mounted %s" % (self.usb_disk))
 
 
-def win_disk_details(disk_drive):
-    """
-    Populate and get details of an USB disk under windows. Minimum required windows version is Vista.
-    :param disk_drive: USB disk like 'G:'
-    :return: See the details(usb_disk_part) function for return values.
-    """
-    pythoncom.CoInitialize()
-    vendor = 'Not_Found'
-    model = 'Not_Found'
-    devtype = 'Not_Found'
-    selected_usb_part = str(disk_drive)
-    oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
-    d = oFS.GetDrive(oFS.GetDriveName(oFS.GetAbsolutePathName(selected_usb_part)))
-    selected_usb_device = d.DriveLetter
-    if d.DriveType == 1:
-        devtype = "Removable Disk"
-    elif d.DriveType == 2:
-        devtype = "Fixed Disk"
-    label = (d.VolumeName).strip()
-    if not label.strip():
-        label = "No_label"
-    mount_point = selected_usb_device + ":\\"
-    serno = "%X" % (int(d.SerialNumber) & 0xFFFFFFFF)
-    uuid = serno[:4] + '-' + serno[4:]
-    file_system = (d.FileSystem).strip()
-    size_total, size_used, size_free = shutil.disk_usage(mount_point)[:3]
-
-    # The below code works only from vista and above. I have removed it as many people reported that the software
-    # was not working under windows xp. Even then, it is significantly slow if 'All Drives' option is checked.
-    # Removing the code doesn't affect the functionality as it is only used to find vendor id and model of the drive.
-#     c = wmi.WMI()
-#     for physical_disk in c.Win32_DiskDrive(InterfaceType="USB"):
-#         for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
-#             for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
-#                 if logical_disk.Caption == disk_drive:
-#                     vendor = (physical_disk.PNPDeviceID.split('&VEN_'))[1].split('&PROD_')[0]
-#                     model = (physical_disk.PNPDeviceID.split('&PROD_'))[1].split('&REV_')[0]
-
-    return {'uuid': uuid, 'file_system': file_system, 'label': label, 'mount_point': mount_point,
-            'size_total': size_total, 'size_used': size_used, 'size_free': size_free,
-            'vendor': vendor, 'model': model, 'devtype': devtype}
-
-
 def check_vfat_filesystem(usb_disk, result=None):
     p = subprocess.Popen(['fsck.vfat', '-n', usb_disk],
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -585,7 +544,7 @@ def details(usb_disk_part):
         except:
             details = details_udisks2(usb_disk_part)
     elif platform.system() == 'Windows':
-        details = win_disk_details(usb_disk_part)
+        details = osdriver.wmi_get_drive_info_ex(usb_disk_part)
 
     return details
 

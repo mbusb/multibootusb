@@ -34,12 +34,14 @@ try:
     from scripts import admin
     from scripts import gen
     from scripts import config
+    from scripts import osdriver
 except ImportError:
     try:
         from .scripts.mbusb_cli import *
         from .scripts import admin
         from .scripts import gen
         from .scripts import config
+        from .scripts import osdriver
     except ImportError:
         import scripts
 
@@ -220,6 +222,7 @@ def main():
 
 
 if __name__ == '__main__':
+    osdriver.init_logging()
     try:
         main()
     finally:
