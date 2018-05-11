@@ -126,10 +126,12 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
     Main function to modify/update distro specific strings on distro config files.
     :return:
     """
-    usb_details = details(usb_disk)
+    usb_details = config.usb_details
     usb_mount = usb_details['mount_point']
     usb_uuid = usb_details['uuid']
     usb_label = usb_details['label']
+    usb_fs_type = usb_details['file_system']
+
 #     iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
     config.status_text = "Updating config files..."
     _iso_name = iso_basename(iso_link)
@@ -138,17 +140,19 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
     log('Updating distro specific config files...')
 
     tweaker_params = ConfigTweakerParam(
-        _iso_name, install_dir_for_grub,
-        persistence, usb_uuid, usb_mount, usb_disk)
+        iso_link, install_dir_for_grub,
+        persistence, usb_uuid, usb_mount, usb_disk, usb_fs_type)
     tweaker_class_dict = {
         'ubuntu'         : UbuntuConfigTweaker,
         'debian'         : DebianConfigTweaker,
         'debian-install' : DebianConfigTweaker,
         'gentoo'         : GentooConfigTweaker,
-        'centos'         : CentosConfigTweaker,
-        'centos-install' : CentosConfigTweaker,
+        'centos'         : FedoraConfigTweaker,
+        'centos-install' : FedoraConfigTweaker,
+        'fedora'         : FedoraConfigTweaker,
         'antix'          : AntixConfigTweaker,
         'salix-live'     : SalixConfigTweaker,
+        'wifislax'       : WifislaxConfigTweaker,
         }
     tweaker_class = tweaker_class_dict.get(distro)
 
@@ -176,24 +180,6 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                     string = re.sub(r'file',
                                     'cdrom-detect/try-usb=true floppy.allowed_drive_mask=0 ignore_uuid ignore_bootid root=UUID=' +
                                     usb_uuid + ' file', string)
-                elif distro == "fedora":
-                    string = re.sub(r'root=\S*', 'root=live:UUID=' + usb_uuid, string)
-                    if re.search(r'liveimg', string, re.I):
-                        string = re.sub(r'liveimg', 'liveimg live_dir=/multibootusb/' +
-                                        iso_basename(iso_link) + '/LiveOS', string)
-                    elif re.search(r'rd.live.image', string, re.I):
-                        string = re.sub(r'rd.live.image', 'rd.live.image rd.live.dir=/multibootusb/' +
-                                        iso_basename(iso_link) + '/LiveOS', string)
-                    elif re.search(r'Solus', string, re.I):
-                        string = re.sub(r'initrd=', 'rd.live.dir=/multibootusb/' + iso_basename(iso_link) +
-                                        '/LiveOS initrd=', string)
-
-                    if persistence != 0:
-                        if re.search(r'liveimg', string, re.I):
-                            string = re.sub(r'liveimg', 'liveimg overlay=UUID=' + usb_uuid, string)
-                        elif re.search(r'rd.live.image', string, re.I):
-                            string = re.sub(r'rd.live.image', 'rd.live.image rw rd.live.overlay=UUID=' + usb_uuid, string)
-                        string = re.sub(r' ro ', '', string)
                 elif distro == 'kaspersky':
                     if not os.path.exists(os.path.join(usb_mount, 'multibootusb', iso_basename(iso_link), 'kaspersky.cfg')):
                         shutil.copyfile(resource_path(os.path.join('data', 'multibootusb', 'syslinux.cfg')),
@@ -242,7 +228,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                         string)
                 elif distro == "slax":
                     string = re.sub(r'initrd=',
-                                    r'from=/multibootusb/' + iso_basename(iso_link) + '/slax fromusb initrd=', string)
+                                    r'from=/multibootusb/' + iso_basename(iso_link) + '/slax changes=/multibootusb/' + iso_basename(iso_link) + '/slax fromusb initrd=', string)
                 elif distro == "finnix":
                     string = re.sub(r'initrd=',
                                     r'finnixdir=/multibootusb/' + iso_basename(iso_link) + '/finnix initrd=', string)
@@ -272,7 +258,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'isodevice=/dev/disk/by-uuid/' + usb_uuid, string, flags=re.I)
                     string = re.sub(r'isobasedir=',
                                     'isobasedir=/multibootusb/' + iso_basename(iso_link) + '/', string, flags=re.I)
-                    string = re.sub(r'ui gfxboot', '# ui gfxboot', string)  # Bug in the isolinux package
+                    string = commentout_gfxboot(string)
                     string = string.replace('%INSTALL_DIR%', 'arch')
                     if 'manjaro' in string:
                         if not os.path.exists(os.path.join(usb_mount, '.miso')):
@@ -283,7 +269,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'kdeosisodevice=/dev/disk/by-uuid/' + usb_uuid, string, flags=re.I)
                     string = re.sub(r'append',
                                     'append kdeosisobasedir=/multibootusb/' + iso_basename(iso_link) + '/kdeos/', string, flags=re.I)
-                    string = re.sub(r'ui gfxboot', '# ui gfxboot', string)  # Bug in the isolinux package
+                    string = commentout_gfxboot(string)
                 elif distro in ["suse", "opensuse"]:
                     if re.search(r'opensuse_12', string, re.I):
                         string = re.sub(r'append',
@@ -302,7 +288,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'fromusb livecd=' + '/multibootusb/' + iso_basename(iso_link) + '/',
                                     string)
                     string = re.sub(r'prompt', '#prompt', string)
-                    string = re.sub(r'ui gfxboot.com', '#ui gfxboot.com', string)
+                    string = commentout_gfxboot(string)
                     string = re.sub(r'timeout', '#timeout', string)
                 elif distro == "wifislax":
                     string = re.sub(r'vmlinuz',
@@ -427,58 +413,66 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
         gen.log('multibootusb EFI image already exist. Not copying...')
 
 
+# Bug in the isolinux package
+def commentout_gfxboot(input_text):
+    return re.sub(r'(ui\s+.*?gfxboot\.c32.*)$', r'# \1', input_text,
+                  flags=re.I | re.MULTILINE)
+
 def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
     """
-    Update main multibootusb suslinux.cfg file after distro is installed.
+    Update main multibootusb syslinux.cfg file after distro is installed.
     :return:
     """
-    if platform.system() == 'Linux':
-        os.sync()
     log('Updating multibootusb config file...')
+    name_from_iso = iso_basename(iso_link)
+    name_of_iso = iso_name(iso_link)
+    _isolinux_bin_exists = isolinux_bin_exist(config.image_path)
+    _isolinux_bin_dir = isolinux_bin_dir(iso_link)
     sys_cfg_file = os.path.join(usb_mount, "multibootusb", "syslinux.cfg")
-    install_dir = os.path.join(usb_mount, "multibootusb", iso_basename(iso_link))
-    if os.path.exists(sys_cfg_file):
+    install_dir = os.path.join(usb_mount, "multibootusb", name_from_iso)
+    label = name_from_iso + ('' if _isolinux_bin_exists else ' via GRUB')
 
+    if os.path.exists(sys_cfg_file):
         if distro == "hbcd":
             if os.path.exists(os.path.join(usb_mount, "multibootusb", "menu.lst")):
                 _config_file = os.path.join(usb_mount, "multibootusb", "menu.lst")
                 config_file = open(_config_file, "w")
-                string = re.sub(r'/HBCD', '/multibootusb/' + iso_basename(iso_link) + '/HBCD', _config_file)
+                string = re.sub(r'/HBCD', '/multibootusb/' + name_from_iso + '/HBCD', _config_file)
                 config_file.write(string)
                 config_file.close()
             with open(sys_cfg_file, "a") as f:
                 f.write("#start " + iso_basename(config.image_path) + "\n")
-                f.write("LABEL " + iso_basename(config.image_path) + "\n")
-                f.write("MENU LABEL " + iso_basename(config.image_path) + "\n")
-                f.write("BOOT " + '/multibootusb/' + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '/' + distro + '.bs' + "\n")
+                f.write("LABEL " + label + "\n")
+                f.write("MENU LABEL " + label + "\n")
+                f.write("BOOT " + '/multibootusb/' + name_from_iso + '/' + _isolinux_bin_dir.replace("\\", "/") + '/' + distro + '.bs' + "\n")
                 f.write("#end " + iso_basename(config.image_path) + "\n")
         elif distro == "Windows":
             if os.path.exists(sys_cfg_file):
                 config_file = open(sys_cfg_file, "a")
-                config_file.write("#start " + iso_basename(iso_link) + "\n")
-                config_file.write("LABEL " + iso_basename(iso_link) + "\n")
-                config_file.write("MENU LABEL " + iso_basename(iso_link) + "\n")
+                config_file.write("#start " + name_from_iso + "\n")
+                config_file.write("LABEL " + label + "\n")
+                config_file.write("MENU LABEL " + label + "\n")
                 config_file.write("KERNEL chain.c32 hd0 1 ntldr=/bootmgr" + "\n")
-                config_file.write("#end " + iso_basename(iso_link) + "\n")
+                config_file.write("#end " + name_from_iso + "\n")
                 config_file.close()
         elif distro == 'f4ubcd':
             if os.path.exists(sys_cfg_file):
                 config_file = open(sys_cfg_file, "a")
-                config_file.write("#start " + iso_basename(iso_link) + "\n")
-                config_file.write("LABEL " + iso_basename(iso_link) + "\n")
-                config_file.write("MENU LABEL " + iso_basename(iso_link) + "\n")
+                config_file.write("#start " + name_from_iso + "\n")
+                config_file.write("LABEL " + label + "\n")
+                config_file.write("MENU LABEL " + label + "\n")
                 config_file.write("KERNEL grub.exe" + "\n")
                 config_file.write('APPEND --config-file=/multibootusb/' + iso_basename(config.image_path) + '/menu.lst' + "\n")
-                config_file.write("#end " + iso_basename(iso_link) + "\n")
+                config_file.write("#end " + name_from_iso + "\n")
                 config_file.close()
         elif distro == 'kaspersky':
             if os.path.exists(sys_cfg_file):
                 config_file = open(sys_cfg_file, "a")
-                config_file.write("#start " + iso_basename(iso_link) + "\n")
-                config_file.write("LABEL " + iso_basename(iso_link) + "\n")
-                config_file.write("MENU LABEL " + iso_basename(iso_link) + "\n")
+                config_file.write("#start " + name_from_iso + "\n")
+                config_file.write("LABEL " + label + "\n")
+                config_file.write("MENU LABEL " + label + "\n")
                 config_file.write("CONFIG " + '/multibootusb/' + iso_basename(config.image_path) + '/kaspersky.cfg' + "\n")
-                config_file.write("#end " + iso_basename(iso_link) + "\n")
+                config_file.write("#end " + name_from_iso + "\n")
                 config_file.close()
         elif distro == 'grub4dos':
             update_menu_lst()
@@ -486,27 +480,30 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
             update_grub4dos_iso_menu()
         else:
             config_file = open(sys_cfg_file, "a")
-            config_file.write("#start " + iso_basename(iso_link) + "\n")
-            config_file.write("LABEL " + iso_basename(iso_link) + "\n")
-            config_file.write("MENU LABEL " + iso_basename(iso_link) + "\n")
+            config_file.write("#start " + name_from_iso + "\n")
+            config_file.write("LABEL " + label + "\n")
+            config_file.write("MENU LABEL " + label + "\n")
             if distro == "salix-live":
-                if os.path.exists(os.path.join(config.usb_mount, 'multibootusb', iso_basename(iso_link), 'boot', 'grub2-linux.img')):
+                if os.path.exists(
+                        os.path.join(install_dir, 'boot', 'grub2-linux.img')):
                     config_file.write(
-                        "LINUX " + '/multibootusb/' + iso_basename(iso_link) + '/boot/grub2-linux.img' + "\n")
+                        "LINUX " + '/multibootusb/' + name_from_iso +
+                        '/boot/grub2-linux.img' + "\n")
                 else:
-                    config_file.write("BOOT " + '/multibootusb/' + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '/' + distro + '.bs' + "\n")
+                    config_file.write("BOOT " + '/multibootusb/' + name_from_iso + '/' + _isolinux_bin_dir.replace("\\", "/") + '/' + distro + '.bs' + "\n")
             elif distro == "pclinuxos":
-                config_file.write("kernel " + '/multibootusb/' + iso_basename(iso_link) + '/isolinux/vmlinuz' + "\n")
+                config_file.write("kernel " + '/multibootusb/' + name_from_iso
+                                  + '/isolinux/vmlinuz' + "\n")
                 config_file.write("append livecd=livecd root=/dev/rd/3 acpi=on vga=788 keyb=us vmalloc=256M nokmsboot "
                                   "fromusb root=UUID=" + usb_uuid + " bootfromiso=/multibootusb/" +
-                                  iso_basename(iso_link) + "/" + iso_name(iso_link) + " initrd=/multibootusb/"
-                                  + iso_basename(iso_link) + '/isolinux/initrd.gz' + "\n")
+                                  name_from_iso + "/" + name_of_iso + " initrd=/multibootusb/"
+                                  + name_from_iso + '/isolinux/initrd.gz' + "\n")
             elif distro == "memtest":
-                config_file.write("kernel " + '/multibootusb/' + iso_basename(iso_link) + '/BOOT/MEMTEST.IMG\n')
+                config_file.write("kernel " + '/multibootusb/' + name_from_iso + '/BOOT/MEMTEST.IMG\n')
 
             elif distro == "sgrubd2" or config.distro == 'raw_iso':
                 config_file.write("LINUX memdisk\n")
-                config_file.write("INITRD " + "/multibootusb/" + iso_basename(iso_link) + '/' + iso_name(iso_link) + '\n')
+                config_file.write("INITRD " + "/multibootusb/" + name_from_iso + '/' + name_of_iso + '\n')
                 config_file.write("APPEND iso\n")
 
             elif distro == 'ReactOS':
@@ -524,30 +521,37 @@ def update_mbusb_cfg_file(iso_link, usb_uuid, usb_mount, distro):
             elif distro == 'memdisk_img':
                 config_file.write(menus.memdisk_img_cfg(syslinux=True, grub=False))
             else:
-                if isolinux_bin_exist(config.image_path) is True:
+                if _isolinux_bin_exists is True:
                     if distro == "generic":
-                        distro_syslinux_install_dir = isolinux_bin_dir(iso_link)
-                        if isolinux_bin_dir(iso_link) != "/":
-                            distro_sys_install_bs = os.path.join(usb_mount, isolinux_bin_dir(iso_link)) + '/' + distro + '.bs'
+                        distro_syslinux_install_dir = _isolinux_bin_dir
+                        if _isolinux_bin_dir != "/":
+                            distro_sys_install_bs = os.path.join(usb_mount, _isolinux_bin_dir) + '/' + distro + '.bs'
                         else:
                             distro_sys_install_bs = '/' + distro + '.bs'
                     else:
                         distro_syslinux_install_dir = install_dir
                         distro_syslinux_install_dir = distro_syslinux_install_dir.replace(usb_mount, '')
-                        distro_sys_install_bs = distro_syslinux_install_dir + '/' + isolinux_bin_dir(iso_link) + '/' + distro + '.bs'
+                        distro_sys_install_bs = distro_syslinux_install_dir + '/' + _isolinux_bin_dir + '/' + distro + '.bs'
 
                     distro_sys_install_bs = "/" + distro_sys_install_bs.replace("\\", "/")  # Windows path issue.
 
                     if config.syslinux_version == '3':
-                        config_file.write("CONFIG /multibootusb/" + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '/isolinux.cfg\n')
-                        config_file.write("APPEND /multibootusb/" + iso_basename(iso_link) + '/' + isolinux_bin_dir(iso_link).replace("\\", "/") + '\n')
+                        config_file.write("CONFIG /multibootusb/" + name_from_iso + '/' + _isolinux_bin_dir.replace("\\", "/") + '/isolinux.cfg\n')
+                        config_file.write("APPEND /multibootusb/" + name_from_iso + '/' + _isolinux_bin_dir.replace("\\", "/") + '\n')
                         config_file.write("# Delete or comment above two lines using # and remove # from below line if "
                                           "you get not a COM module error.\n")
                         config_file.write("#BOOT " + distro_sys_install_bs.replace("//", "/") + "\n")
                     else:
                         config_file.write("BOOT " + distro_sys_install_bs.replace("//", "/") + "\n")
-
-            config_file.write("#end " + iso_basename(iso_link) + "\n")
+                else:
+                    # isolinux_bin does not exist.
+                    config_file.write('Linux /multibootusb/grub/lnxboot.img\n')
+                    config_file.write('INITRD /multibootusb/grub/core.img\n')
+                    config_file.write('TEXT HELP\n')
+                    config_file.write('Booting via syslinux is not supported. '
+                                      'Please boot via GRUB\n')
+                    config_file.write('ENDTEXT\n')
+            config_file.write("#end " + name_from_iso + "\n")
             config_file.close()
             # Update extlinux.cfg file by copying updated syslinux.cfg
             shutil.copy(os.path.join(usb_mount, 'multibootusb', 'syslinux.cfg'),
@@ -607,15 +611,18 @@ def update_grub4dos_iso_menu():
             f.write("#end " + iso_basename(config.image_path) + "\n")
 
 class ConfigTweakerParam:
-    def __init__(self, distro_name, distro_path, persistence_size, 
-                 usb_uuid, usb_mount, usb_disk):
-        self.distro_name = distro_name
+    # 'iso_link' is also known as 'image_path'
+    def __init__(self, iso_link, distro_path, persistence_size, 
+                 usb_uuid, usb_mount, usb_disk, usb_fs_type):
+        self.iso_fname   = os.path.split(iso_link)[1]
+        self.distro_name = os.path.splitext(self.iso_fname)[0]
         assert distro_path[0] == '/'
         self.distro_path = distro_path           # drive relative
         self.persistence_size = persistence_size
         self.usb_uuid = usb_uuid
         self.usb_mount = usb_mount
         self.usb_disk = usb_disk
+        self.usb_fs_type = usb_fs_type
 
 
 class ConfigTweaker:
@@ -716,7 +723,8 @@ class ConfigTweaker:
 
     def fullpath(self, subpath):
         p = self.setup_params
-        return os.path.join(p.usb_mount, p.distro_path[1:], subpath)
+        return os.path.join(p.usb_mount, p.distro_path[1:],
+                            subpath).replace('/', os.sep)
 
     def file_is_installed(self, subpath):
         return os.path.exists(self.fullpath(subpath))
@@ -728,6 +736,26 @@ class ConfigTweaker:
         with open(fp, errors='ignore') as f:
             return f.read()
 
+    def extract_distroinfo_from_file(self, subpath, regex, distro_group,
+                                    version_group):
+        content = self.file_content(subpath)
+        if not content:
+            return None
+        m = re.compile(regex, re.I).search(content)
+        if not m:
+            return None
+        return (m.group(distro_group),
+                [int(x) for x in m.group(version_group).split('.')])
+
+    def extract_distroinfo_from_fname(self, which_dir, regex, distro_group,
+                                      version_group):
+        p = re.compile(regex, re.I)
+        for fname in os.listdir(self.fullpath(which_dir)):
+            m = p.match(fname)
+            if m:
+                return (m.group(distro_group),
+                        [int(x) for x in m.group(version_group).split('.')])
+        return None
 
 class PersistenceConfigTweaker(ConfigTweaker):
     def __init__(self, pac_re, *args, **kw):
@@ -813,8 +841,9 @@ class NoPersistenceTweaker(ConfigTweaker):
 class GentooConfigTweaker(NoPersistenceTweaker):
 
     def param_operations(self):
+        uuid_spec = 'UUID=%s' % self.setup_params.usb_uuid
         ops = [
-            ([add_or_replace_kv('real_root=', self.setup_params.usb_disk),
+            ([add_or_replace_kv('real_root=', uuid_spec),
               add_tokens('slowusb'),
               add_or_replace_kv('subdir=', self.setup_params.distro_path),
               remove_keys('cdroot_hash='),
@@ -828,6 +857,10 @@ class GentooConfigTweaker(NoPersistenceTweaker):
               ],
              starter_is_either('append', 'linux')),
             ]
+        fs_type = self.setup_params.usb_fs_type
+        if  fs_type == 'vfat':
+            ops.append( (add_or_replace_kv('cdroot_type=', fs_type),
+                         always) )
         self.add_op_if_file_exists(
             ops, add_or_replace_kv,
             'loop=', ['liberte/boot/root-x86.sfs', 'image.squashfs'],
@@ -835,13 +868,13 @@ class GentooConfigTweaker(NoPersistenceTweaker):
         return ops
 
 
-class CentosConfigTweaker(PersistenceConfigTweaker):
+class FedoraConfigTweaker(PersistenceConfigTweaker):
 
     def __init__(self, *args, **kw):
         persistence_awareness_checking_re = re.compile(
             r'^\s*(%s).*?\s(rd.live.overlay|overlay)=.+?' %
             self.BOOT_PARAMS_STARTER,  flags=re.I|re.MULTILINE)
-        super(CentosConfigTweaker, self).__init__(
+        super(FedoraConfigTweaker, self).__init__(
             persistence_awareness_checking_re, *args, **kw)
 
     def has_persistency_param(self, params):
@@ -872,9 +905,9 @@ class CentosConfigTweaker(PersistenceConfigTweaker):
                  (add_or_replace_kv(
                      'inst.repo=',
                      'hd:UUID=%s:%s' % (
-                        self.setup_params.usb_uuid,
-                        self.setup_params.distro_path + '/' +
-                        self.setup_params.distro_name + '.iso')),
+                         self.setup_params.usb_uuid,
+                         self.setup_params.distro_path + '/' +
+                         self.setup_params.iso_fname)),
                   starter_is_either('append', 'linux')))
         return ops
 
@@ -891,8 +924,15 @@ class CentosConfigTweaker(PersistenceConfigTweaker):
 
 class AntixConfigTweaker(NoPersistenceTweaker):
     def param_operations(self):
-        content = self.file_content('version')
-        if content and 0 <= content.find('antiX-17'):
+        dinfo = self.extract_distroinfo_from_file(
+            'version', r'(antiX|MX)-(\d+\.\d+)', 1, 2)
+        if not dinfo:
+            dinfo = self.extract_distroinfo_from_file(
+                'boot/isolinux/isolinux.cfg', r'(antiX|MX)-(\d+\.\d+)', 1, 2)
+        if not dinfo:
+            dinfo = self.extract_distroinfo_from_fname(
+                '', r'(MX)-(\d+\.\d+).*', 1, 2)
+        if dinfo and 17<=dinfo[1][0]:
             ops = [
                 add_or_replace_kv('buuid=', self.setup_params.usb_uuid),
                 add_or_replace_kv('bdir=',
@@ -902,6 +942,11 @@ class AntixConfigTweaker(NoPersistenceTweaker):
                                     self.setup_params.distro_path)
 
         return [(ops, starter_is_either('append', 'APPEND', 'linux'))]
+    def post_process(self, s):
+        s = re.sub(r'^(\s*UI\s+(.*?gfxboot(\.c32|)))\s+(.*?)\s+(.*)$',
+                   r'# \1 \4.renamed-to-avoid-lockup \5', s,
+                   flags=re.I + re.MULTILINE)
+        return s
 
 
 class SalixConfigTweaker(NoPersistenceTweaker):
@@ -910,18 +955,26 @@ class SalixConfigTweaker(NoPersistenceTweaker):
             return None
         p = self.setup_params
         for replacee, replacer in [
-                ('iso_path', "%s/%s.iso" % (p.distro_path, p.distro_name)),
-                ('initrd=', 'fromiso=%s/%s.iso initrd=' % (
-                    p.distro_path, p.distro_name)),
+                ('iso_path', "%s/%s" % (p.distro_path, p.iso_fname)),
+                ('initrd=', 'fromiso=%s/%s initrd=' % (
+                    p.distro_path, p.iso_fname)),
                 ]:
             content = content.replace(replacee, replacer)
         return content
 
+    # salixlive-xfce-14.2.1 assumes that the installation media is
+    # labeled "LIVE" and the file tree is exploded at the root.
+    # (See /init for details.) Supporing it in harmony with installation
+    # of other distros is very hard to impossible. Do nothing here.
+    def param_operations(self):
+        return []
+
+class WifislaxConfigTweaker(NoPersistenceTweaker):
     def param_operations(self):
         ops = [
-            (add_or_replace_kv('livemedia=','%s:%s/%s.iso' % (
+            (add_or_replace_kv('livemedia=','%s:%s/%s' % (
                 self.setup_params.usb_uuid, self.setup_params.distro_path,
-                self.setup_params.distro_name)),
+                self.setup_params.iso_fname)),
              starter_is_either('append', 'linux'))]
         return ops
 
@@ -952,7 +1005,7 @@ def _test_tweak_objects():
         '{usb-uuid}', usb_mount, usb_disk)
     debian_tweaker = DebianConfigTweaker('debian', setup_params_no_persistence)
     ubuntu_tweaker = UbuntuConfigTweaker('ubuntu', setup_params_no_persistence)
-    centos_tweaker = CentosConfigTweaker('centos', setup_params_no_persistence)
+    centos_tweaker = FedoraConfigTweaker('centos', setup_params_no_persistence)
     salix_tweaker = SalixConfigTweaker('centos', setup_params_no_persistence)
 
     # Test awareness on 'persistent'
@@ -1033,7 +1086,7 @@ append foo"""
         'debian', setup_params_persistent)
     ubuntu_persistence_tweaker = UbuntuConfigTweaker(
         'ubuntu', setup_params_persistent)
-    centos_persistence_tweaker = CentosConfigTweaker(
+    centos_persistence_tweaker = FedoraConfigTweaker(
         'centos', setup_params_persistent)
 
     print ("Testing if debian tweaker appends persistence parameters.")

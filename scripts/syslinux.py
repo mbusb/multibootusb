@@ -13,8 +13,10 @@ from .gen import *
 from . import usb
 from .iso import *
 from . import config
+from . import osdriver
 
 extlinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "extlinux4")
+syslinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux4")
 syslinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux4")
 mbr_bin = resource_path(os.path.join("data", "tools", "mbr.bin"))
 win_gdisk = resource_path(os.path.join('data', 'tools', 'gdisk', 'gdisk.exe'))
@@ -90,6 +92,39 @@ def set_boot_flag(usb_disk):
                     log("\nUnable to set legacy_boot flag on  " + usb_disk[:-1], '\n')
                     return False
 
+def linux_install_default_bootsector(usb_disk, mbr_install_cmd):
+
+    with usb.UnmountedContext(usb_disk, config.update_usb_mount):
+        syslinux_cmd = [syslinux_path, '-i', '-d', 'multibootusb', usb_disk]
+        if os.access(syslinux_path, os.X_OK) is False:
+            subprocess.call('chmod +x ' + syslinux_path, shell=True)
+        log("\nExecuting ==> %s\n" % syslinux_cmd)
+        config.status_text = 'Installing default syslinux version 4...'
+        if subprocess.call(syslinux_cmd) == 0:
+
+            # On my system, it takes hours long to complete a single check
+            # So not included as of now
+            # usb.repair_vfat_filesystem(usb_disk)
+
+            log("\nDefault syslinux install is success...\n")
+            config.status_text = 'Default syslinux successfully installed...'
+            log('\nExecuting ==> ' + mbr_install_cmd)
+            if subprocess.call(mbr_install_cmd, shell=True) == 0:
+                config.status_text = 'mbr install is success...'
+                log("\nmbr install is success...\n")
+                if set_boot_flag(usb_disk) is True:
+                    return True
+                else:
+                    log("\nFailed to install default syslinux...\n")
+                    config.status_text = 'Failed to install default syslinux...'
+                    return False
+    return None
+
+
+def create_syslinux_bs(usb_disk, usb_mount):
+    osdriver.run_dd(osdriver.physical_disk(usb_disk),
+                    os.path.join(usb_mount, 'multibootusb', 'syslinux.bin'),
+                    512, 1)
 
 def syslinux_default(usb_disk):
     """
@@ -102,18 +137,20 @@ def syslinux_default(usb_disk):
     usb_fs = usb_details['file_system']
     usb_mount = usb_details['mount_point']
     mbr_bin = get_mbr_bin_path(usb_disk)
-
     if platform.system() == 'Linux':
-        mbr_install_cmd = 'dd bs=440 count=1 conv=notrunc if=' + mbr_bin + ' of=' + usb_disk[:-1]
+        mbr_install_cmd = 'dd bs=440 count=1 conv=notrunc if=' + mbr_bin \
+                          + ' of=' + usb_disk[:-1]
     else:
-        win_usb_disk_no = get_physical_disk_number(config.usb_disk)
+        win_usb_disk_no = get_physical_disk_number(usb_disk)
         _windd = resource_path(os.path.join("data", "tools", "dd", "dd.exe"))
         _input = "if=" + mbr_bin
         _output = 'of=\\\.\\physicaldrive' + str(win_usb_disk_no)
         mbr_install_cmd = _windd + ' ' + _input + ' ' + _output + ' count=1'
 
+
     if usb_fs in extlinux_fs:
-        extlinu_cmd = extlinux_path + ' --install ' + os.path.join(usb_mount, 'multibootusb')
+        extlinu_cmd = extlinux_path + ' --install ' + \
+                      os.path.join(usb_mount, 'multibootusb')
         if os.access(extlinux_path, os.X_OK) is False:
             subprocess.call('chmod +x ' + extlinux_path, shell=True)
         log("\nExecuting ==> " + extlinu_cmd)
@@ -127,30 +164,16 @@ def syslinux_default(usb_disk):
                 config.status_text = 'mbr install is successful...'
                 log("\nmbr install is success...\n")
                 if set_boot_flag(usb_disk) is True:
+                    create_syslinux_bs(usb_disk, usb_mount)
                     return True
 
     elif usb_fs in syslinux_fs:
 
         if platform.system() == "Linux":
-            syslinux_cmd = syslinux_path + ' -i -d multibootusb ' + usb_disk
-            if os.access(syslinux_path, os.X_OK) is False:
-                subprocess.call('chmod +x ' + syslinux_path, shell=True)
-            log("\nExecuting ==> " + syslinux_cmd + "\n")
-            config.status_text = 'Installing default syslinux version 4...'
-            if subprocess.call(syslinux_cmd, shell=True) == 0:
-                log("\nDefault syslinux install is success...\n")
-                config.status_text = 'Default syslinux successfully installed...'
-                log('\nExecuting ==> ' + mbr_install_cmd)
-                if subprocess.call(mbr_install_cmd, shell=True) == 0:
-                    config.status_text = 'mbr install is success...'
-                    log("\nmbr install is success...\n")
-                    if set_boot_flag(usb_disk) is True:
-                        return True
-                    else:
-                        log("\nFailed to install default syslinux...\n")
-                        config.status_text = 'Failed to install default syslinux...'
-                        return False
-
+            r = linux_install_default_bootsector(usb_disk, mbr_install_cmd)
+            if r:
+                create_syslinux_bs(usb_disk, usb_mount)
+            return r
         elif platform.system() == "Windows":
             syslinux = resource_path(os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux4.exe"))
             config.status_text = 'Installing default syslinux version 4...'
@@ -170,7 +193,7 @@ def syslinux_default(usb_disk):
                 config.status_text = 'Default syslinux successfully installed...'
                 log("\nDefault syslinux install is success...\n")
                 # We will need to flash gptmbr.bin only for GPT disk. As of version 8.9.0 this corrupts the gpt disk.
-                # Therefore not included for BIOS booting. GPT disk may work on UEFI system. 
+                # Therefore not included for BIOS booting. GPT disk may work on UEFI system.
                 # if gpt_part_table(config.usb_disk) is True:
                 '''
                 if config.usb_gpt is False:
@@ -181,12 +204,61 @@ def syslinux_default(usb_disk):
                 else:
                     log('Disk uses GPT and mbr install is not required...')
                 '''
+                create_syslinux_bs(usb_disk, usb_mount)
                 return True
 
             else:
                 log("\nFailed to install default syslinux...\n")
                 config.status_text = 'Failed to install default syslinux...'
                 return False
+
+
+def build_distro_bootsector(usb_disk, options,
+                            distro_syslinux_install_dir,
+                            distro_sys_install_bs):
+    with usb.UnmountedContext(config.usb_disk, config.update_usb_mount):
+        tmp_bs = build_distro_bootsector_impl(
+            usb_disk, options, distro_syslinux_install_dir)
+    if tmp_bs:
+        shutil.copy(tmp_bs, distro_sys_install_bs)
+
+
+def build_distro_bootsector_impl(usb_disk, options,
+                                 distro_syslinux_install_dir):
+    syslinux_path = os.path.join(
+        multibootusb_host_dir(), "syslinux", "bin", "syslinux") \
+        + config.syslinux_version
+
+    if os.access(syslinux_path, os.X_OK) is False:
+        subprocess.call('chmod +x ' + syslinux_path, shell=True)
+    sys_cmd = [syslinux_path] + options + [
+        distro_syslinux_install_dir, usb_disk]
+    log("Executing ==> %s" % sys_cmd)
+    if subprocess.call(sys_cmd) == 0:
+        config.status_text = \
+            'Syslinux install on distro directory is successful...'
+        log("\nSyslinux install on distro directory is successful...\n")
+
+        # On my system, it takes hours long to complete a single check
+        # So not included as of now
+        # usb.repair_vfat_filesystem(usb_disk)
+
+        tmp_bs_file = '/tmp/mbusb_temp.bs'
+        dd_cmd = ['dd', 'if=' + usb_disk, 'of=' + tmp_bs_file, 'count=1']
+        log('Executing ==> %s' % dd_cmd + '\n')
+        config.status_text = 'Copying boot sector...'
+        config.status_text = 'Installing distro specific syslinux...'
+        if subprocess.call(dd_cmd) == 0:
+            config.status_text = 'Bootsector copy is successful...'
+            log("\nBootsector copy is successful...\n")
+        else:
+            config.status_text = 'Failed to copy boot sector...'
+            log("\nFailed to copy boot sector...\n")
+        return tmp_bs_file
+    else:
+        config.status_text = 'Failed to install syslinux on distro directory...'
+        log("\nFailed to install syslinux on distro directory...\n")
+        return None
 
 
 def syslinux_distro_dir(usb_disk, iso_link, distro):
@@ -214,60 +286,43 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
 
         if distro in ["generic"]:
             install_dir = usb_mount
-            distro_syslinux_install_dir = os.path.join(usb_mount, iso_linux_bin_dir.strip("/")).replace(usb_mount, "")
-            distro_sys_install_bs = os.path.join(install_dir, iso_linux_bin_dir.strip("/"), distro + '.bs')
+            distro_syslinux_install_dir = os.path.join(
+                usb_mount, iso_linux_bin_dir.strip("/")).replace(usb_mount, "")
+            distro_sys_install_bs = os.path.join(
+                install_dir, iso_linux_bin_dir.strip("/"), distro + '.bs')
         else:
-            install_dir = os.path.join(usb_mount, "multibootusb", iso_basename(iso_link))
-            distro_syslinux_install_dir = os.path.join(install_dir, iso_linux_bin_dir.strip("/")).replace(usb_mount, "")
-            distro_sys_install_bs = os.path.join(install_dir, iso_linux_bin_dir.strip("/"), distro + '.bs')
+            install_dir = os.path.join(usb_mount, "multibootusb",
+                                       iso_basename(iso_link))
+            distro_syslinux_install_dir = os.path.join(
+                install_dir, iso_linux_bin_dir.strip("/")
+                ).replace(usb_mount, "")
+            distro_sys_install_bs = os.path.join(
+                install_dir, iso_linux_bin_dir.strip("/"), distro + '.bs')
+
 #             log(distro_sys_install_bs)
 #             log(distro_syslinux_install_dir)
 
         if usb_fs in syslinux_fs:
-            if config.syslinux_version == str(3):
-                if distro == "generic" and iso_linux_bin_dir == "/":
-                    option = ""
-                else:
-                    option = " -d "
-            else:
-                if distro == "generic" and iso_linux_bin_dir == "/":
-                    option = " -i "
-                else:
-                    option = " -i -d "
-
+            options = ['-f']
+            if config.syslinux_version != '3':
+                options.append('-i')
+            if not (distro == "generic" and iso_linux_bin_dir == "/"):
+                options.append('-d')
             if platform.system() == "Linux":
-                syslinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux") + config.syslinux_version
-                if os.access(syslinux_path, os.X_OK) is False:
-                    subprocess.call('chmod +x ' + syslinux_path, shell=True)
-                sys_cmd = syslinux_path + option + quote(distro_syslinux_install_dir) + ' ' + usb_disk
-                dd_cmd = 'dd if=' + usb_disk + ' ' + 'of=' + quote(distro_sys_install_bs) + ' count=1'
-                log("Executing ==> " + sys_cmd)
-                config.status_text = 'Installing distro specific syslinux...'
-                if subprocess.call(sys_cmd, shell=True) == 0:
-                    config.status_text = 'Syslinux install on distro directory is successful...'
-                    log("\nSyslinux install on distro directory is successful...\n")
-                    log('Executing ==> ' + dd_cmd + '\n')
-                    config.status_text = 'Copying boot sector...'
-                    if subprocess.call(dd_cmd, shell=True) == 0:
-                        config.status_text = 'Bootsector copy is successful...'
-                        log("\nBootsector copy is successful...\n")
-                    else:
-                        config.status_text = 'Failed to copy boot sector...'
-                        log("\nFailed to copy boot sector...\n")
-                else:
-                    config.status_text = 'Failed to install syslinux on distro directory...'
-                    log("\nFailed to install syslinux on distro directory...\n")
-
+                build_distro_bootsector(usb_disk, options,
+                                        distro_syslinux_install_dir,
+                                        distro_sys_install_bs)
             elif platform.system() == "Windows":
                 syslinux_path = resource_path(os.path.join(multibootusb_host_dir(), "syslinux", "bin")) + \
                                 "\syslinux" + config.syslinux_version + ".exe"
                 distro_syslinux_install_dir = "/" + distro_syslinux_install_dir.replace("\\", "/")
                 distro_sys_install_bs = distro_sys_install_bs.replace("/", "\\")
-                sys_cmd = syslinux_path + option + distro_syslinux_install_dir + ' ' + usb_disk + ' ' + \
-                          distro_sys_install_bs
-                log("\nExecuting ==> " + sys_cmd + '\n')
+                sys_cmd = [syslinux_path] + options + \
+                          [distro_syslinux_install_dir, usb_disk,
+                           distro_sys_install_bs]
+                log("\nExecuting ==> %s" % sys_cmd )
                 config.status_text = 'Installing distro specific syslinux...'
-                if subprocess.call(sys_cmd, shell=True) == 0:
+                if subprocess.call(sys_cmd) == 0:
                     config.status_text = 'Syslinux install on distro directory is successful...'
                     log("\nSyslinux install was successful on distro directory...\n")
                 else:
@@ -291,12 +346,14 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
                         log("\nFailed to install syslinux on distro directory...\n")
 
 
+
+
 def replace_grub_binary():
     """
     This function checks if correct binary is installed on grub and EFI directory.
     If mismatch is found between partition table and binary, replace it correct one.
     Default binaries will work for msdos partition table and therefore need not be replaced.
-    :return: 
+    :return:
     """
 
     # There used to be msdos/gpt specific files installed and relevant
