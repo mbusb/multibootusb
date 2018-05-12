@@ -7,32 +7,26 @@
 # under the terms of GNU General Public License, v.2 or above
 # WARNING : Any boot-able USB made using this module will destroy data stored on USB disk.
 
-import os
-import subprocess
 import collections
+import io
+import os
 import platform
-import signal
+import subprocess
+import traceback
+
 from PyQt5 import QtWidgets
 from .gui.ui_multibootusb import Ui_MainWindow
 from .gen import *
-from . import iso
 from . import config
+from . import iso
+from . import osdriver
 from . import progressbar
 
 if platform.system() == "Windows":
     import win32com.client
 
 
-def dd_linux():
-    import time
-    _input = "if=" + config.image_path
-    in_file_size = float(os.path.getsize(config.image_path))
-    _output = "of=" + config.usb_disk
-    os.system("umount " + config.usb_disk + "1")
-    command = ['dd', _input, _output, "bs=1M", "oflag=sync"]
-    log("Executing ==> " + " ".join(command))
-    dd_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-
+def dd_iso_image(dd_progress_thread):
     pbar = progressbar.ProgressBar(
             maxval=100,
             widgets=[
@@ -43,52 +37,20 @@ def dd_linux():
             ]
     ).start()
 
-    while dd_process.poll() is None:
-        time.sleep(0.1)  # If this time delay is not given, the Popen does not execute the actual command
-        dd_process.send_signal(signal.SIGUSR1)
-        dd_process.stderr.flush()
-        while True:
-            time.sleep(0.1)
-            out_error = dd_process.stderr.readline().decode()
-            if out_error:
-                if 'bytes' in out_error:
-                    copied = int(out_error.split(' ', 1)[0])
-                    config.imager_percentage = round((float(copied) / float(in_file_size) * 100))
-                    pbar.update(config.imager_percentage)
-                    break
+    def gui_update(percentage):
+        config.imager_percentage = percentage
+        pbar.update(percentage)
 
-    if dd_process.poll() is not None:
-        log("\nExecuting ==> sync")
-        os.sync()
-        log("ISO has been written to USB disk...")
-        return
-
-
-def dd_win():
-
-    windd = resource_path(os.path.join("data", "tools", "dd", "dd.exe"))
-    if os.path.exists(resource_path(os.path.join("data", "tools", "dd", "dd.exe"))):
-        log("dd exist")
-    _input = "if=" + config.image_path
-    in_file_size = float(os.path.getsize(config.image_path) / 1024 / 1024)
-    _output = "of=\\\.\\" + config.usb_disk
-    command = [windd, _input, _output, "bs=1M", "--progress"]
-    log("Executing ==> " + " ".join(command))
-    dd_process = subprocess.Popen(command, universal_newlines=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
-                                  shell=False)
-    while dd_process.poll() is None:
-        for line in iter(dd_process.stderr.readline, ''):
-            line = line.strip()
-            if 'error' in line.lower() or 'invalid' in line.lower():
-                log("Error writing to disk...")
-                break
-            if line and line[-1] == 'M':
-                copied = float(line.strip('M').replace(',', ''))
-                config.imager_percentage = round((copied / float(in_file_size) * 100))
-
-        log("ISO has been written to USB disk...")
-
-        return
+    try:
+        error = osdriver.dd_iso_image(config.image_path, config.usb_disk,
+                                      gui_update)
+        if error:
+            dd_progress_thread.set_error(error)
+    except:
+        o = io.StringIO()
+        traceback.print_exc(None, o)
+        log(o.getvalue())
+        dd_progress_thread.set_error(o.getvalue())
 
 
 class Imager(QtWidgets.QMainWindow, Ui_MainWindow):
