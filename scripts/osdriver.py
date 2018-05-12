@@ -143,7 +143,8 @@ class Base:
     def dd_iso_image(self, input_, output, gui_update):
         in_file_size = os.path.getsize(input_)
 
-        cmd = [self.dd_exe, 'if='+input_, 'of='+output, 'bs=1M']
+        cmd = [self.dd_exe, 'if=' + input_,
+               'of=' + self.dd_iso_image_physical_disk(output), 'bs=1M']
         self.dd_iso_image_add_args(cmd, input_, output)
         log('Executing => ' + str(cmd))
         kw_args = {
@@ -157,11 +158,9 @@ class Base:
         while dd_process.poll() is None:
             self.dd_iso_image_readoutput(dd_process, gui_update, in_file_size,
                                          errors)
-        if dd_process.returncode == 0:
-            return None
-        else:
-            return ''.join([errors.get() for i in range(errors.qsize())]) or \
-              "'dd' returned exit-code:%d" % dd_process.returncode
+        error_list = [errors.get() for i in range(errors.qsize())]
+        return self.dd_iso_image_interpret_result(
+            dd_process.returncode, error_list)
 
 class Windows(Base):
 
@@ -181,15 +180,31 @@ class Windows(Base):
                                 error_log):
         for line in iter(dd_process.stderr.readline, ''):
             line = line.strip()
-            if line and line[-1:] == 'M':
-                bytes_copied = float(line.rstrip('M').replace(',', '')) \
-                  * 1024 * 1024
-                gui_update(byets_copied / in_file_size * 100.)
-            else:
-                if 16 < error_log.qsize():
-                    error_log.get()
-                error_log.put(line)
+            if line:
+                l = line.replace(',', '')
+                if l[-1:] == 'M':
+                    bytes_copied = float(l.rstrip('M')) * 1024 * 1024
+                elif l.isdigit():
+                    bytes_copied = float(l)
+                else:
+                    if 16 < error_log.qsize():
+                        error_log.get()
+                    error_log.put(line)
+                    continue
+                gui_update(bytes_copied / in_file_size * 100.)
+                continue
         # Now the 'dd' process should have completed or going to soon.
+
+    def dd_iso_image_interpret_result(self, returncode, error_list):
+        # dd.exe always returns 0
+        if any([ 'invalid' in s or 'error' in s for s
+                 in [l.lower() for l in error_list] ]):
+            return '\n'.join(error_list)
+        else:
+            return None
+
+    def dd_iso_image_physical_disk(self, usb_disk):
+        return '\\\\.\\' + usb_disk
 
     def physical_disk(self, usb_disk):
         return r'\\.\physicaldrive%d' % get_physical_disk_number(usb_disk)
@@ -232,6 +247,12 @@ class Linux(Base):
             else:
                 # stderr is closed
                 break
+
+    def dd_iso_image_interpret_result(self, returncode, error_list):
+        return None if returncode==0 else '\n'.join(error_list)
+
+    def dd_iso_image_physical_disk(self, usb_disk):
+        return usb_disk.rstrip('0123456789')
 
     def physical_disk(self, usb_disk):
         return usb_disk.rstrip('0123456789')
