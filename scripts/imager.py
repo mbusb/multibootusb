@@ -21,6 +21,7 @@ from . import config
 from . import iso
 from . import osdriver
 from . import progressbar
+from . import usb
 
 if platform.system() == "Windows":
     import win32com.client
@@ -42,10 +43,11 @@ def dd_iso_image(dd_progress_thread):
         pbar.update(percentage)
 
     try:
-        error = osdriver.dd_iso_image(config.image_path, config.usb_disk,
-                                      gui_update)
-        if error:
-            dd_progress_thread.set_error(error)
+        with usb.UnmountedContext(config.usb_disk, config.update_usb_mount):
+            error = osdriver.dd_iso_image(
+                config.image_path, config.usb_disk, gui_update)
+            if error:
+                dd_progress_thread.set_error(error)
     except:
         o = io.StringIO()
         traceback.print_exc(None, o)
