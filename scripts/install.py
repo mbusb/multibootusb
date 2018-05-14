@@ -198,11 +198,14 @@ def replace_syslinux_modules(syslinux_version, under_this_dir):
                 try:
                     with lzma.open(dst_path) as f:
                         expanded = f.read()
-                except (OSError, IOError, lzma.LZMAError):
+                except lzma.LZMAError:
+                    continue
+                except (OSError, IOError) as e:
+                    log("%s while accessing %s." % (e, dst_path))
                     continue
                 with open(dst_path, 'wb') as f:
                     f.write(expanded)
-                log("Successfully dcompressed %s." % fname)
+                log("Successfully decompressed %s." % fname)
                 continue
             try:
                 os.remove(dst_path)
@@ -230,13 +233,10 @@ def install_patch():
         config.usb_mount, "multibootusb", iso_basename(config.image_path))
     config.syslinux_version = isolinux_version(isolinux_path)
 
-    if config.distro == 'slitaz':
+    if config.distro in ['slitaz', 'ubunu']:
         replace_syslinux_modules(config.syslinux_version, distro_install_dir)
-        c32box_path = os.path.join(distro_install_dir, 'boot', 'isolinux',
-                                   'c32box.c32')
     elif config.distro == 'gentoo':
         replace_syslinux_modules(config.syslinux_version, distro_install_dir)
-
     elif config.distro == 'debian':
         iso_file_list = iso.iso_file_list(config.image_path)
         if not any(s.strip().lower().endswith("makeboot.sh")
