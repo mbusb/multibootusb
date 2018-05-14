@@ -476,7 +476,7 @@ class UnmountedContext:
         gen.log("Unmounted %s" % self.usb_disk)
         return self
 
-    def __exit__(self, type, value, traceback_):
+    def __exit__(self, type_, value, traceback_):
         if not self.is_relevant:
             return
         os.sync()     # This should not be strictly necessary

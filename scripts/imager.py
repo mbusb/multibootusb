@@ -21,13 +21,22 @@ from . import config
 from . import iso
 from . import osdriver
 from . import progressbar
+from . import udisks
 from . import usb
 
 if platform.system() == "Windows":
     import win32com.client
 
-
 def dd_iso_image(dd_progress_thread):
+    try:
+        _dd_iso_image(dd_progress_thread)
+    except:
+        o = io.StringIO()
+        traceback.print_exc(None, o)
+        log(o.getvalue())
+        dd_progress_thread.set_error(o.getvalue())
+
+def _dd_iso_image(dd_progress_thread):
     pbar = progressbar.ProgressBar(
             maxval=100,
             widgets=[
@@ -42,17 +51,22 @@ def dd_iso_image(dd_progress_thread):
         config.imager_percentage = percentage
         pbar.update(percentage)
 
+    unmounted_contexts = [
+        (usb.UnmountedContext(p[0], config.update_usb_mount), p[0]) for p
+        in udisks.find_partitions_on(config.usb_disk)]
+    really_unmounted = []
     try:
-        with usb.UnmountedContext(config.usb_disk, config.update_usb_mount):
-            error = osdriver.dd_iso_image(
-                config.image_path, config.usb_disk, gui_update)
-            if error:
-                dd_progress_thread.set_error(error)
-    except:
-        o = io.StringIO()
-        traceback.print_exc(None, o)
-        log(o.getvalue())
-        dd_progress_thread.set_error(o.getvalue())
+        for c, pname in unmounted_contexts:
+                c.__enter__()
+                really_unmounted.append((c, pname))
+        error = osdriver.dd_iso_image(
+            config.image_path, config.usb_disk, gui_update)
+        if error:
+            dd_progress_thread.set_error(error)
+    finally:
+        for c, pname in really_unmounted:
+                c.__exit__(None, None, None)
+
 
 
 class Imager(QtWidgets.QMainWindow, Ui_MainWindow):
