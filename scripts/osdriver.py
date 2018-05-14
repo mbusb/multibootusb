@@ -144,7 +144,7 @@ class Base:
         in_file_size = os.path.getsize(input_)
 
         cmd = [self.dd_exe, 'if=' + input_,
-               'of=' + self.dd_iso_image_physical_disk(output), 'bs=1M']
+               'of=' + self.physical_disk(output), 'bs=1M']
         self.dd_iso_image_add_args(cmd, input_, output)
         log('Executing => ' + str(cmd))
         kw_args = {
@@ -203,9 +203,6 @@ class Windows(Base):
         else:
             return None
 
-    def dd_iso_image_physical_disk(self, usb_disk):
-        return '\\\\.\\' + usb_disk
-
     def physical_disk(self, usb_disk):
         return r'\\.\physicaldrive%d' % get_physical_disk_number(usb_disk)
 
@@ -250,9 +247,6 @@ class Linux(Base):
 
     def dd_iso_image_interpret_result(self, returncode, error_list):
         return None if returncode==0 else '\n'.join(error_list)
-
-    def dd_iso_image_physical_disk(self, usb_disk):
-        return usb_disk.rstrip('0123456789')
 
     def physical_disk(self, usb_disk):
         return usb_disk.rstrip('0123456789')
