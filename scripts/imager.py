@@ -12,12 +12,14 @@ import subprocess
 import collections
 import platform
 import signal
+import time
 from PyQt5 import QtWidgets
 from .gui.ui_multibootusb import Ui_MainWindow
 from .gen import *
 from . import iso
 from . import config
 from . import progressbar
+from . import osdriver
 
 if platform.system() == "Windows":
     import win32com.client
@@ -66,16 +68,23 @@ def dd_linux():
 
 def dd_win():
 
-    windd = resource_path(os.path.join("data", "tools", "dd", "dd.exe"))
+    windd = quote(resource_path(os.path.join("data", "tools", "dd", "dd.exe")))
+    usb_disk_no = osdriver.get_physical_disk_number(config.usb_disk)
     if os.path.exists(resource_path(os.path.join("data", "tools", "dd", "dd.exe"))):
         log("dd exist")
-    _input = "if=" + config.image_path
+    _input = "if=" + config.image_path.strip()
+    print('.........>', _input)
     in_file_size = float(os.path.getsize(config.image_path) / 1024 / 1024)
-    _output = "of=\\\.\\" + config.usb_disk
-    command = [windd, _input, _output, "bs=1M", "--progress"]
-    log("Executing ==> " + " ".join(command))
+    # _output = "of=\\\.\\PhysicalDrive" + str(usb_disk_no)
+    # of=\\.\PhysicalDrive1
+    _output = "od=" + config.usb_disk
+    # command = [windd, _input, _output, "bs=1M", "--progress"]
+    command = windd + ' ' + _input + ' ' + _output + " bs=1M" + " --progress"
+    # log("Executing ==> " + " ".join(command))
+    log("Executing ==> " + command)
     dd_process = subprocess.Popen(command, universal_newlines=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
                                   shell=False)
+    time.sleep(0.1)
     while dd_process.poll() is None:
         for line in iter(dd_process.stderr.readline, ''):
             line = line.strip()

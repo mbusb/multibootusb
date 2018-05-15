@@ -59,6 +59,8 @@ def get_physical_disk_number(usb_disk):
     :param usb_disk: USB disk (Like F:)
     :return: Disk number.
     """
+    import pythoncom
+    pythoncom.CoInitialize()
     partition, logical_disk = wmi_get_drive_info(usb_disk)
     log("Physical Device Number is %d" % partition.DiskIndex)
     return partition.DiskIndex
