@@ -66,21 +66,35 @@ def dd_linux():
         return
 
 
+def dd_win_clean_usb(usb_disk_no):
+  """
+
+  """
+  host_dir = multibootusb_host_dir()
+  temp_file = os.path.join(host_dir, "preference", "disk_part.txt")
+  diskpart_text_feed = 'select disk ' + str(usb_disk_no) + '\nclean\nexit'
+  write_to_file(temp_file, diskpart_text_feed)
+  config.status_text = 'Cleaning the disk...'
+  if subprocess.call('diskpart.exe -s ' + temp_file ) == 0:
+    return True
+  else:
+    return False
+
+
 def dd_win():
 
     windd = quote(resource_path(os.path.join("data", "tools", "dd", "dd.exe")))
     usb_disk_no = osdriver.get_physical_disk_number(config.usb_disk)
-    if os.path.exists(resource_path(os.path.join("data", "tools", "dd", "dd.exe"))):
-        log("dd exist")
     _input = "if=" + config.image_path.strip()
-    print('.........>', _input)
     in_file_size = float(os.path.getsize(config.image_path) / 1024 / 1024)
-    # _output = "of=\\\.\\PhysicalDrive" + str(usb_disk_no)
+    _output = "of=\\\.\\PhysicalDrive" + str(usb_disk_no)
+    if dd_win_clean_usb(usb_disk_no) is False:
+        return
     # of=\\.\PhysicalDrive1
-    _output = "od=" + config.usb_disk
+    # _output = "od=" + config.usb_disk # 'od=' option should also work.
     # command = [windd, _input, _output, "bs=1M", "--progress"]
     command = windd + ' ' + _input + ' ' + _output + " bs=1M" + " --progress"
-    # log("Executing ==> " + " ".join(command))
+    #log("Executing ==> " + " ".join(command))
     log("Executing ==> " + command)
     dd_process = subprocess.Popen(command, universal_newlines=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
                                   shell=False)
@@ -89,13 +103,16 @@ def dd_win():
         for line in iter(dd_process.stderr.readline, ''):
             line = line.strip()
             if 'error' in line.lower() or 'invalid' in line.lower():
-                log("Error writing to disk...")
+                config.imager_return = False
                 break
             if line and line[-1] == 'M':
                 copied = float(line.strip('M').replace(',', ''))
                 config.imager_percentage = round((copied / float(in_file_size) * 100))
 
-        log("ISO has been written to USB disk...")
+        if config.imager_return is False:
+          log("Error writing to disk...")
+        else:
+          log("ISO has been written to USB disk...")
 
         return
 
