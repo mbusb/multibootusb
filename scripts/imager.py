@@ -7,34 +7,40 @@
 # under the terms of GNU General Public License, v.2 or above
 # WARNING : Any boot-able USB made using this module will destroy data stored on USB disk.
 
-import os
-import subprocess
 import collections
+import io
+import os
 import platform
 import signal
 import time
+import subprocess
+import traceback
+
 from PyQt5 import QtWidgets
 from .gui.ui_multibootusb import Ui_MainWindow
 from .gen import *
-from . import iso
 from . import config
+from . import iso
+from . import osdriver
 from . import progressbar
 from . import osdriver
+from . import udisks
+from . import usb
+
 
 if platform.system() == "Windows":
     import win32com.client
 
+def dd_iso_image(dd_progress_thread):
+    try:
+        _dd_iso_image(dd_progress_thread)
+    except:
+        o = io.StringIO()
+        traceback.print_exc(None, o)
+        log(o.getvalue())
+        dd_progress_thread.set_error(o.getvalue())
 
-def dd_linux():
-    import time
-    _input = "if=" + config.image_path
-    in_file_size = float(os.path.getsize(config.image_path))
-    _output = "of=" + config.usb_disk
-    os.system("umount " + config.usb_disk + "1")
-    command = ['dd', _input, _output, "bs=1M", "oflag=sync"]
-    log("Executing ==> " + " ".join(command))
-    dd_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-
+def _dd_iso_image(dd_progress_thread):
     pbar = progressbar.ProgressBar(
             maxval=100,
             widgets=[
@@ -44,6 +50,7 @@ def dd_linux():
                 progressbar.widgets.Percentage()
             ]
     ).start()
+
 
     while dd_process.poll() is None:
         time.sleep(0.1)  # If this time delay is not given, the Popen does not execute the actual command
@@ -115,6 +122,27 @@ def dd_win():
           log("ISO has been written to USB disk...")
 
         return
+
+    def gui_update(percentage):
+        config.imager_percentage = percentage
+        pbar.update(percentage)
+
+    unmounted_contexts = [
+        (usb.UnmountedContext(p[0], config.update_usb_mount), p[0]) for p
+        in udisks.find_partitions_on(config.usb_disk)]
+    really_unmounted = []
+    try:
+        for c, pname in unmounted_contexts:
+                c.__enter__()
+                really_unmounted.append((c, pname))
+        error = osdriver.dd_iso_image(
+            config.image_path, config.usb_disk, gui_update)
+        if error:
+            dd_progress_thread.set_error(error)
+    finally:
+        for c, pname in really_unmounted:
+                c.__exit__(None, None, None)
+
 
 
 class Imager(QtWidgets.QMainWindow, Ui_MainWindow):

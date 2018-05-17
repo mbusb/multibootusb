@@ -15,18 +15,25 @@ import os
 import re
 
 
-def node_mountpoint(node):
+def de_mangle_mountpoint(raw):
+    return raw.replace('\\040', ' ').replace('\\011', '\t') \
+      .replace('\\012', '\n').replace('\\0134', '\\')
 
-    def de_mangle(raw):
-        return raw.replace('\\040', ' ').replace('\\011', '\t').replace('\\012',
-                '\n').replace('\\0134', '\\')
+def node_mountpoint(node):
 
     for line in open('/proc/mounts').readlines():
         line = line.split()
         if line[0] == node:
-            return de_mangle(line[1])
+            return de_mangle_mountpoint(line[1])
     return None
 
+def find_partitions_on(disk):
+    assert not disk[-1:].isdigit()
+    with open('/proc/mounts') as f:
+        relevant_lines = [l.split(' ') for l in f.readlines()
+                          if l.startswith(disk)]
+    return [ [v[0], de_mangle_mountpoint(v[1])] + v[2:] for v
+             in relevant_lines ]
 
 class NoUDisks1(Exception):
     pass
