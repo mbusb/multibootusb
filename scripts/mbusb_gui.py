@@ -31,7 +31,7 @@ from .distro import *
 from .qemu import *
 from .iso import *
 # from .imager import *
-from .imager import Imager, dd_linux, dd_win
+from .imager import Imager, dd_iso_image
 from . import persistence
 from . import config
 from . import admin
@@ -731,8 +731,15 @@ Proceed with installation?'''.lstrip() % \
 		config.process_exist = None
 
 		msgBox = QtWidgets.QMessageBox()
-		msgBox.setText("Image succesfully written to USB disk.")
-		msgBox.setInformativeText("Reboot to boot from USB or test it from <b>Boot ISO/USB</b> tab.");
+		if self.progress_thread_dd.error:
+			title = "Failed to write the iso image to the USB disk."
+			msg = self.progress_thread_dd.error
+		else:
+			title = "Image succesfully written to USB disk."
+			msg = "Reboot to boot from USB or test it from " \
+			  "<b>Boot ISO/USB</b> tab."
+		msgBox.setText(title)
+		msgBox.setInformativeText(msg);
 		msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
 		msgBox.setIcon(QtWidgets.QMessageBox.Information)
 		msgBox.exec_()
@@ -963,14 +970,14 @@ class DD_Progress(QtCore.QThread):
 
 	def __init__(self):
 		QtCore.QThread.__init__(self)
-
-		if platform.system() == 'Linux':
-			self.thread = GenericThread(dd_linux)
-		elif platform.system() == 'Windows':
-			self.thread = GenericThread(dd_win)
+		self.error = None
+		self.thread = GenericThread(partial(dd_iso_image, self))
 
 	def __del__(self):
 		self.wait()
+
+	def set_error(self, error):
+		self.error = error
 
 	def run(self):
 		self.thread.start()

@@ -7,32 +7,43 @@
 # under the terms of GNU General Public License, v.2 or above
 # WARNING : Any boot-able USB made using this module will destroy data stored on USB disk.
 
-import os
-import subprocess
 import collections
+import io
+import os
 import platform
 import signal
+import time
+import subprocess
+import traceback
+
 from PyQt5 import QtWidgets
 from .gui.ui_multibootusb import Ui_MainWindow
 from .gen import *
-from . import iso
 from . import config
+from . import iso
+from . import osdriver
 from . import progressbar
+from . import osdriver
+from . import udisks
+from . import usb
+
 
 if platform.system() == "Windows":
     import win32com.client
 
+def dd_iso_image(dd_progress_thread):
+    if platform.system() == "Windows":
+      dd_win()
+    else:
+      try:
+          _dd_iso_image(dd_progress_thread)
+      except:
+          o = io.StringIO()
+          traceback.print_exc(None, o)
+          log(o.getvalue())
+          dd_progress_thread.set_error(o.getvalue())
 
-def dd_linux():
-    import time
-    _input = "if=" + config.image_path
-    in_file_size = float(os.path.getsize(config.image_path))
-    _output = "of=" + config.usb_disk
-    os.system("umount " + config.usb_disk + "1")
-    command = ['dd', _input, _output, "bs=1M", "oflag=sync"]
-    log("Executing ==> " + " ".join(command))
-    dd_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-
+def _dd_iso_image(dd_progress_thread):
     pbar = progressbar.ProgressBar(
             maxval=100,
             widgets=[
@@ -43,50 +54,74 @@ def dd_linux():
             ]
     ).start()
 
-    while dd_process.poll() is None:
-        time.sleep(0.1)  # If this time delay is not given, the Popen does not execute the actual command
-        dd_process.send_signal(signal.SIGUSR1)
-        dd_process.stderr.flush()
-        while True:
-            time.sleep(0.1)
-            out_error = dd_process.stderr.readline().decode()
-            if out_error:
-                if 'bytes' in out_error:
-                    copied = int(out_error.split(' ', 1)[0])
-                    config.imager_percentage = round((float(copied) / float(in_file_size) * 100))
-                    pbar.update(config.imager_percentage)
-                    break
 
-    if dd_process.poll() is not None:
-        log("\nExecuting ==> sync")
-        os.sync()
-        log("ISO has been written to USB disk...")
-        return
+    def gui_update(percentage):
+        config.imager_percentage = percentage
+        pbar.update(percentage)
+
+    unmounted_contexts = [
+        (usb.UnmountedContext(p[0], config.update_usb_mount), p[0]) for p
+        in udisks.find_partitions_on(config.usb_disk)]
+    really_unmounted = []
+    try:
+        for c, pname in unmounted_contexts:
+                c.__enter__()
+                really_unmounted.append((c, pname))
+        error = osdriver.dd_iso_image(
+            config.image_path, config.usb_disk, gui_update)
+        if error:
+            dd_progress_thread.set_error(error)
+    finally:
+        for c, pname in really_unmounted:
+                c.__exit__(None, None, None)
+
+
+def dd_win_clean_usb(usb_disk_no):
+  """
+
+  """
+  host_dir = multibootusb_host_dir()
+  temp_file = os.path.join(host_dir, "preference", "disk_part.txt")
+  diskpart_text_feed = 'select disk ' + str(usb_disk_no) + '\nclean\nexit'
+  write_to_file(temp_file, diskpart_text_feed)
+  config.status_text = 'Cleaning the disk...'
+  if subprocess.call('diskpart.exe -s ' + temp_file ) == 0:
+    return True
+  else:
+    return False
 
 
 def dd_win():
 
-    windd = resource_path(os.path.join("data", "tools", "dd", "dd.exe"))
-    if os.path.exists(resource_path(os.path.join("data", "tools", "dd", "dd.exe"))):
-        log("dd exist")
-    _input = "if=" + config.image_path
+    windd = quote(resource_path(os.path.join("data", "tools", "dd", "dd.exe")))
+    usb_disk_no = osdriver.get_physical_disk_number(config.usb_disk)
+    _input = "if=" + config.image_path.strip()
     in_file_size = float(os.path.getsize(config.image_path) / 1024 / 1024)
-    _output = "of=\\\.\\" + config.usb_disk
-    command = [windd, _input, _output, "bs=1M", "--progress"]
-    log("Executing ==> " + " ".join(command))
+    _output = "of=\\\.\\PhysicalDrive" + str(usb_disk_no)
+    if dd_win_clean_usb(usb_disk_no) is False:
+        return
+    # _output = "od=" + config.usb_disk # 'od=' option should also work.
+    # command = [windd, _input, _output, "bs=1M", "--progress"]
+    command = windd + ' ' + _input + ' ' + _output + " bs=1M" + " --progress"
+    #log("Executing ==> " + " ".join(command))
+    log("Executing ==> " + command)
     dd_process = subprocess.Popen(command, universal_newlines=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
                                   shell=False)
+    time.sleep(0.1)
     while dd_process.poll() is None:
         for line in iter(dd_process.stderr.readline, ''):
             line = line.strip()
             if 'error' in line.lower() or 'invalid' in line.lower():
-                log("Error writing to disk...")
+                config.imager_return = False
                 break
             if line and line[-1] == 'M':
                 copied = float(line.strip('M').replace(',', ''))
                 config.imager_percentage = round((copied / float(in_file_size) * 100))
 
-        log("ISO has been written to USB disk...")
+        if config.imager_return is False:
+          log("Error writing to disk...")
+        else:
+          log("ISO has been written to USB disk...")
 
         return
 

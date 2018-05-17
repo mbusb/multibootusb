@@ -35,6 +35,7 @@ imager_usb_disk_selected = ""
 imager_lock = ""
 imager_percentage = ""
 imager_status_text = ""
+imager_return = ""
 
 install_size = ""
 

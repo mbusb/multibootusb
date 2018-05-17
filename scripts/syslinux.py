@@ -198,6 +198,12 @@ def syslinux_default(usb_disk):
                 '''
                 if config.usb_gpt is False:
                     log('\nExecuting ==> ' + mbr_install_cmd)
+                    #
+                    # Updating mbr using dd results in catastrophy.
+                    # Windows will lose track of the filesystem and
+                    # the target volume will go away.
+                    # Never enable this code without proper work around!
+                    #
                     if subprocess.call(mbr_install_cmd, shell=True) == 0:
                         log("\nmbr install is success...\n")
                         return True
