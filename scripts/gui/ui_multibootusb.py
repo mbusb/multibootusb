@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'multibootusb.ui'
+# Form implementation generated from reading ui file 'scripts/gui/multibootusb.ui'
 #
-# Created by: PyQt5 UI code generator 5.7
+# Created by: PyQt5 UI code generator 5.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(747, 609)
+        MainWindow.resize(865, 609)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -370,19 +370,54 @@ class Ui_MainWindow(object):
         self.tab_fsck = QtWidgets.QWidget()
         self.tab_fsck.setEnabled(True)
         self.tab_fsck.setObjectName("tab_fsck")
-        self.horizontalLayout_6 = QtWidgets.QHBoxLayout(self.tab_fsck)
-        self.horizontalLayout_6.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
-        spacerItem14 = QtWidgets.QSpacerItem(242, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_6.addItem(spacerItem14)
-        self.run_fsck_repair = QtWidgets.QPushButton(self.tab_fsck)
+        self.formLayout_5 = QtWidgets.QFormLayout(self.tab_fsck)
+        self.formLayout_5.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
+        self.formLayout_5.setContentsMargins(0, 0, 0, 0)
+        self.formLayout_5.setObjectName("formLayout_5")
+        self.groupBox_6 = QtWidgets.QGroupBox(self.tab_fsck)
+        self.groupBox_6.setObjectName("groupBox_6")
+        self.gridLayout_5 = QtWidgets.QGridLayout(self.groupBox_6)
+        self.gridLayout_5.setObjectName("gridLayout_5")
+        spacerItem14 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout_5.addItem(spacerItem14, 0, 0, 1, 1)
+        self.label_8 = QtWidgets.QLabel(self.groupBox_6)
+        self.label_8.setEnabled(True)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_8.sizePolicy().hasHeightForWidth())
+        self.label_8.setSizePolicy(sizePolicy)
+        self.label_8.setMinimumSize(QtCore.QSize(0, 0))
+        self.label_8.setFrameShape(QtWidgets.QFrame.Box)
+        self.label_8.setObjectName("label_8")
+        self.gridLayout_5.addWidget(self.label_8, 1, 0, 1, 1)
+        spacerItem15 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout_5.addItem(spacerItem15, 2, 0, 1, 1)
+        self.run_fsck_repair = QtWidgets.QPushButton(self.groupBox_6)
         self.run_fsck_repair.setObjectName("run_fsck_repair")
-        self.horizontalLayout_6.addWidget(self.run_fsck_repair)
-        self.run_fsck_check = QtWidgets.QPushButton(self.tab_fsck)
+        self.gridLayout_5.addWidget(self.run_fsck_repair, 3, 0, 1, 1)
+        self.formLayout_5.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.groupBox_6)
+        self.groupBox = QtWidgets.QGroupBox(self.tab_fsck)
+        self.groupBox.setObjectName("groupBox")
+        self.gridLayout_10 = QtWidgets.QGridLayout(self.groupBox)
+        self.gridLayout_10.setObjectName("gridLayout_10")
+        spacerItem16 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout_10.addItem(spacerItem16, 0, 0, 1, 1)
+        self.label_7 = QtWidgets.QLabel(self.groupBox)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_7.sizePolicy().hasHeightForWidth())
+        self.label_7.setSizePolicy(sizePolicy)
+        self.label_7.setFrameShape(QtWidgets.QFrame.Box)
+        self.label_7.setObjectName("label_7")
+        self.gridLayout_10.addWidget(self.label_7, 1, 0, 1, 1)
+        spacerItem17 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout_10.addItem(spacerItem17, 2, 0, 1, 1)
+        self.run_fsck_check = QtWidgets.QPushButton(self.groupBox)
         self.run_fsck_check.setObjectName("run_fsck_check")
-        self.horizontalLayout_6.addWidget(self.run_fsck_check)
-        spacerItem15 = QtWidgets.QSpacerItem(241, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_6.addItem(spacerItem15)
+        self.gridLayout_10.addWidget(self.run_fsck_check, 3, 0, 1, 1)
+        self.formLayout_5.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.groupBox)
         self.tabWidget.addTab(self.tab_fsck, "")
         self.verticalLayout_7.addWidget(self.tabWidget)
         self.progressbar = QtWidgets.QProgressBar(self.centralwidget)
@@ -392,7 +427,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_7.addWidget(self.progressbar)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 747, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 865, 21))
         self.menubar.setNativeMenuBar(True)
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
@@ -413,7 +448,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menu_Help.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(4)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -475,21 +510,35 @@ class Ui_MainWindow(object):
         self.combo_iso_boot_ram.setItemText(5, _translate("MainWindow", "2048"))
         self.label.setText(_translate("MainWindow", "MB"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_testboot), _translate("MainWindow", "Boot ISO/USB"))
+        self.groupBox_6.setTitle(_translate("MainWindow", "Repair Filesystem"))
+        self.label_8.setText(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Sans\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Use this function to check filesystem consistency</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">and repair. Please take a backup before attempting</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">to use tis function. Users will be presented with</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">two message dialogs as repair is currently </p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">performed in two steps.</p>\n"
+"<p align=\"justify\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>"))
         self.run_fsck_repair.setText(_translate("MainWindow", "Repair Filesystem"))
+        self.groupBox.setTitle(_translate("MainWindow", "Check Filesystem"))
+        self.label_7.setText(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Sans\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Checking filesystem integrity from time to</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">time is recommended to make sure the integrity</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">is always maintained. Some distros don\'t </p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">cleanly unmount a usb stick when booting off of</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">it, that will be also detected by this check.</p>\n"
+"<p align=\"justify\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>"))
         self.run_fsck_check.setText(_translate("MainWindow", "Check Filesystem Integrity"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_fsck), _translate("MainWindow", "Check Filesystem"))
         self.menuFile.setTitle(_translate("MainWindow", "&File"))
         self.menu_Help.setTitle(_translate("MainWindow", "&Help"))
         self.action_Quit.setText(_translate("MainWindow", "&Quit"))
         self.action_About.setText(_translate("MainWindow", "&About"))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
 

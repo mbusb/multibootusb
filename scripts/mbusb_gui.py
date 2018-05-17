@@ -835,13 +835,16 @@ Proceed with installation?'''.lstrip() % \
 			return False
 
 	def update_target_info(self):
+
+		usb_total_size= str(usb.bytes2human(config.usb_details.get('size_total', "")))
+		usb_free_size= str(usb.bytes2human(config.usb_details.get('size_free', "")))
 		config.persistence_max_size = persistence.max_disk_persistence(config.usb_disk)
 		config.usb_mount = config.usb_details.get('mount_point', "")
 		self.ui.usb_dev.setText(config.usb_disk)
 
 		self.ui.usb_vendor.setText(config.usb_details.get('vendor', ""))
 		self.ui.usb_model.setText(config.usb_details.get('model', ""))
-		self.ui.usb_size.setText(str(usb.bytes2human(config.usb_details.get('size_total', ""))))
+		self.ui.usb_size.setText('Free :: ' + usb_free_size + ' / Total :: ' + usb_total_size)
 		self.ui.usb_mount.setText(config.usb_details.get('mount_point', ""))
 		self.ui.usb_type.setText(config.usb_details.get('devtype', ""))
 		self.ui.usb_fs.setText(config.usb_details.get('file_system', ""))
