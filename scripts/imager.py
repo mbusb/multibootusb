@@ -24,7 +24,6 @@ from . import iso
 from . import osdriver
 from . import progressbar
 from . import osdriver
-from . import udisks
 from . import usb
 
 
@@ -32,16 +31,14 @@ if platform.system() == "Windows":
     import win32com.client
 
 def dd_iso_image(dd_progress_thread):
-    if platform.system() == "Windows":
-      dd_win()
-    else:
-      try:
-          _dd_iso_image(dd_progress_thread)
-      except:
-          o = io.StringIO()
-          traceback.print_exc(None, o)
-          log(o.getvalue())
-          dd_progress_thread.set_error(o.getvalue())
+    try:
+        _dd_iso_image(dd_progress_thread)
+    except:
+        # config.imager_return = False
+        o = io.StringIO()
+        traceback.print_exc(None, o)
+        log(o.getvalue())
+        dd_progress_thread.set_error(o.getvalue())
 
 def _dd_iso_image(dd_progress_thread):
     pbar = progressbar.ProgressBar(
@@ -59,71 +56,29 @@ def _dd_iso_image(dd_progress_thread):
         config.imager_percentage = percentage
         pbar.update(percentage)
 
-    unmounted_contexts = [
-        (usb.UnmountedContext(p[0], config.update_usb_mount), p[0]) for p
-        in udisks.find_partitions_on(config.usb_disk)]
+    def status_update(text):
+        config.status_text = text
+
+    mounted_partitions = osdriver.find_mounted_partitions_on(config.usb_disk)
     really_unmounted = []
     try:
-        for c, pname in unmounted_contexts:
-                c.__enter__()
-                really_unmounted.append((c, pname))
+        for x in mounted_partitions:
+            partition_dev, mount_point = x[:2]
+            c = usb.UnmountedContext(partition_dev, config.update_usb_mount)
+            c.__enter__()
+            really_unmounted.append((c, partition_dev))
         error = osdriver.dd_iso_image(
-            config.image_path, config.usb_disk, gui_update)
+            config.image_path, config.usb_disk, gui_update, status_update)
         if error:
             dd_progress_thread.set_error(error)
-    finally:
-        for c, pname in really_unmounted:
-                c.__exit__(None, None, None)
-
-
-def dd_win_clean_usb(usb_disk_no):
-  """
-
-  """
-  host_dir = multibootusb_host_dir()
-  temp_file = os.path.join(host_dir, "preference", "disk_part.txt")
-  diskpart_text_feed = 'select disk ' + str(usb_disk_no) + '\nclean\nexit'
-  write_to_file(temp_file, diskpart_text_feed)
-  config.status_text = 'Cleaning the disk...'
-  if subprocess.call('diskpart.exe -s ' + temp_file ) == 0:
-    return True
-  else:
-    return False
-
-
-def dd_win():
-
-    windd = quote(resource_path(os.path.join("data", "tools", "dd", "dd.exe")))
-    usb_disk_no = osdriver.get_physical_disk_number(config.usb_disk)
-    _input = "if=" + config.image_path.strip()
-    in_file_size = float(os.path.getsize(config.image_path) / 1024 / 1024)
-    _output = "of=\\\.\\PhysicalDrive" + str(usb_disk_no)
-    if dd_win_clean_usb(usb_disk_no) is False:
-        return
-    # _output = "od=" + config.usb_disk # 'od=' option should also work.
-    # command = [windd, _input, _output, "bs=1M", "--progress"]
-    command = windd + ' ' + _input + ' ' + _output + " bs=1M" + " --progress"
-    #log("Executing ==> " + " ".join(command))
-    log("Executing ==> " + command)
-    dd_process = subprocess.Popen(command, universal_newlines=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
-                                  shell=False)
-    time.sleep(0.1)
-    while dd_process.poll() is None:
-        for line in iter(dd_process.stderr.readline, ''):
-            line = line.strip()
-            if 'error' in line.lower() or 'invalid' in line.lower():
-                config.imager_return = False
-                break
-            if line and line[-1] == 'M':
-                copied = float(line.strip('M').replace(',', ''))
-                config.imager_percentage = round((copied / float(in_file_size) * 100))
-
-        if config.imager_return is False:
-          log("Error writing to disk...")
+            log('Error writing iso image...')
+            # config.imager_return = False
         else:
-          log("ISO has been written to USB disk...")
-
-        return
+            log('ISO has been written to USB disk...')
+            # config.imager_return = True
+    finally:
+        for c, partition_dev in really_unmounted:
+                c.__exit__(None, None, None)
 
 
 class Imager(QtWidgets.QMainWindow, Ui_MainWindow):

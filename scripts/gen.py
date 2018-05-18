@@ -13,13 +13,12 @@ import platform
 import shutil
 import string
 import zipfile
-import tempfile
 import re
 import ctypes
 
 from . import config
 from .osdriver import get_physical_disk_number, wmi_get_drive_info, \
-      log, resource_path
+      log, resource_path, multibootusb_host_dir
 
 def scripts_dir_path():
     return os.path.dirname(os.path.realpath(__file__))
@@ -69,20 +68,6 @@ def sys_64bits():
     :return:    True if system is 64 bit.
     """
     return sys.maxsize > 2**32
-
-
-def multibootusb_host_dir():
-    """
-    Cross platform way to detect multibootusb directory on host system.
-    :return: Path to multibootusb directory of host system.
-    """
-    if platform.system() == "Linux":
-        home_dir = os.path.expanduser('~')
-        mbusb_dir = os.path.join(home_dir, ".multibootusb")
-    elif platform.system() == "Windows":
-        mbusb_dir = os.path.join(tempfile.gettempdir(), "multibootusb")
-
-    return mbusb_dir
 
 
 def iso_cfg_ext_dir():

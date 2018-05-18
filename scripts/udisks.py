@@ -27,7 +27,7 @@ def node_mountpoint(node):
             return de_mangle_mountpoint(line[1])
     return None
 
-def find_partitions_on(disk):
+def find_mounted_partitions_on(disk):
     assert not disk[-1:].isdigit()
     with open('/proc/mounts') as f:
         relevant_lines = [l.split(' ') for l in f.readlines()
