@@ -7,8 +7,10 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 
+from . import udisks
 
 def log(message, info=True, error=False, debug=False, _print=True):
     """
@@ -130,6 +132,26 @@ def wmi_get_drive_info_ex(usb_disk):
     return r
 
 
+def dd_win_clean_usb(usb_disk_no, status_update):
+  """
+
+  """
+  host_dir = multibootusb_host_dir()
+  temp_file = os.path.join(host_dir, "preference", "disk_part.txt")
+  diskpart_text_feed = 'select disk ' + str(usb_disk_no) + '\nclean\nexit'
+  with open(temp_file, 'wb') as fp:
+      fp.write(bytes(diskpart_text_feed, 'utf-8'))
+  status_update('Cleaning the disk...')
+  if subprocess.call('diskpart.exe -s ' + temp_file ) == 0:
+      for i in range(40):
+          # Make sure the drive reappears if it has ever gone away.
+          time.sleep(0.25)
+          with open('\\\\.\\PhysicalDrive%d' % usb_disk_no, 'rb'):
+              return
+      raise RuntimeError('PhysicalDrive%d is now gone!' % usb_disk_no)
+  raise RuntimeError("Execution dd(.exe) has failed.")
+
+
 class Base:
 
     def run_dd(self, input, output, bs, count):
@@ -142,19 +164,19 @@ class Base:
             log("%s succeeded." % str(cmd))
 
 
-    def dd_iso_image(self, input_, output, gui_update):
+    def dd_iso_image(self, input_, output, gui_update, status_update):
         in_file_size = os.path.getsize(input_)
-
         cmd = [self.dd_exe, 'if=' + input_,
                'of=' + self.physical_disk(output), 'bs=1M']
         self.dd_iso_image_add_args(cmd, input_, output)
-        log('Executing => ' + str(cmd))
         kw_args = {
             'stdout' : subprocess.PIPE,
             'stderr' : subprocess.PIPE,
             'shell'  : False,
             }
         self.add_dd_iso_image_popen_args(kw_args)
+        self.dd_iso_image_prepare(input, output, status_update)
+        log('Executing => ' + str(cmd))
         dd_process = subprocess.Popen(cmd, **kw_args)
         errors = queue.Queue()
         while dd_process.poll() is None:
@@ -171,6 +193,9 @@ class Windows(Base):
 
     def dd_add_args(self, cmd_vec, input, output, bs, count):
         pass
+
+    def dd_iso_image_prepare(self, input, output, status_update):
+        return dd_win_clean_usb(get_physical_disk_number(output), status_update)
 
     def dd_iso_image_add_args(self, cmd_vec, input_, output):
         cmd_vec.append('--progress')
@@ -211,10 +236,19 @@ class Windows(Base):
     def mbusb_log_file(self):
         return os.path.join(os.getcwd(), 'multibootusb.log')
 
+    def find_mounted_partitions_on(self, usb_disk):
+        return []  # No-op until UnmountedContext() get implemented for Windows
+
+    def multibootusb_host_dir(self):
+        return os.path.join(tempfile.gettempdir(), "multibootusb")
+
 class Linux(Base):
 
     def __init__(self):
         self.dd_exe = 'dd'
+
+    def dd_iso_image_prepare(self, input, output, status_update):
+        pass
 
     def dd_add_args(self, cmd_vec, input, output, bs, count):
         cmd_vec.append('conv=notrunc')
@@ -256,6 +290,11 @@ class Linux(Base):
     def mbusb_log_file(self):
         return '/var/log/multibootusb.log'
 
+    def find_mounted_partitions_on(self, usb_disk):
+        return udisks.find_mounted_partitions_on(usb_disk)
+
+    def multibootusb_host_dir(self):
+        return os.path.join(os.path.expanduser('~'), ".multibootusb")
 
 driverClass = {
     'Windows' : Windows,
@@ -270,6 +309,8 @@ for func_name in [
         'physical_disk',
         'mbusb_log_file',
         'dd_iso_image',
+        'find_mounted_partitions_on',
+        'multibootusb_host_dir',
         ]:
     globals()[func_name] = getattr(osdriver, func_name)
 
