@@ -190,7 +190,8 @@ def detect_missing_tools(distro):
     try:
         with open(os.devnull) as devnull:
             for tool in [e2fsck_exe, resize2fs_exe]:
-                subprocess.Popen([tool], stdout=devnull, stderr=devnull)
+                p = subprocess.Popen([tool], stdout=devnull, stderr=devnull)
+                p.communicate()
     except FileNotFoundError:  # Windows
         return "'%s.exe' is not installed or not available for use." % tool
     except OSError:            # Linux

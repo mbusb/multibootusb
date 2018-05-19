@@ -397,26 +397,9 @@ def gpt_device(dev_name):
     :param dev_name:
     :return: True if GPT else False
     """
-    if platform.system() == 'Windows':
-        partition, disk = gen.wmi_get_drive_info(dev_name)
-        is_gpt = partition.Type.startswith('GPT:')
-        gen.log('Device %s is a %s disk...' %
-                (dev_name, is_gpt and 'GPT' or 'MBR'))
-        config.usb_gpt = is_gpt
-        return is_gpt
-    if platform.system() == "Linux":
-        if gen.has_digit(dev_name):
-            _cmd_out = subprocess.check_output("parted  " + dev_name[:-1] + " print", shell=True)
-        else:
-            _cmd_out = subprocess.check_output("parted  " + dev_name + " print", shell=True)
-        if b'msdos' in _cmd_out:
-            config.usb_gpt = False
-            gen.log('Device ' + dev_name + ' is a MBR disk...')
-            return False
-        elif b'gpt' in _cmd_out:
-            config.usb_gpt = True
-            gen.log('Device ' + dev_name + ' is a GPT disk...')
-            return True
+    is_gpt = osdriver.gpt_device(dev_name)
+    config.usb_gpt = is_gpt
+    gen.log('Device %s is a %s disk.' % (dev_name, is_gpt and 'GPT' or 'MBR'))
 
 
 def unmount(usb_disk):

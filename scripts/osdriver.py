@@ -245,6 +245,10 @@ class Windows(Base):
     def multibootusb_host_dir(self):
         return os.path.join(tempfile.gettempdir(), "multibootusb")
 
+    def gpt_device(self, dev_name):
+        partition, disk = wmi_get_drive_info(dev_name)
+        return  partition.Type.startswith('GPT:')
+
 class Linux(Base):
 
     def __init__(self):
@@ -299,6 +303,30 @@ class Linux(Base):
     def multibootusb_host_dir(self):
         return os.path.join(os.path.expanduser('~'), ".multibootusb")
 
+    def gpt_device(self, dev_name):
+        disk_dev = dev_name.rstrip('0123456789')
+        try:
+            cmd = ['parted', disk_dev, '-s', 'print']
+            with open(os.devnull) as devnull:
+                p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, stdin=devnull)
+                _cmd_out, _err_out = p.communicate()
+                p.wait()
+            if p.returncode != 0:
+                lang = os.getenv('LANG')
+                encoding = lang.rsplit('.')[-1] if lang else 'utf-8'
+                raise RuntimeError(str(_err_out, encoding))
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(str(e) + '\n\n' + stderr)
+        subprocess.check_call(['partprobe', disk_dev])
+        if b'msdos' in _cmd_out:
+            return False
+        if b'gpt' in _cmd_out:
+            return True
+        raise RuntimeError("Disk '%s' is uninitialized and not usable." %
+                           disk_dev)
+
+
 driverClass = {
     'Windows' : Windows,
     'Linux'   : Linux,
@@ -314,6 +342,7 @@ for func_name in [
         'dd_iso_image',
         'find_mounted_partitions_on',
         'multibootusb_host_dir',
+        'gpt_device',
         ]:
     globals()[func_name] = getattr(osdriver, func_name)
 
