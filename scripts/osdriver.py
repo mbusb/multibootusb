@@ -144,12 +144,12 @@ def dd_win_clean_usb(usb_disk_no, status_update):
   status_update('Cleaning the disk...')
   if subprocess.call('diskpart.exe -s ' + temp_file ) == 0:
       for i in range(40):
-          # Make sure the drive reappears if it has ever gone away.
+          # Wait for the drive to reappear if it has ever gone away.
           time.sleep(0.25)
           with open('\\\\.\\PhysicalDrive%d' % usb_disk_no, 'rb'):
               return
       raise RuntimeError('PhysicalDrive%d is now gone!' % usb_disk_no)
-  raise RuntimeError("Execution dd(.exe) has failed.")
+  raise RuntimeError("Execution of dd(.exe) has failed.")
 
 
 class Base:
@@ -178,13 +178,15 @@ class Base:
         self.dd_iso_image_prepare(input, output, status_update)
         log('Executing => ' + str(cmd))
         dd_process = subprocess.Popen(cmd, **kw_args)
-        errors = queue.Queue()
+        output_q = queue.Queue()
         while dd_process.poll() is None:
             self.dd_iso_image_readoutput(dd_process, gui_update, in_file_size,
-                                         errors)
-        error_list = [errors.get() for i in range(errors.qsize())]
+                                         output_q)
+        output_lines = [output_q.get() for i in range(output_q.qsize())]
+        for l in output_lines:
+            log('dd: ' + l)
         return self.dd_iso_image_interpret_result(
-            dd_process.returncode, error_list)
+            dd_process.returncode, output_lines)
 
 class Windows(Base):
 
@@ -195,7 +197,8 @@ class Windows(Base):
         pass
 
     def dd_iso_image_prepare(self, input, output, status_update):
-        return dd_win_clean_usb(get_physical_disk_number(output), status_update)
+        return dd_win_clean_usb(get_physical_disk_number(output),
+                                status_update)
 
     def dd_iso_image_add_args(self, cmd_vec, input_, output):
         cmd_vec.append('--progress')
@@ -204,7 +207,7 @@ class Windows(Base):
         dd_iso_image_popen_args['universal_newlines'] = True
 
     def dd_iso_image_readoutput(self, dd_process, gui_update, in_file_size,
-                                error_log):
+                                output_q):
         for line in iter(dd_process.stderr.readline, ''):
             line = line.strip()
             if line:
@@ -214,19 +217,19 @@ class Windows(Base):
                 elif l.isdigit():
                     bytes_copied = float(l)
                 else:
-                    if 16 < error_log.qsize():
-                        error_log.get()
-                    error_log.put(line)
+                    if 15 < output_q.qsize():
+                        output_q.get()
+                    output_q.put(line)
                     continue
                 gui_update(bytes_copied / in_file_size * 100.)
                 continue
         # Now the 'dd' process should have completed or going to soon.
 
-    def dd_iso_image_interpret_result(self, returncode, error_list):
+    def dd_iso_image_interpret_result(self, returncode, output_list):
         # dd.exe always returns 0
         if any([ 'invalid' in s or 'error' in s for s
-                 in [l.lower() for l in error_list] ]):
-            return '\n'.join(error_list)
+                 in [l.lower() for l in output_list] ]):
+            return '\n'.join(output_list)
         else:
             return None
 
@@ -260,7 +263,7 @@ class Linux(Base):
         pass
 
     def dd_iso_image_readoutput(self, dd_process, gui_update, in_file_size,
-                                error_log):
+                                output_q):
         # If this time delay is not given, the Popen does not execute
         # the actual command
         time.sleep(0.1)
@@ -274,15 +277,15 @@ class Linux(Base):
                     bytes_copied = float(out_error.split(' ', 1)[0])
                     gui_update( bytes_copied / in_file_size * 100. )
                     break
-                if 16 < error_log.qsize():
-                    error_log.get()
-                error_log.put(out_error)
+                if 15 < output_q.qsize():
+                    output_q.get()
+                output_q.put(out_error.rstrip())
             else:
                 # stderr is closed
                 break
 
-    def dd_iso_image_interpret_result(self, returncode, error_list):
-        return None if returncode==0 else '\n'.join(error_list)
+    def dd_iso_image_interpret_result(self, returncode, output_list):
+        return None if returncode==0 else '\n'.join(output_list)
 
     def physical_disk(self, usb_disk):
         return usb_disk.rstrip('0123456789')

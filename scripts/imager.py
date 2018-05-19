@@ -60,13 +60,13 @@ def _dd_iso_image(dd_progress_thread):
         config.status_text = text
 
     mounted_partitions = osdriver.find_mounted_partitions_on(config.usb_disk)
-    really_unmounted = []
+    unmounted = []
     try:
         for x in mounted_partitions:
             partition_dev, mount_point = x[:2]
             c = usb.UnmountedContext(partition_dev, config.update_usb_mount)
             c.__enter__()
-            really_unmounted.append((c, partition_dev))
+            unmounted.append((c, partition_dev))
         error = osdriver.dd_iso_image(
             config.image_path, config.usb_disk, gui_update, status_update)
         if error:
@@ -77,7 +77,7 @@ def _dd_iso_image(dd_progress_thread):
             log('ISO has been written to USB disk...')
             # config.imager_return = True
     finally:
-        for c, partition_dev in really_unmounted:
+        for c, partition_dev in unmounted:
                 c.__exit__(None, None, None)
 
 
