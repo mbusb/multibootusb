@@ -160,16 +160,19 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		"""
 		self.ui.installed_distros.clear()
 		config.usb_disk = str(self.ui.combo_drives.currentText())
-		config.imager_usb_disk = str(self.ui.combo_drives.currentText())
-
 		if config.usb_disk:
+			# Get the GPT status of the disk and store it on a variable
+			try:
+				usb.gpt_device(config.usb_disk)
+			except Exception as e:
+				QtWidgets.QMessageBox.critical(
+					self, "The disk/partition is not usable.", str(e))
+				self.ui.combo_drives.setCurrentIndex(0)
+				config.usb_disk = str(self.ui.combo_drives.currentText())
 			log("Selected device " + config.usb_disk)
+			config.imager_usb_disk = str(self.ui.combo_drives.currentText())
 			config.usb_details = usb.details(config.usb_disk)
 			self.update_target_info()
-
-			# Get the GPT status of the disk and store it on a variable
-			usb.gpt_device(config.usb_disk)
-
 			self.update_list_box(config.usb_disk)
 			self.ui_update_persistence()
 		else:
@@ -199,7 +202,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		for device in detected_devices:
 			if all(not device.startswith(d) for d in protected_drives):
 				self.ui.combo_drives.addItem(str(device))
-			self.ui.combo_drives.setCurrentIndex(0)
+		self.ui.combo_drives.setCurrentIndex(0)
 
 	def update_list_box(self, usb_disk):
 		"""
