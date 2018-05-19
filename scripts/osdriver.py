@@ -317,7 +317,9 @@ class Linux(Base):
                 encoding = lang.rsplit('.')[-1] if lang else 'utf-8'
                 raise RuntimeError(str(_err_out, encoding))
         except subprocess.CalledProcessError as e:
-            raise RuntimeError(str(e) + '\n\n' + stderr)
+            # Control is unlikely to reach here because Popen() is not
+            # supposed to raise this exception.
+            raise RuntimeError(str(e))
         subprocess.check_call(['partprobe', disk_dev])
         if b'msdos' in _cmd_out:
             return False
