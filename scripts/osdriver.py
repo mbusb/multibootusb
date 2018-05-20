@@ -305,21 +305,16 @@ class Linux(Base):
 
     def gpt_device(self, dev_name):
         disk_dev = dev_name.rstrip('0123456789')
-        try:
-            cmd = ['parted', disk_dev, '-s', 'print']
-            with open(os.devnull) as devnull:
-                p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE, stdin=devnull)
-                _cmd_out, _err_out = p.communicate()
-                p.wait()
-            if p.returncode != 0:
-                lang = os.getenv('LANG')
-                encoding = lang.rsplit('.')[-1] if lang else 'utf-8'
-                raise RuntimeError(str(_err_out, encoding))
-        except subprocess.CalledProcessError as e:
-            # Control is unlikely to reach here because Popen() is not
-            # supposed to raise this exception.
-            raise RuntimeError(str(e))
+        cmd = ['parted', disk_dev, '-s', 'print']
+        with open(os.devnull) as devnull:
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE, stdin=devnull)
+            _cmd_out, _err_out = p.communicate()
+            p.wait()
+        if p.returncode != 0:
+            lang = os.getenv('LANG')
+            encoding = lang.rsplit('.')[-1] if lang else 'utf-8'
+            raise RuntimeError(str(_err_out, encoding))
         subprocess.check_call(['partprobe', disk_dev])
         if b'msdos' in _cmd_out:
             return False
