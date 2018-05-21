@@ -165,6 +165,10 @@ class Imager(QtWidgets.QMainWindow, Ui_MainWindow):
                         if not model:
                             model = "Unknown"
         else:
+            if partition == 0:
+                dinfo = osdriver.wmi_get_physicaldrive_info(usb_disk)
+                return _ntuple_diskusage(*[dinfo[a] for a in [
+                    'Size', 'MediaType', 'Model']])
             try:
                 selected_usb_part = str(usb_disk)
                 oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
@@ -178,6 +182,7 @@ class Imager(QtWidgets.QMainWindow, Ui_MainWindow):
                 model = label
             except:
                 log("Error detecting USB details.")
+                raise
 
         return _ntuple_diskusage(total_size, usb_type, model)
 
