@@ -83,6 +83,28 @@ def wmi_get_drive_info(usb_disk):
                 return (partition, disk)
     raise RuntimeError('Failed to obtain drive information ' + usb_disk)
 
+def wmi_get_physicaldrive_info(usb_disk):
+   "Return information about the drive that contains 'usb_disk'."
+   partition, disk = wmi_get_drive_info(usb_disk)
+   import wmi
+   c = wmi.WMI()
+   drv_list = [d for d in c.Win32_DiskDrive()
+               if d.Index == partition.DiskIndex]
+   assert len(drv_list)==1
+   d = drv_list[0]
+   rdict = {}
+   for attrname, convfunc in [
+           ('BytesPerSector', int),
+           ('DeviceID', str),
+           ('MediaType', str),
+           ('Model', str),
+           ('Partitions', int),
+           ('SerialNumber', str),
+           ('Size', int),
+           ('TotalSectors', int),
+           ]:
+       rdict[attrname] = getattr(d, attrname)
+   return rdict
 
 def wmi_get_drive_info_ex(usb_disk):
     assert platform.system() == 'Windows'
@@ -149,7 +171,7 @@ def dd_win_clean_usb(usb_disk_no, status_update):
           with open('\\\\.\\PhysicalDrive%d' % usb_disk_no, 'rb'):
               return
       raise RuntimeError('PhysicalDrive%d is now gone!' % usb_disk_no)
-  raise RuntimeError("Execution of dd(.exe) has failed.")
+  raise RuntimeError("Execution of diskpart.exe has failed.")
 
 
 class Base:
