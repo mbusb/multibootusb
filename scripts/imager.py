@@ -32,6 +32,7 @@ if platform.system() == "Windows":
 
 def dd_iso_image(dd_progress_thread):
     try:
+        dd_progress_thread.set_error(None)
         _dd_iso_image(dd_progress_thread)
     except:
         # config.imager_return = False
@@ -142,47 +143,34 @@ class Imager(QtWidgets.QMainWindow, Ui_MainWindow):
         return disk
 
     @staticmethod
-    def imager_usb_detail(usb_disk, partition=1):
+    def imager_usb_detail(physical_disk):
         """
         Function to detect details of USB disk using lsblk
-        :param usb_disk: path to usb disk
-        :param partition: by default partition is set (but yet to code for it)
+        :param physical_disk: /dev/sd? (linux) or integer disk number (win)
         :return: details of size, type and model as tuples
         """
-        _ntuple_diskusage = collections.namedtuple('usage', 'total_size usb_type model')
+        _ntuple_diskusage = collections.namedtuple(
+            'usage', 'total_size usb_type model')
 
         if platform.system() == "Linux":
-            output = subprocess.check_output("lsblk -ib " + usb_disk, shell=True)
+            output = subprocess.check_output("lsblk -ib " + physical_disk,
+                                             shell=True)
             for line in output.splitlines():
                 line = line.split()
-                if partition != 1:
-                    if line[2].strip() == b'1' and line[5].strip() == b'disk':
-                        total_size = line[3]
-                        if not total_size:
-                            total_size = "Unknown"
-                        usb_type = "Removable"
-                        model = subprocess.check_output("lsblk -in -f -o MODEL " + usb_disk, shell=True).decode().strip()
-                        if not model:
-                            model = "Unknown"
+                if line[2].strip() == b'1' and line[5].strip() == b'disk':
+                    total_size = line[3]
+                    if not total_size:
+                        total_size = "Unknown"
+                    usb_type = "Removable"
+                    model = subprocess.check_output(
+                        "lsblk -in -f -o MODEL " + physical_disk,
+                        shell=True).decode().strip()
+                    if not model:
+                        model = "Unknown"
         else:
-            if partition == 0:
-                dinfo = osdriver.wmi_get_physicaldrive_info(usb_disk)
-                return _ntuple_diskusage(*[dinfo[a] for a in [
-                    'Size', 'MediaType', 'Model']])
-            try:
-                selected_usb_part = str(usb_disk)
-                oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
-                d = oFS.GetDrive(oFS.GetDriveName(oFS.GetAbsolutePathName(selected_usb_part)))
-#                 selected_usb_device = d.DriveLetter
-                label = (d.VolumeName).strip()
-                if not label.strip():
-                    label = "No label."
-                total_size = d.TotalSize
-                usb_type = "Removable"
-                model = label
-            except:
-                log("Error detecting USB details.")
-                raise
+            dinfo = osdriver.wmi_get_physicaldrive_info_ex(physical_disk)
+            return _ntuple_diskusage(*[dinfo[a] for a in [
+                'size_total', 'mediatype', 'model']])
 
         return _ntuple_diskusage(total_size, usb_type, model)
 

@@ -16,6 +16,7 @@ from PyQt5 import QtWidgets
 from .gui.ui_multibootusb import Ui_MainWindow
 from .gen import *
 from . import config
+from . import osdriver
 from . import usb
 
 class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -100,16 +101,8 @@ class Qemu(QtWidgets.QMainWindow, Ui_MainWindow):
                 self, 'No disk...',
                 'No USB disk selected.\n\nPlease choose a disk first.')
             return
-        if platform.system() == "Windows":
-            disk_number = get_physical_disk_number(config.usb_disk)
-            qemu_more_params = ['-L', '.', '-boot', 'c', '-hda', 
-                                '//./PhysicalDrive' + str(disk_number)]
-        elif platform.system() == "Linux":
-            qemu_more_params = ['-hda', config.usb_disk.rstrip('0123456789'),
-                                '-vga', 'std']
-        else:
-            assert False, "Unknown platform '%s'" % platform.system()
-        self.run_qemu(self.qemu_usb_ram(), qemu_more_params,
+        more_params = osdriver.qemu_more_params(config.usb_disk)
+        self.run_qemu(self.qemu_usb_ram(), more_params,
                       "ERROR: USB Boot: qemu not found!",
                       'Error...', 'Error booting USB\nUnable to start QEMU.')
 

@@ -222,7 +222,7 @@ def main():
 
 
 if __name__ == '__main__':
-    osdriver.init_logging()
+    osdriver.initialize()
     try:
         main()
     finally:

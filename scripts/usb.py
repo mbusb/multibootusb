@@ -25,11 +25,9 @@ from . import osdriver
 if platform.system() == 'Linux':
     from . import udisks
     UDISKS = udisks.get_udisks(ver=None)
+
 if platform.system() == 'Windows':
-    import psutil
     import win32com.client
-#     import wmi
-    import pythoncom
 
 
 def is_block(usb_disk):
@@ -174,29 +172,14 @@ def list_devices(fixed=False):
         devices.sort()
 
     elif platform.system() == "Windows":
-        if fixed is True:
-            for drive in psutil.disk_partitions():
-                if 'cdrom' in drive.opts or drive.fstype == '':
-                    # Skip cdrom drives or the disk with no filesystem
-                    continue
-                devices.append(drive[0][:-1])
-        else:
-            try:
-                # Try new method using psutil. It should also detect USB 3.0 (but not tested by me)
-                for drive in psutil.disk_partitions():
-                    if 'cdrom' in drive.opts or drive.fstype == '':
-                        # Skip cdrom drives or the disk with no filesystem
-                        continue
-                    if 'removable' in drive.opts:
-                        devices.append(drive[0][:-1])
-            except:
-                # Revert back to old method if psutil fails (which is unlikely)
-                oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
-                oDrives = oFS.Drives
-                for drive in oDrives:
-                    if drive.DriveType == 1 and drive.IsReady:
-                        devices.append(drive)
-
+        volumes = osdriver.wmi_get_volume_info_all()
+        devices = []
+        for pdrive in osdriver.wmi_get_physicaldrive_info_all():
+            if (not fixed) and pdrive.MediaType != 'Removable Media':
+                continue
+            devices.append(osdriver.win_physicaldrive_to_listbox_entry(pdrive))
+            devices.extend([osdriver.win_volume_to_listbox_entry(d)
+                            for d in volumes.get(pdrive.Index, [])])
     if devices:
         return devices
     else:
@@ -501,10 +484,10 @@ def repair_vfat_filesystem(usb_disk, result=None):
             result.append((p.returncode, output, ' '.join(cmd)))
     return None
 
-def details(usb_disk_part):
+def details(disk_or_partition):
     """
     Populate and get details of an USB disk.
-    :param usb_disk_part: USB disk. Example.. "/dev/sdb1" on Linux and "D:\" on Windows.
+    :param disk_or_partition: USB disk. Example.. "/dev/sdb1" on Linux and "D:\" on Windows.
     :return:    label       == > returns name/label of an inserted USB device.
                 mount_point == > returns mount path of an inserted USB device.
                 uuid        == > returns uuid of an inserted USB device.
@@ -517,18 +500,20 @@ def details(usb_disk_part):
                 model       == > returns the model name of the USB.
     """
 
-    assert usb_disk_part is not None
+    assert disk_or_partition is not None
 
     details = {}
 
     if platform.system() == 'Linux':
         try:
-            details = details_udev(usb_disk_part)
+            details = details_udev(disk_or_partition)
         except:
-            details = details_udisks2(usb_disk_part)
+            details = details_udisks2(disk_or_partition)
     elif platform.system() == 'Windows':
-        details = osdriver.wmi_get_drive_info_ex(usb_disk_part)
-
+        if type(disk_or_partition) == int:
+            details = osdriver.wmi_get_physicaldrive_info_ex(disk_or_partition)
+        else:
+            details = osdriver.wmi_get_volume_info_ex(disk_or_partition)
     return details
 
 
