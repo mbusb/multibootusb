@@ -159,19 +159,28 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		:return:
 		"""
 		self.ui.installed_distros.clear()
-		config.usb_disk = str(self.ui.combo_drives.currentText())
-		if config.usb_disk:
+		config.usb_disk = osdriver.listbox_entry_to_device(
+                        self.ui.combo_drives.currentText())
+		if config.usb_disk == 0 or config.usb_disk:
 			# Get the GPT status of the disk and store it on a variable
 			try:
 				usb.gpt_device(config.usb_disk)
+				config.imager_usb_disk \
+					= self.ui.combo_drives.currentText()
+				config.usb_details \
+					= usb.details(config.usb_disk)
 			except Exception as e:
+				o = io.StringIO()
+				traceback.print_exc(None, o)
+				log(o.getvalue())
 				QtWidgets.QMessageBox.critical(
-					self, "The disk/partition is not usable.", str(e))
+				    self, "The disk/partition is not usable.",
+				    str(e))
 				self.ui.combo_drives.setCurrentIndex(0)
-				config.usb_disk = str(self.ui.combo_drives.currentText())
-			log("Selected device " + config.usb_disk)
-			config.imager_usb_disk = str(self.ui.combo_drives.currentText())
-			config.usb_details = usb.details(config.usb_disk)
+				# Above statement triggers call to this method.
+				return
+			log("Selected device " +
+                            osdriver.usb_disk_desc(config.usb_disk))
 			self.update_target_info()
 			self.update_list_box(config.usb_disk)
 			self.ui_update_persistence()
@@ -191,11 +200,8 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		:return:
 		"""
 		self.ui.combo_drives.clear()
-		if self.ui.checkbox_all_drives.isChecked():
-			detected_devices = usb.list_devices(fixed=True)
-		else:
-			detected_devices = usb.list_devices()
-
+		detected_devices = usb.list_devices(
+			fixed=self.ui.checkbox_all_drives.isChecked())
 		if not detected_devices:
 			return
 		protected_drives = getattr(config, 'protected_drives', [])
@@ -591,7 +597,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		:return:
 		"""
 		for cond, log_msg, dialog_title, dialog_msg in [
-				(lambda: not config.usb_disk,
+				(lambda: config.usb_disk is None,
 				 'ERROR: No USB device found.',
 				 'No Device...',
 				 'No USB device found.\n\nInsert USB and '
@@ -620,16 +626,15 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 				"Please mount USB disk and press refresh "
 				"USB button.")
 			return False
-		if platform.system() == 'Linux' and \
-			   config.usb_disk[-1].isdigit() is False:
-			gen.log('Selected USB is a disk. Please select '
-				'a disk partition from the drop down list')
+		if config.usb_details['devtype'] == 'disk':
+			gen.log('Selected USB is a physical disk. '
+                                'Please select '
+				'a partition or volume from the drop down list')
 			QtWidgets.QMessageBox.information(
 				self, 'No Partition...!',
-				'USB disk selected doesn\'t contain a '
-				'partition.\n'
-				'Please select the partition (ending '
-				'with a digit eg. /dev/sdb1)\n'
+				'Selected USB is a physical disk. '
+				'Please select a partition (e.g. /dev/sdc1) '
+                                'or a volume (e.g. G:) '
 				'from the drop down list.')
 			return False
 		if 0 < config.persistence and \
@@ -760,7 +765,9 @@ Proceed with installation?'''.lstrip() % \
 		self.ui.button_browse_image.setEnabled(False)
 		self.ui.combo_drives.setEnabled(False)
 		# FIXME self.ui.pushbtn_imager_refreshusb.setEnabled(False)
-		status_text = ("Status: Writing " + os.path.basename(config.image_path) + " to " + config.usb_disk)
+		status_text = ("Status: Writing " +
+                               os.path.basename(config.image_path) + " to " +
+                               osdriver.usb_disk_desc(config.usb_disk))
 		self.ui.statusbar.showMessage(status_text)
 
 	def dd_quit(self):
@@ -782,19 +789,19 @@ Proceed with installation?'''.lstrip() % \
 			self.ui_enable_controls()
 		else:
 			imager = Imager()
-			if platform.system() == 'Linux' and config.usb_details['devtype'] == "partition":
+			if config.usb_details['devtype'] == "partition":
 				gen.log('Selected device is a partition. Please select a disk from the drop down list')
 				QtWidgets.QMessageBox.information(self, 'Incompatible device', 'Selected device (%s) is a partition!\n'
 																			   'ISO must be written to a whole disk.'
 																			   '\n\nPlease select a disk from the drop down list.' % config.usb_disk)
 				self.ui_enable_controls()
 			else:
-				usb_disk_size = int(imager.imager_usb_detail(config.usb_disk, partition=0).total_size)
+				usb_disk_size = int(imager.imager_usb_detail(config.usb_disk).total_size)
 				self.iso_size = os.path.getsize(config.image_path)
 				if self.iso_size >= usb_disk_size:
 					QtWidgets.QMessageBox.information(self, "No enough space on disk.",
 													  os.path.basename(config.image_path) +
-													  " size is larger than the size of " + config.usb_disk)
+													  " size is larger than the size of " + osdriver.usb_disk_desc(config.usb_disk))
 					self.ui_enable_controls()
 				# elif gen.process_exist('explorer.exe') is not False:
 				#    # Check if windows explorer is running and inform user to close it.
@@ -804,7 +811,7 @@ Proceed with installation?'''.lstrip() % \
 				else:
 					reply = QtWidgets.QMessageBox.question \
 						(self, 'Review selection',
-						 'Selected disk: %s\n' % config.usb_disk +
+						 'Selected disk: %s\n' % osdriver.usb_disk_desc(config.usb_disk) +
 						 'Selected image: %s\n\n' % os.path.basename(config.image_path) +
 						 'Proceed with writing image to disk?',
 						 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
@@ -850,7 +857,7 @@ Proceed with installation?'''.lstrip() % \
 		usb_free_size= str(usb.bytes2human(config.usb_details.get('size_free', "")))
 		config.persistence_max_size = persistence.max_disk_persistence(config.usb_disk)
 		config.usb_mount = config.usb_details.get('mount_point', "")
-		self.ui.usb_dev.setText(config.usb_disk)
+		self.ui.usb_dev.setText(osdriver.usb_disk_desc(config.usb_disk))
 
 		self.ui.usb_vendor.setText(config.usb_details.get('vendor', ""))
 		self.ui.usb_model.setText(config.usb_details.get('model', ""))
@@ -983,11 +990,13 @@ class DD_Progress(QtCore.QThread):
 		self.error = error
 
 	def run(self):
+		config.imager_percentage =  0
 		self.thread.start()
 		while self.thread.isRunning():
 			if config.imager_percentage:
 				self.update.emit(config.imager_percentage)
-			if not self.thread.isFinished() and config.percentage == 100:
+			if not self.thread.isFinished() and \
+			   config.percentage == 100:
 				config.imager_status_text = ""
 				self.status.emit("Please wait...")
 			time.sleep(0.1)
