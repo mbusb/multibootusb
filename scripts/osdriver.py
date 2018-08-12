@@ -284,6 +284,9 @@ class Windows(Base):
     def __init__(self):
         self.dd_exe = resource_path('data/tools/dd/dd.exe')
 
+    def dd_add_args(self, cmd_vec, input, output, bs, count):
+        pass
+
     def dd_iso_image(self, input_, output, gui_update, status_update):
         assert type(output) is int
         status_update('Zapping PhyiscalDisk%d' % output)
