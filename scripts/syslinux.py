@@ -19,7 +19,7 @@ extlinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "extlin
 syslinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux4")
 syslinux_path = os.path.join(multibootusb_host_dir(), "syslinux", "bin", "syslinux4")
 mbr_bin = resource_path(os.path.join("data", "tools", "mbr.bin"))
-win_gdisk = resource_path(os.path.join('data', 'tools', 'gdisk', 'gdisk.exe'))
+
 # Force Linux to install extlinux on NTFS
 if platform.system() == 'Linux':
     extlinux_fs = ["ext2", "ext3", "ext4", "Btrfs", "NTFS", "ntfs"]
@@ -27,6 +27,8 @@ if platform.system() == 'Linux':
 else:
     extlinux_fs = ["ext2", "ext3", "ext4", "Btrfs"]
     syslinux_fs = ["vfat", "ntfs", "FAT32", "NTFS"]
+    win_gdisk = resource_path(os.path.join(
+        'data', 'tools', 'gdisk', 'gdisk.exe'))
 
 
 def gpt_part_table(usb_disk):
