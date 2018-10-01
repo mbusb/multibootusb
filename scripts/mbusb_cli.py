@@ -33,7 +33,7 @@ def read_input_uninstall():
 def check_admin():
     """
     Check if user has admin rights
-    :return: 
+    :return:
     """
     if platform.system() == 'Linux':
         if os.getuid() != 0:
@@ -127,7 +127,7 @@ def cli_uninstall_distro():
             for index, _distro_dir in enumerate(distro_list):
                 if index == user_input:
                     config.uninstall_distro_dir_name = _distro_dir
-                    unin_distro()
+                    do_uninstall_distro(_distro_dir, _distro_dir)
     else:
         log('No distro installed on ' + config.usb_disk)
 
@@ -135,7 +135,7 @@ def cli_uninstall_distro():
 def cli_dd():
     """
     Function to write ISO image directly to USB disk using dd
-    :return: 
+    :return:
     """
     if platform.system() == 'Linux':
         if config.usb_disk[-1].isdigit() is True:
@@ -169,7 +169,7 @@ def cli_dd():
 def cli_install_syslinux():
     """
     Install syslinux on a target USB disk. It will be installed on 'multibootusb' directory
-    :return: 
+    :return:
     """
     usb.gpt_device(config.usb_disk)
     if platform.system() == 'Linux':
@@ -199,4 +199,3 @@ def cli_install_syslinux():
         else:
             log('Failed to install syslinux on ' + config.usb_disk)
         sys.exit(2)
-
