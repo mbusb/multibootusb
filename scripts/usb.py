@@ -25,6 +25,12 @@ if platform.system() == 'Windows':
     import pythoncom
 
 
+class PartitionNotMounted(Exception):
+
+    def __init__(self, partition):
+        self.message = 'Partition is not mounted: {}'.format(partition)
+
+
 def is_block(usb_disk):
     """
     Function to detect if the USB is block device
@@ -290,8 +296,8 @@ def details_udev(usb_disk_part):
         fdisk_cmd = 'LANG=C fdisk -l ' + usb_disk_part + \
           ' | grep "^Disk /" | sed -re "s/.*\s([0-9]+)\sbytes.*/\\1/"'
         size_total = subprocess.check_output(fdisk_cmd, shell=True).strip()
-        size_used = ""
-        size_free = ""
+        size_used = 0
+        size_free = 0
         mount_point = ""
 
     return {'uuid': uuid, 'file_system': file_system, 'label': label, 'mount_point': mount_point,
@@ -353,9 +359,7 @@ def details_udisks2(usb_disk_part):
             size_used = shutil.disk_usage(mount_point)[1]
             size_free = shutil.disk_usage(mount_point)[2]
     else:
-        size_total = str('No_Mount')
-        size_used = str('No_Mount')
-        size_free = str('No_Mount')
+        raise PartitionNotMounted(usb_disk_part)
 
     return {'uuid': uuid, 'file_system': file_system, 'label': label, 'mount_point': mount_point,
             'size_total': size_total, 'size_used': size_used, 'size_free': size_free,
