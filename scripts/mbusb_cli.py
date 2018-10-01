@@ -131,7 +131,7 @@ def cli_uninstall_distro():
             for index, _distro_dir in enumerate(distro_list):
                 if index == user_input:
                     config.uninstall_distro_dir_name = _distro_dir
-                    unin_distro()
+                    do_uninstall_distro(_distro_dir, _distro_dir)
     else:
         log('No distro installed on ' + config.usb_disk)
 

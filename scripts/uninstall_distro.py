@@ -99,9 +99,6 @@ def delete_frm_file_list(iso_file_list, uninstall_distro_dir_name):
                 if os.path.exists(os.path.join(usb_mount, generic.strip("/"))):
                     os.remove(os.path.join(usb_mount, generic.strip("/")))
     gen.log('Removed files from ' + uninstall_distro_dir_name)
-    if platform.system() == 'Linux':
-        gen.log('Syncing....')
-        os.sync()
 
 
 
@@ -109,7 +106,6 @@ def delete_frm_file_list(iso_file_list, uninstall_distro_dir_name):
 def do_uninstall_distro(target_distro, uninstall_distro_dir_name):
     """
     Uninstall selected distro from selected USB disk.
-    :param config.usb_disk: Path of the USB disk
     :param target_distro: Generic name applied to distro to be uninstalled
     :param uninstall_distro_dir_name: Directory where the distro is installed
     :return:
@@ -122,7 +118,6 @@ def do_uninstall_distro(target_distro, uninstall_distro_dir_name):
     usb_mount = usb_details['mount_point']
 
     if platform.system() == 'Linux':
-        os.sync()
         # remove 'immutable' from files on ext2/3/4 fs
         if usb_mount:
             subprocess.call("chattr -i -R %s/* 2>/dev/null" % usb_mount, shell=True)
@@ -163,8 +158,6 @@ def do_uninstall_distro(target_distro, uninstall_distro_dir_name):
         shutil.rmtree(os.path.join(usb_mount, "trk3"))
 
     if os.path.exists(uninstall_distro_dir_name_fullpath):
-        if platform.system() == 'Linux':
-            os.sync()
         shutil.rmtree(uninstall_distro_dir_name_fullpath)
 
     delete_frm_file_list(iso_file_list, uninstall_distro_dir_name)
@@ -192,8 +185,6 @@ def update_sys_cfg_file(uninstall_distro_dir_name):
     Main function to remove uninstall distro specific operations.
     :return:
     """
-    if platform.system() == 'Linux':
-        os.sync()
 
     sys_cfg_file = os.path.join(config.usb_mount, "multibootusb", "syslinux.cfg")
     if not os.path.exists(sys_cfg_file):
@@ -215,8 +206,6 @@ def update_grub_cfg_file(uninstall_distro_dir_name):
     Main function to remove uninstall distro name from the grub.cfg file.
     :return:
     """
-    if platform.system() == 'Linux':
-        os.sync()
 
     grub_cfg_file = os.path.join(config.usb_mount, "multibootusb",
                                  "grub", "grub.cfg")
@@ -250,8 +239,6 @@ def uninstall_progress():
         return
 
     usb_mount = usb_details['mount_point']
-    if platform.system() == 'Linux':
-        os.sync()
 
     uninstall_distro_dir_name = config.uninstall_distro_dir_name \
                                 .replace('\n', '')

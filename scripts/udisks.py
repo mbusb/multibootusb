@@ -15,18 +15,25 @@ import os
 import re
 
 
-def node_mountpoint(node):
+def de_mangle_mountpoint(raw):
+    return raw.replace('\\040', ' ').replace('\\011', '\t') \
+      .replace('\\012', '\n').replace('\\0134', '\\')
 
-    def de_mangle(raw):
-        return raw.replace('\\040', ' ').replace('\\011', '\t').replace('\\012',
-                '\n').replace('\\0134', '\\')
+def node_mountpoint(node):
 
     for line in open('/proc/mounts').readlines():
         line = line.split()
         if line[0] == node:
-            return de_mangle(line[1])
+            return de_mangle_mountpoint(line[1])
     return None
 
+def find_mounted_partitions_on(disk):
+    assert not disk[-1:].isdigit()
+    with open('/proc/mounts') as f:
+        relevant_lines = [l.split(' ') for l in f.readlines()
+                          if l.startswith(disk)]
+    return [ [v[0], de_mangle_mountpoint(v[1])] + v[2:] for v
+             in relevant_lines ]
 
 class NoUDisks1(Exception):
     pass
@@ -51,27 +58,24 @@ class UDisks(object):
         return dbus.Interface(self.bus.get_object('org.freedesktop.UDisks',
                         devpath), 'org.freedesktop.UDisks.Device')
 
-    def mount(self, device_node_path):
-        d = self.device(device_node_path)
-        try:
-            return str(d.FilesystemMount('',
-                ['auth_no_user_interaction', 'rw', 'noexec', 'nosuid',
-                 'nodev', 'uid=%d'%os.geteuid(), 'gid=%d'%os.getegid()]))
-        except:
-            # May be already mounted, check
-            mp = node_mountpoint(str(device_node_path))
-            if mp is None:
-                raise
+    def mount(self, device_node_path, remounted=None):
+        mp = node_mountpoint(str(device_node_path))
+        if mp:
             return mp
+        d = self.device(device_node_path)
+        r = str(d.FilesystemMount(
+            '', ['auth_no_user_interaction', 'rw', 'noexec', 'nosuid',
+                 'nodev', 'uid=%d'%os.geteuid(), 'gid=%d'%os.getegid()]))
+        if remounted is not None:
+            remounted.append(True)
+        return r
 
     def unmount(self, device_node_path):
         d = self.device(device_node_path)
         d.FilesystemUnmount(['force'])
 
     def eject(self, device_node_path):
-        parent = device_node_path
-        while parent[-1] in '0123456789':
-            parent = parent[:-1]
+        parent = device_node_path.rstrip('0123456789')
         d = self.device(parent)
         d.DriveEject([])
 
@@ -132,24 +136,20 @@ class UDisks2(object):
 
         raise ValueError('%r not known to UDisks2'%device_node_path)
 
-    def mount(self, device_node_path):
+    def mount(self, device_node_path, remounted=None):
+        mp = node_mountpoint(str(device_node_path))
+        if mp:
+            return mp
         d = self.device(device_node_path)
         mount_options = ['rw', 'noexec', 'nosuid', 'nodev']
-
-        try:
-            mp = str(d.Mount(
-                {
-                    'auth.no_user_interaction':True,
-                    'options':','.join(mount_options)
+        mp = str(d.Mount(
+            {
+                'auth.no_user_interaction':True,
+                'options':','.join(mount_options)
                 },
                 dbus_interface=self.FILESYSTEM))
-            print(mp)
-        except:
-            # May be already mounted, check
-            mp = node_mountpoint(str(device_node_path))
-            if mp is None:
-                raise
-
+        if remounted is not None:
+            remounted.append(True)
         return mp
 
     def unmount(self, device_node_path):

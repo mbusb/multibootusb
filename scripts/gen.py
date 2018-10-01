@@ -13,74 +13,16 @@ import platform
 import shutil
 import string
 import zipfile
-import tempfile
 import re
 import ctypes
 
+from . import config
+from .osdriver import get_physical_disk_number, wmi_get_drive_info, \
+      log, resource_path, multibootusb_host_dir
 
 def scripts_dir_path():
     return os.path.dirname(os.path.realpath(__file__))
 
-
-def log(message, info=True, error=False, debug=False, _print=True):
-    """
-    Dirty function to log messages to file and also print on screen.
-    :param message:
-    :param info:
-    :param error:
-    :param debug:
-    :return:
-    """
-    # LOG_FILE_PATH = os.path.join(multibootusb_host_dir(), 'multibootusb.log')
-    LOG_FILE_PATH = mbusb_log_file()
-    if os.path.exists(LOG_FILE_PATH):
-        log_file_size = os.path.getsize(LOG_FILE_PATH) / (1024.0 * 1024.0)
-        if log_file_size > 1:
-            print('Removing log file as it crosses beyond 1mb')
-            os.remove(LOG_FILE_PATH)
-    logging.basicConfig(filename=LOG_FILE_PATH,
-                        filemode='a',
-                        format='%(asctime)s.%(msecs)03d %(name)s %(levelname)s %(message)s',
-                        datefmt='%H:%M:%S',
-                        level=logging.DEBUG)
-    if _print is True:
-        print(message)
-
-    # remove ANSI color codes from logs
-    # message_clean = re.compile(r'\x1b[^m]*m').sub('', message)
-
-    if info is True:
-        logging.info(message)
-    elif error is not False:
-        logging.error(message)
-    elif debug is not False:
-        logging.debug(message)
-
-
-
-def resource_path(relativePath):
-    """
-    Function to detect the correct path of file when working with sourcecode/install or binary.
-    :param relativePath: Path to file/data.
-    :return: Modified path to file/data.
-    """
-
-    try:
-        basePath = sys._MEIPASS  # Try if we are running as standalone executable
-        # log('Running stand alone executable.')
-    except:
-        basePath = '/usr/share/multibootusb'  # Check if we run in installed environment
-        #if os.path.exists('/usr/share/multibootusb'):
-            #log('Running from installed machine.')
-        if not os.path.exists(basePath):
-            #basePath = os.path.abspath(".")
-            basePath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-
-    for dir_ in [basePath, os.path.abspath('.'), os.path.abspath('..')]:
-        fullpath = os.path.join(dir_, relativePath)
-        if os.path.exists(fullpath):
-            return fullpath
-    log("Could not find resource '%s'." % relativePath)
 
 def print_version():
     """
@@ -128,37 +70,6 @@ def sys_64bits():
     return sys.maxsize > 2**32
 
 
-def mbusb_log_file():
-    """
-    Function to genrate path to log file.
-    Under linux path is created as /tmp/multibootusb.log
-    Under Windows the file is created under installation directory
-    """
-    if platform.system() == "Linux":
-        # home_dir = os.path.expanduser('~')
-        # log_file = os.path.join(home_dir, "multibootusb.log")
-        log_file = os.path.join(tempfile.gettempdir(), "multibootusb.log")
-    elif platform.system() == "Windows":
-        # log_file = os.path.join(tempfile.gettempdir(), "multibootusb", "multibootusb.log")
-        log_file = os.path.join("multibootusb.log")
-
-    return log_file
-
-
-def multibootusb_host_dir():
-    """
-    Cross platform way to detect multibootusb directory on host system.
-    :return: Path to multibootusb directory of host system.
-    """
-    if platform.system() == "Linux":
-        home_dir = os.path.expanduser('~')
-        mbusb_dir = os.path.join(home_dir, ".multibootusb")
-    elif platform.system() == "Windows":
-        mbusb_dir = os.path.join(tempfile.gettempdir(), "multibootusb")
-
-    return mbusb_dir
-
-
 def iso_cfg_ext_dir():
     """
     Function to return the path to ISO configuration file extraction directory.
@@ -174,12 +85,12 @@ def clean_iso_cfg_ext_dir(iso_cfg_ext_dir):
     :return:
     """
     if os.path.exists(iso_cfg_ext_dir):
-        filelist = [f for f in os.listdir(iso_cfg_ext_dir)]
-        for f in filelist:
-            if os.path.isdir(os.path.join(iso_cfg_ext_dir, f)):
-                shutil.rmtree(os.path.join(iso_cfg_ext_dir, f))
+        for f in os.listdir(iso_cfg_ext_dir):
+            fullpath = os.path.join(iso_cfg_ext_dir, f)
+            if os.path.isdir(fullpath):
+                shutil.rmtree(fullpath)
             else:
-                os.remove(os.path.join(iso_cfg_ext_dir, f))
+                os.remove(fullpath)
     else:
         log('iso_cfg_ext_dir directory does not exist.')
 
@@ -190,6 +101,7 @@ def copy_mbusb_dir_usb(usb_disk):
     :param usb_mount_path: Path to USB mount.
     :return:
     """
+<<<<<<< HEAD
 #     from .iso import iso_size
     from .usb import details, PartitionNotMounted
 
@@ -199,6 +111,10 @@ def copy_mbusb_dir_usb(usb_disk):
         log(str(e))
         return False
 
+=======
+
+    usb_details = config.usb_details
+>>>>>>> upstream/master
     usb_mount_path = usb_details['mount_point']
     result = ''
     if not os.path.exists(os.path.join(usb_mount_path, "multibootusb")):
@@ -304,6 +220,7 @@ def strings(filename, _min=4):
 
 def size_not_enough(iso_link, usb_disk):
     from .iso import iso_size
+<<<<<<< HEAD
     from .usb import details, PartitionNotMounted
     isoSize = iso_size(iso_link)
     try:
@@ -311,6 +228,10 @@ def size_not_enough(iso_link, usb_disk):
     except PartitionNotMounted as e:
         log(str(e))
         return False
+=======
+    isoSize = iso_size(iso_link)
+    usb_details = config.usb_details
+>>>>>>> upstream/master
     usb_size = usb_details['size_free']
 
     return bool(isoSize > usb_size)
@@ -497,6 +418,7 @@ class MemoryCheck():
         """
         totalMemory = os.popen("free -m").readlines()[1].split()[1]
         return int(totalMemory)
+<<<<<<< HEAD
 
 def wmi_get_drive_info(usb_disk):
     assert platform.system() == 'Windows'
@@ -519,6 +441,9 @@ def get_physical_disk_number(usb_disk):
     partition, logical_disk = wmi_get_drive_info(usb_disk)
     log("Physical Device Number is %d" % partition.DiskIndex)
     return partition.DiskIndex
+=======
+    
+>>>>>>> upstream/master
 
 if __name__ == '__main__':
     log(quote("""Test-string"""))

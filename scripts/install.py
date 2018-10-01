@@ -6,11 +6,12 @@
 # Licence:  This file is a part of multibootusb package. You can redistribute it or modify
 # under the terms of GNU General Public License, v.2 or above
 
+import lzma
 import os
-import shutil
 import platform
-import threading
+import shutil
 import subprocess
+import threading
 import time
 from .usb import *
 from .gen import *
@@ -76,10 +77,10 @@ def install_distro():
         config.status_text = "Copying ISO..."
         iso.iso_extract_file(config.image_path, install_dir, "kernel")
         copy_iso(config.image_path, install_dir)
-    elif config.distro == "salix-live":
+    elif config.distro in ["salix-live", 'wifislax']:
         # iso.iso_extract_file(config.image_path, install_dir, "boot")
         iso.iso_extract_file(config.image_path, install_dir,
-                             ['*syslinux', '*menus', '*vmlinuz', '*initrd*',
+                             ['*syslinux', '*isolinux', '*system_tools', '*menus', '*vmlinuz', '*initrd*',
                               'EFI'])
         iso.iso_extract_file(config.image_path, usb_mount,
                              ['*modules', '*packages', '*optional',
@@ -125,9 +126,6 @@ def install_distro():
     else:
         iso.iso_extract_full(config.image_path, install_dir)
 
-    if platform.system() == 'Linux':
-        log('ISO extracted successfully. Sync is in progress...')
-        os.sync()
 
     if config.persistence != 0:
         log('Creating persistence...')
@@ -167,6 +165,10 @@ def install_progress():
         log(str(e))
         return
 
+<<<<<<< HEAD
+=======
+    usb_details = config.usb_details
+>>>>>>> upstream/master
     config.usb_mount = usb_details['mount_point']
     usb_size_used = usb_details['size_used']
     thrd = threading.Thread(target=install_distro, name="install_progress")
@@ -186,48 +188,74 @@ def install_progress():
         time.sleep(0.1)
 
 
+def replace_syslinux_modules(syslinux_version, under_this_dir):
+    # Replace modules files extracted from iso with corresponding
+    # version provided by multibootusb.
+    modules_src_dir = os.path.join(
+        multibootusb_host_dir(), "syslinux", "modules", syslinux_version)
+
+    for dirpath, dirnames, filenames in os.walk(under_this_dir):
+        for fname in filenames:
+            if not fname.lower().endswith('.c32'):
+                continue
+            dst_path = os.path.join(under_this_dir, dirpath, fname)
+            src_path = os.path.join(modules_src_dir, fname)
+            if not os.path.exists(src_path):
+                log("Suitable replacement of '%s' is not bundled. "
+                    "Trying to unlzma." % fname)
+                try:
+                    with lzma.open(dst_path) as f:
+                        expanded = f.read()
+                except lzma.LZMAError:
+                    continue
+                except (OSError, IOError) as e:
+                    log("%s while accessing %s." % (e, dst_path))
+                    continue
+                with open(dst_path, 'wb') as f:
+                    f.write(expanded)
+                log("Successfully decompressed %s." % fname)
+                continue
+            try:
+                os.remove(dst_path)
+                shutil.copy(src_path, dst_path)
+                log("Replaced %s module" % fname)
+            except (OSError, IOError) as err:
+                log(err)
+                log("Could not update " + fname)
+
 def install_patch():
     """
     Function to certain distros which uses makeboot.sh script for making bootable usb disk.
     This is required to make sure that same version (32/64 bit) of modules present is the isolinux directory
     :return:
     """
-    if config.distro == 'debian':
-        if platform.system() == 'Linux':  # Need to syn under Linux. Otherwise, USB disk becomes random read only.
-            os.sync()
-        iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir")
-        isolinux_path = os.path.join(iso_cfg_ext_dir, isolinux_bin_path(config.image_path))
-#         iso_linux_bin_dir = isolinux_bin_dir(config.image_path)
-        config.syslinux_version = isolinux_version(isolinux_path)
-        iso_file_list = iso.iso_file_list(config.image_path)
+    isobin_path = isolinux_bin_path(config.image_path)
+    if not isobin_path:
+        return
 
+    iso_cfg_ext_dir = os.path.join(multibootusb_host_dir(),
+                                   "iso_cfg_ext_dir")
+    isolinux_path = os.path.join(iso_cfg_ext_dir, isobin_path)
+#   iso_linux_bin_dir = isolinux_bin_dir(config.image_path)
+    distro_install_dir = os.path.join(
+        config.usb_mount, "multibootusb", iso_basename(config.image_path))
+    config.syslinux_version = isolinux_version(isolinux_path)
+
+    if config.distro in ['slitaz', 'ubunu']:
+        replace_syslinux_modules(config.syslinux_version, distro_install_dir)
+    elif config.distro == 'gentoo':
+        replace_syslinux_modules(config.syslinux_version, distro_install_dir)
+    elif config.distro == 'debian':
+        iso_file_list = iso.iso_file_list(config.image_path)
         if not any(s.strip().lower().endswith("makeboot.sh")
                    for s in iso_file_list):
             log('Patch not required...')
             return
 
-        # Replace modules files extracted from iso with corresponding
-        # version provided by multibootusb.
-        distro_install_dir = os.path.join(config.usb_mount, "multibootusb",
-                                          iso_basename(config.image_path))
         isolinux_bin_dir_ = os.path.join(
             distro_install_dir, isolinux_bin_dir(config.image_path))
-        modules_src_dir = os.path.join(
-            multibootusb_host_dir(), "syslinux", "modules",
-            config.syslinux_version)
-        for module in os.listdir(isolinux_bin_dir_):
-            if not module.endswith(".c32"):
-                continue
-            fpath = os.path.join(isolinux_bin_dir_, module)
-            try:
-                os.remove(fpath)
-                src_module_path = os.path.join(modules_src_dir, module)
-                log("Copying " +  module)
-                log((src_module_path, fpath))
-                shutil.copy(src_module_path, fpath)
-            except Exception as err:
-                log(err)
-                log("Could not copy " + module)
+        replace_syslinux_modules(config.syslinux_version, isolinux_bin_dir_)
+
 
 class DirectoryRelocator:
     def __init__(self, src_dir, dst_dir):

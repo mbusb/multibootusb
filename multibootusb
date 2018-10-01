@@ -9,6 +9,7 @@ import os
 import getopt
 import sys
 import platform
+import shutil
 
 # The following line is required for distros based on rpm so as to avoid import errors when running from
 # installed system
@@ -33,13 +34,15 @@ try:
     from scripts import admin
     from scripts import gen
     from scripts import config
-except:
+    from scripts import osdriver
+except ImportError:
     try:
         from .scripts.mbusb_cli import *
         from .scripts import admin
         from .scripts import gen
         from .scripts import config
-    except:
+        from .scripts import osdriver
+    except ImportError:
         import scripts
 
 gui = True
@@ -102,7 +105,7 @@ Example for installing multiple distros without user intervention:
 
     Windows:
         python3 multibootusb -c -y -i ../../favourite.iso,../../other-distro.iso -t G:
-        
+
 Example for writing ISO image to target USB disk (will destroy data on USB disk):
 
     Linux:
@@ -160,7 +163,7 @@ if __name__ == '__main__':
                 config.image_path = arg.split(',')
         elif opt in ('-t', '--target'):
             # Convert to upper if windows drive name is given
-            config.usb_disk = len(arg)==2 and arg[0].isalpha() and arg[1]==':'\
+            config.usb_disk = len(arg) == 2 and arg[0].isalpha() and arg[1] == ':'\
                               and arg.upper() or arg
         elif opt in ('-c', '--command'):
             gui = False
@@ -184,33 +187,46 @@ if __name__ == '__main__':
             sys.exit()
             '''
 
-if config.debug is True:
-    from scripts.debug import colors
-    log(colors.HEADER + "=== DEBUG ENABLED ===")
+def main():
+
+    if config.debug is True:
+        from scripts.debug import colors
+        log(colors.HEADER + "=== DEBUG ENABLED ===")
 
 
-if gui is False:
-    check_admin()
-    if uninstall is True and config.usb_disk is not '':
-        cli_uninstall_distro()
-    elif uninstall is True and config.usb_disk is '':
-        log('\nYou must provide \'-t\' option to point to your USB disk for uninstalling a distro.\n'
-            'See the usage example below.')
-        usage()
-    elif config.image_path is '' and config.usb_disk is '':
-        log('\nNo option provided. See the usage below.')
-        usage()
-    elif config.cli_syslinux is True and config.usb_disk is not '':
-        cli_install_syslinux()
-    elif config.image_path is '' or config.usb_disk is '':
-        log('\nOptions \'-i\' and \'-t\' must be supplied together. See the usage below.')
-        usage()
-    elif config.cli_dd is True:
-        cli_dd()
-    else:
+    if gui is False:
+        check_admin()
+        if uninstall is True and config.usb_disk is not '':
+            cli_uninstall_distro()
+        elif uninstall is True and config.usb_disk is '':
+            log('\nYou must provide \'-t\' option to point to your USB disk for uninstalling a distro.\n'
+                'See the usage example below.')
+            usage()
+        elif config.image_path is '' and config.usb_disk is '':
+            log('\nNo option provided. See the usage below.')
+            usage()
+        elif config.cli_syslinux is True and config.usb_disk is not '':
+            cli_install_syslinux()
+        elif config.image_path is '' or config.usb_disk is '':
+            log('\nOptions \'-i\' and \'-t\' must be supplied together. See the usage below.')
+            usage()
+        elif config.cli_dd is True:
+            cli_dd()
+        else:
+            running_from()
+            cli_install_distro()
+
+    elif gui is True:
         running_from()
-        cli_install_distro()
+        start_gui()
 
-elif gui is True:
-    running_from()
-    start_gui()
+
+if __name__ == '__main__':
+    osdriver.initialize()
+    try:
+        main()
+    finally:
+        from scripts import usb
+        for p in config.remounted_partitions:
+            log('Unmouting %s at exit' % p)
+            usb.unmount(p)

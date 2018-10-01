@@ -19,6 +19,7 @@ lib/
 lib64/
 parts/
 sdist/
+deb_dist/
 var/
 *.egg-info/
 .installed.cfg
@@ -97,6 +98,7 @@ multibootusb*.tar.gz
 
 # Temp files
 data/multibootusb/grub/menus.zip
+MANIFEST
 
 # Setup file
 

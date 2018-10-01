@@ -197,10 +197,13 @@ def write_to_file(file_path, _strings):
 
 def locate_kernel_file(subpath, isolinux_dir):
     subpath_original = subpath
-    if subpath[0] != '/':
-        gen.log("Accepting a relative kernel/initrd path '%s' as is."
-                % subpath)
-        return subpath
+    # Looks like relative paths don't work in grub.
+    #if subpath[0] != '/':
+    #    gen.log("Accepting a relative kernel/initrd path '%s' as is."
+    #            % subpath)
+    #    return subpath
+    if subpath[:1] != '/':
+        subpath = '/' + subpath
     if os.path.exists(os.path.join(config.usb_mount, subpath[1:])):
         gen.log("Accepting kernel/initrd path '%s' as it exists." % subpath)
         return subpath
@@ -212,7 +215,7 @@ def locate_kernel_file(subpath, isolinux_dir):
         subpath = subpath[len(drive_relative_prefix):]
     gen.log("Trying to locate kernel/initrd file '%s'" % subpath)
     for d in [
-            os.path.join('multibootusb', _iso_basename, isolinux_dir),
+            os.path.join('multibootusb', _iso_basename, isolinux_dir or ''),
             # Down below are dire attemps to find.
             os.path.join('multibootusb', _iso_basename),
             os.path.join('multibootusb', _iso_basename, 'arch'),
@@ -292,7 +295,7 @@ def iso2grub2(install_dir, loopback_cfg_path):
     gen.log('loopback.cfg file is set to ' + loopback_cfg_path)
 
     iso_bin_dir = iso.isolinux_bin_dir(config.image_path)
-    seen_menu_lines = []
+    seen_menu_entries = []
     # Loop though the distro installed directory for finding config files
     for dirpath, dirnames, filenames in os.walk(install_dir):
         for f in filenames:
@@ -319,8 +322,8 @@ def iso2grub2(install_dir, loopback_cfg_path):
                 # Append the block after the last matching position
                 matching_blocks.append(data[matching_blocks_re[-1].span()[1]:])
             else:
-                m = re.match('^(label)(.*?)',
-                             data, re.I|re.DOTALL|re.MULTILINE)
+                m = re.search('^(label)(.*?)',
+                              data, re.I|re.DOTALL|re.MULTILINE)
                 matching_blocks = m and [data[m.start():]] or []
 
             if not matching_blocks:
@@ -342,7 +345,7 @@ def iso2grub2(install_dir, loopback_cfg_path):
                 menu_labels = [v for v in matches if v[0].lower()=='menu label']
                 if 0 == len(labels) + len(menu_labels):
                     gen.log('Warning: found a block without menu-entry.')
-                    menu_line = 'menuentry "Anonymous"'
+                    menu_entry = 'Anonymous'
                     menu_label = 'Unlabeled'
                 else:
                     for vec, name in [ (labels, 'label'),
@@ -355,13 +358,14 @@ def iso2grub2(install_dir, loopback_cfg_path):
                         value = menu_labels[0][1].replace('^', '')
                     else:
                         value = labels[0][1]
-                    menu_line = 'menuentry ' + gen.quote(value)
-                    menu_label = value
+                    menu_entry = menu_label = value
 
                 # Extract lines containing 'kernel','linux','initrd'
                 # or 'append' to convert them into grub2 compatible ones.
                 linux_line = initrd_line = None
                 appends = []
+                sought_archs = ['x86_64', 'i686', 'i386']
+                arch = []
                 for keyword, value in re.findall(
                         r'^\s*(kernel|linux|initrd|append)[= ](.*)$',
                         matching_block, re.I|re.MULTILINE):
@@ -372,6 +376,8 @@ def iso2grub2(install_dir, loopback_cfg_path):
                                     "'kernel/linux' lines in block '%s'."
                                     % menu_label)
                             continue
+                        arch = [(value.find(a), a) for a in sought_archs
+                                if 0 <= value.find(a)]
                         linux_line = 'linux ' + \
                                      tweak_bootfile_path(value, iso_bin_dir)
                     elif kw == 'initrd':
@@ -393,13 +399,15 @@ def iso2grub2(install_dir, loopback_cfg_path):
                                         "specifications in block '%s'."
                                         % menu_label)
                             initrd_line = new_initrd_line
-
-                if menu_line in seen_menu_lines:
+                if arch: # utilize left most arch.
+                    menu_entry += (" (%s)" % sorted(arch)[-1][1])
+                menu_line = 'menuentry ' + gen.quote(menu_entry)
+                if menu_entry in seen_menu_entries:
                     out_lines.append( "# '%s' is superceded by the previous "
                                       "definition." % menu_label)
                 else:
                     if linux_line or initrd_line:
-                        seen_menu_lines.append(menu_line)
+                        seen_menu_entries.append(menu_entry)
                         out_lines.append(menu_line + ' {')
                         for starter, value in [
                                 (linux_line, ' '.join(appends)),

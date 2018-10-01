@@ -1,3 +1,20 @@
+Version - 9.3.0
+---------------
+* Provide information about free and total space of selected USB device in the main GUI
+* Unmount partitions and lock physical drive when dd-ing iso on Windows
+* Unmount the USB device partition while using QEMU to boot from USB on Linux
+* Fix description of an exception which gets raised of diskpart.exe fails
+* Fix repeated calls to update GUI
+* Fix syntax of an exception description
+* Imager writing on entire disk instead of partitions
+* Fix crash when using imager under certain conditions
+* Unmount partitions before dding iso image on Linux
+* Catch an error generated while copying iso image to the target USB
+* Fix uuid generation from NTFS/FAT32 partition on Windows
+* Add gptmbr.bin to package data files
+* Catch exceptions raised during install_syslinux() and make effort to undo partially completed installation
+* Fix a doc string to keep up with the function signature change
+
 Version - 9.2.0
 ---------------
 * Welcome onboard Shiniji Suzuki. The most of the bug fixes and additional features implemented are done by him. A big tanks to him.

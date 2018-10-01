@@ -7,32 +7,41 @@
 # under the terms of GNU General Public License, v.2 or above
 # WARNING : Any boot-able USB made using this module will destroy data stored on USB disk.
 
-import os
-import subprocess
 import collections
+import io
+import os
 import platform
 import signal
+import time
+import subprocess
+import traceback
+
 from PyQt5 import QtWidgets
 from .gui.ui_multibootusb import Ui_MainWindow
 from .gen import *
-from . import iso
 from . import config
+from . import iso
+from . import osdriver
 from . import progressbar
+from . import osdriver
+from . import usb
+
 
 if platform.system() == "Windows":
     import win32com.client
 
+def dd_iso_image(dd_progress_thread):
+    try:
+        dd_progress_thread.set_error(None)
+        _dd_iso_image(dd_progress_thread)
+    except:
+        # config.imager_return = False
+        o = io.StringIO()
+        traceback.print_exc(None, o)
+        log(o.getvalue())
+        dd_progress_thread.set_error(o.getvalue())
 
-def dd_linux():
-    import time
-    _input = "if=" + config.image_path
-    in_file_size = float(os.path.getsize(config.image_path))
-    _output = "of=" + config.usb_disk
-    os.system("umount " + config.usb_disk + "1")
-    command = ['dd', _input, _output, "bs=1M", "oflag=sync"]
-    log("Executing ==> " + " ".join(command))
-    dd_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-
+def _dd_iso_image(dd_progress_thread):
     pbar = progressbar.ProgressBar(
             maxval=100,
             widgets=[
@@ -43,52 +52,34 @@ def dd_linux():
             ]
     ).start()
 
-    while dd_process.poll() is None:
-        time.sleep(0.1)  # If this time delay is not given, the Popen does not execute the actual command
-        dd_process.send_signal(signal.SIGUSR1)
-        dd_process.stderr.flush()
-        while True:
-            time.sleep(0.1)
-            out_error = dd_process.stderr.readline().decode()
-            if out_error:
-                if 'bytes' in out_error:
-                    copied = int(out_error.split(' ', 1)[0])
-                    config.imager_percentage = round((float(copied) / float(in_file_size) * 100))
-                    pbar.update(config.imager_percentage)
-                    break
 
-    if dd_process.poll() is not None:
-        log("\nExecuting ==> sync")
-        os.sync()
-        log("ISO has been written to USB disk...")
-        return
+    def gui_update(percentage):
+        config.imager_percentage = percentage
+        pbar.update(percentage)
 
+    def status_update(text):
+        config.status_text = text
 
-def dd_win():
-
-    windd = resource_path(os.path.join("data", "tools", "dd", "dd.exe"))
-    if os.path.exists(resource_path(os.path.join("data", "tools", "dd", "dd.exe"))):
-        log("dd exist")
-    _input = "if=" + config.image_path
-    in_file_size = float(os.path.getsize(config.image_path) / 1024 / 1024)
-    _output = "of=\\\.\\" + config.usb_disk
-    command = [windd, _input, _output, "bs=1M", "--progress"]
-    log("Executing ==> " + " ".join(command))
-    dd_process = subprocess.Popen(command, universal_newlines=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
-                                  shell=False)
-    while dd_process.poll() is None:
-        for line in iter(dd_process.stderr.readline, ''):
-            line = line.strip()
-            if 'error' in line.lower() or 'invalid' in line.lower():
-                log("Error writing to disk...")
-                break
-            if line and line[-1] == 'M':
-                copied = float(line.strip('M').replace(',', ''))
-                config.imager_percentage = round((copied / float(in_file_size) * 100))
-
-        log("ISO has been written to USB disk...")
-
-        return
+    mounted_partitions = osdriver.find_mounted_partitions_on(config.usb_disk)
+    unmounted = []
+    try:
+        for x in mounted_partitions:
+            partition_dev, mount_point = x[:2]
+            c = usb.UnmountedContext(partition_dev, config.update_usb_mount)
+            c.__enter__()
+            unmounted.append((c, partition_dev))
+        error = osdriver.dd_iso_image(
+            config.image_path, config.usb_disk, gui_update, status_update)
+        if error:
+            dd_progress_thread.set_error(error)
+            log('Error writing iso image...')
+            # config.imager_return = False
+        else:
+            log('ISO has been written to USB disk...')
+            # config.imager_return = True
+    finally:
+        for c, partition_dev in unmounted:
+                c.__exit__(None, None, None)
 
 
 class Imager(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -152,42 +143,34 @@ class Imager(QtWidgets.QMainWindow, Ui_MainWindow):
         return disk
 
     @staticmethod
-    def imager_usb_detail(usb_disk, partition=1):
+    def imager_usb_detail(physical_disk):
         """
         Function to detect details of USB disk using lsblk
-        :param usb_disk: path to usb disk
-        :param partition: by default partition is set (but yet to code for it)
+        :param physical_disk: /dev/sd? (linux) or integer disk number (win)
         :return: details of size, type and model as tuples
         """
-        _ntuple_diskusage = collections.namedtuple('usage', 'total_size usb_type model')
+        _ntuple_diskusage = collections.namedtuple(
+            'usage', 'total_size usb_type model')
 
         if platform.system() == "Linux":
-            output = subprocess.check_output("lsblk -ib " + usb_disk, shell=True)
+            output = subprocess.check_output("lsblk -ib " + physical_disk,
+                                             shell=True)
             for line in output.splitlines():
                 line = line.split()
-                if partition != 1:
-                    if line[2].strip() == b'1' and line[5].strip() == b'disk':
-                        total_size = line[3]
-                        if not total_size:
-                            total_size = "Unknown"
-                        usb_type = "Removable"
-                        model = subprocess.check_output("lsblk -in -f -o MODEL " + usb_disk, shell=True).decode().strip()
-                        if not model:
-                            model = "Unknown"
+                if line[2].strip() == b'1' and line[5].strip() == b'disk':
+                    total_size = line[3]
+                    if not total_size:
+                        total_size = "Unknown"
+                    usb_type = "Removable"
+                    model = subprocess.check_output(
+                        "lsblk -in -f -o MODEL " + physical_disk,
+                        shell=True).decode().strip()
+                    if not model:
+                        model = "Unknown"
         else:
-            try:
-                selected_usb_part = str(usb_disk)
-                oFS = win32com.client.Dispatch("Scripting.FileSystemObject")
-                d = oFS.GetDrive(oFS.GetDriveName(oFS.GetAbsolutePathName(selected_usb_part)))
-#                 selected_usb_device = d.DriveLetter
-                label = (d.VolumeName).strip()
-                if not label.strip():
-                    label = "No label."
-                total_size = d.TotalSize
-                usb_type = "Removable"
-                model = label
-            except:
-                log("Error detecting USB details.")
+            dinfo = osdriver.wmi_get_physicaldrive_info_ex(physical_disk)
+            return _ntuple_diskusage(*[dinfo[a] for a in [
+                'size_total', 'mediatype', 'model']])
 
         return _ntuple_diskusage(total_size, usb_type, model)
 

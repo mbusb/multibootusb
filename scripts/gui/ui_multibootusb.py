@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'gui/multibootusb.ui'
+# Form implementation generated from reading ui file 'scripts/gui/multibootusb.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(629, 605)
+        MainWindow.resize(865, 609)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -216,33 +216,38 @@ class Ui_MainWindow(object):
         self.gridLayout_9 = QtWidgets.QGridLayout()
         self.gridLayout_9.setContentsMargins(5, 5, 5, 5)
         self.gridLayout_9.setObjectName("gridLayout_9")
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.gridLayout_9.addItem(spacerItem, 3, 2, 1, 1)
         self.button_write_image_to_disk = QtWidgets.QPushButton(self.tab_imager)
         self.button_write_image_to_disk.setObjectName("button_write_image_to_disk")
-        self.gridLayout_9.addWidget(self.button_write_image_to_disk, 3, 1, 1, 1)
+        self.gridLayout_9.addWidget(self.button_write_image_to_disk, 2, 1, 1, 1)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout_9.addItem(spacerItem, 4, 1, 1, 1)
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.gridLayout_9.addItem(spacerItem1, 5, 2, 1, 1)
         self.widget_7 = QtWidgets.QWidget(self.tab_imager)
         self.widget_7.setObjectName("widget_7")
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.widget_7)
         self.verticalLayout_6.setContentsMargins(5, 5, 5, 5)
         self.verticalLayout_6.setObjectName("verticalLayout_6")
-        self.gridLayout_9.addWidget(self.widget_7, 3, 3, 1, 2)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.gridLayout_9.addItem(spacerItem1, 3, 0, 1, 1)
-        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.gridLayout_9.addItem(spacerItem2, 4, 1, 1, 1)
+        self.gridLayout_9.addWidget(self.widget_7, 5, 3, 1, 2)
+        spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.gridLayout_9.addItem(spacerItem2, 5, 0, 1, 1)
+        spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout_9.addItem(spacerItem3, 6, 1, 1, 1)
         self.label_6 = QtWidgets.QLabel(self.tab_imager)
         self.label_6.setObjectName("label_6")
         self.gridLayout_9.addWidget(self.label_6, 1, 1, 1, 1)
-        spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.gridLayout_9.addItem(spacerItem3, 0, 1, 1, 1)
         spacerItem4 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.gridLayout_9.addItem(spacerItem4, 2, 1, 1, 1)
+        self.gridLayout_9.addItem(spacerItem4, 0, 1, 1, 1)
+        self.label_waning = QtWidgets.QLabel(self.tab_imager)
+        self.label_waning.setWordWrap(False)
+        self.label_waning.setObjectName("label_waning")
+        self.gridLayout_9.addWidget(self.label_waning, 3, 1, 1, 1)
         self.horizontalLayout_7.addLayout(self.gridLayout_9)
         self.tabWidget.addTab(self.tab_imager, "")
         self.tab_syslinux = QtWidgets.QWidget()
         self.tab_syslinux.setObjectName("tab_syslinux")
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.tab_syslinux)
+        self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.gridLayout_2 = QtWidgets.QGridLayout()
         self.gridLayout_2.setObjectName("gridLayout_2")
@@ -291,6 +296,7 @@ class Ui_MainWindow(object):
         self.tab_testboot = QtWidgets.QWidget()
         self.tab_testboot.setObjectName("tab_testboot")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.tab_testboot)
+        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.gridLayout_6 = QtWidgets.QGridLayout()
         self.gridLayout_6.setContentsMargins(-1, 10, -1, -1)
@@ -361,6 +367,58 @@ class Ui_MainWindow(object):
         spacerItem13 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_2.addItem(spacerItem13)
         self.tabWidget.addTab(self.tab_testboot, "")
+        self.tab_fsck = QtWidgets.QWidget()
+        self.tab_fsck.setEnabled(True)
+        self.tab_fsck.setObjectName("tab_fsck")
+        self.formLayout_5 = QtWidgets.QFormLayout(self.tab_fsck)
+        self.formLayout_5.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
+        self.formLayout_5.setContentsMargins(0, 0, 0, 0)
+        self.formLayout_5.setObjectName("formLayout_5")
+        self.groupBox_6 = QtWidgets.QGroupBox(self.tab_fsck)
+        self.groupBox_6.setObjectName("groupBox_6")
+        self.gridLayout_5 = QtWidgets.QGridLayout(self.groupBox_6)
+        self.gridLayout_5.setObjectName("gridLayout_5")
+        spacerItem14 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout_5.addItem(spacerItem14, 0, 0, 1, 1)
+        self.label_8 = QtWidgets.QLabel(self.groupBox_6)
+        self.label_8.setEnabled(True)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_8.sizePolicy().hasHeightForWidth())
+        self.label_8.setSizePolicy(sizePolicy)
+        self.label_8.setMinimumSize(QtCore.QSize(0, 0))
+        self.label_8.setFrameShape(QtWidgets.QFrame.Box)
+        self.label_8.setObjectName("label_8")
+        self.gridLayout_5.addWidget(self.label_8, 1, 0, 1, 1)
+        spacerItem15 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout_5.addItem(spacerItem15, 2, 0, 1, 1)
+        self.run_fsck_repair = QtWidgets.QPushButton(self.groupBox_6)
+        self.run_fsck_repair.setObjectName("run_fsck_repair")
+        self.gridLayout_5.addWidget(self.run_fsck_repair, 3, 0, 1, 1)
+        self.formLayout_5.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.groupBox_6)
+        self.groupBox = QtWidgets.QGroupBox(self.tab_fsck)
+        self.groupBox.setObjectName("groupBox")
+        self.gridLayout_10 = QtWidgets.QGridLayout(self.groupBox)
+        self.gridLayout_10.setObjectName("gridLayout_10")
+        spacerItem16 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout_10.addItem(spacerItem16, 0, 0, 1, 1)
+        self.label_7 = QtWidgets.QLabel(self.groupBox)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_7.sizePolicy().hasHeightForWidth())
+        self.label_7.setSizePolicy(sizePolicy)
+        self.label_7.setFrameShape(QtWidgets.QFrame.Box)
+        self.label_7.setObjectName("label_7")
+        self.gridLayout_10.addWidget(self.label_7, 1, 0, 1, 1)
+        spacerItem17 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout_10.addItem(spacerItem17, 2, 0, 1, 1)
+        self.run_fsck_check = QtWidgets.QPushButton(self.groupBox)
+        self.run_fsck_check.setObjectName("run_fsck_check")
+        self.gridLayout_10.addWidget(self.run_fsck_check, 3, 0, 1, 1)
+        self.formLayout_5.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.groupBox)
+        self.tabWidget.addTab(self.tab_fsck, "")
         self.verticalLayout_7.addWidget(self.tabWidget)
         self.progressbar = QtWidgets.QProgressBar(self.centralwidget)
         self.progressbar.setProperty("value", 0)
@@ -369,7 +427,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_7.addWidget(self.progressbar)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 629, 19))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 865, 21))
         self.menubar.setNativeMenuBar(True)
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
@@ -390,7 +448,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menu_Help.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(4)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -421,6 +479,7 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_multibootusb), _translate("MainWindow", "MultiBootUSB"))
         self.button_write_image_to_disk.setText(_translate("MainWindow", "Write image to USB"))
         self.label_6.setText(_translate("MainWindow", "<html><head/><body><p align=\"center\"><span style=\" font-size:14pt; font-weight:600; color:#ff0000;\">WARNING!</span></p><p align=\"center\"><span style=\" color:#000000;\">This operation destroys </span><span style=\" font-weight:600; color:#000000;\">ALL</span><span style=\" color:#000000;\"> data on the selected disk.</span></p><p align=\"center\"><span style=\" color:#000000;\">Please select the destination disk carefully.</span></p></body></html>"))
+        self.label_waning.setText(_translate("MainWindow", "<html><head/><body><p align=\"justify\"><span style=\" font-weight:600; color:#ff0000;\">WARNING</span> : Any bootable USB made using<span style=\" font-weight:600;\"> ISO Imager will destroy all data </span>on the selected USB disk. </p><p align=\"justify\">Use it at your own risk. Developers are not responsile for loss of any data.</p></body></html>"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_imager), _translate("MainWindow", "Write Image to disk"))
         self.groupBox_2.setTitle(_translate("MainWindow", "Install Syslinux"))
         self.check_install_sys_only.setText(_translate("MainWindow", "Install only syslinu&x (existing configurations will not be altered)."))
@@ -451,6 +510,33 @@ class Ui_MainWindow(object):
         self.combo_iso_boot_ram.setItemText(5, _translate("MainWindow", "2048"))
         self.label.setText(_translate("MainWindow", "MB"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_testboot), _translate("MainWindow", "Boot ISO/USB"))
+        self.groupBox_6.setTitle(_translate("MainWindow", "Repair Filesystem"))
+        self.label_8.setText(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Sans\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Use this function to check filesystem consistency</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">and repair. Please take a backup before attempting</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">to use tis function. Users will be presented with</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">two message dialogs as repair is currently </p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">performed in two steps.</p>\n"
+"<p align=\"justify\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>"))
+        self.run_fsck_repair.setText(_translate("MainWindow", "Repair Filesystem"))
+        self.groupBox.setTitle(_translate("MainWindow", "Check Filesystem"))
+        self.label_7.setText(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Sans\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Checking filesystem integrity from time to</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">time is recommended to make sure the integrity</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">is always maintained. Some distros don\'t </p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">cleanly unmount a usb stick when booting off of</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">it, that will be also detected by this check.</p>\n"
+"<p align=\"justify\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>"))
+        self.run_fsck_check.setText(_translate("MainWindow", "Check Filesystem Integrity"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_fsck), _translate("MainWindow", "Check Filesystem"))
         self.menuFile.setTitle(_translate("MainWindow", "&File"))
         self.menu_Help.setTitle(_translate("MainWindow", "&Help"))
         self.action_Quit.setText(_translate("MainWindow", "&Quit"))
