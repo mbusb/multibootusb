@@ -81,7 +81,6 @@ def distro(iso_cfg_ext_dir, iso_link, expose_exception=False):
     # Sorry you can't include | in a keyword for now.
     test_vector = [
         ('ubcd',       contains('ubcd')),
-        ('sgrubd2',    contains('Super Grub Disk')),
         ('hbcd',       contains('hbcd')),
         ('systemrescuecd', contains('systemrescuecd')),
         ('parted-magic', [contains('pmagic|partedmagic'),
@@ -144,11 +143,12 @@ def distro(iso_cfg_ext_dir, iso_link, expose_exception=False):
         ('rising-av',      contains('BOOT_IMAGE=rising')),
         ('Avira-RS',       contains('Avira Rescue System')),
         ('insert',         contains('BOOT_IMAGE=insert')),
+        ('sgrubd2',    contains('Super Grub Disk')),
         ]
 
 
-    # I'm not sure if this check is necessary prvious but code had skipped
-    # keyword based checks if the platform is unknown.
+    # I'm not sure if this platform check is necessary but I will
+    # avoid removal to not alter the behaviour.
     if platform.system() == "Linux" or platform.system() == "Windows":
         for path, subdirs, files in os.walk(iso_cfg_ext_dir):
             for name in files:
