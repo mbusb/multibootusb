@@ -101,7 +101,6 @@ def copy_mbusb_dir_usb(usb_disk):
     :param usb_mount_path: Path to USB mount.
     :return:
     """
-<<<<<<< HEAD
 #     from .iso import iso_size
     from .usb import details, PartitionNotMounted
 
@@ -111,10 +110,6 @@ def copy_mbusb_dir_usb(usb_disk):
         log(str(e))
         return False
 
-=======
-
-    usb_details = config.usb_details
->>>>>>> upstream/master
     usb_mount_path = usb_details['mount_point']
     result = ''
     if not os.path.exists(os.path.join(usb_mount_path, "multibootusb")):
@@ -220,7 +215,6 @@ def strings(filename, _min=4):
 
 def size_not_enough(iso_link, usb_disk):
     from .iso import iso_size
-<<<<<<< HEAD
     from .usb import details, PartitionNotMounted
     isoSize = iso_size(iso_link)
     try:
@@ -228,10 +222,6 @@ def size_not_enough(iso_link, usb_disk):
     except PartitionNotMounted as e:
         log(str(e))
         return False
-=======
-    isoSize = iso_size(iso_link)
-    usb_details = config.usb_details
->>>>>>> upstream/master
     usb_size = usb_details['size_free']
 
     return bool(isoSize > usb_size)
@@ -418,33 +408,8 @@ class MemoryCheck():
         """
         totalMemory = os.popen("free -m").readlines()[1].split()[1]
         return int(totalMemory)
-<<<<<<< HEAD
 
-def wmi_get_drive_info(usb_disk):
-    assert platform.system() == 'Windows'
-    import wmi
-    c = wmi.WMI()
-    for partition in c.Win32_DiskPartition():
-        logical_disks = partition.associators("Win32_LogicalDiskToPartition")
-        # Here, 'disk' is a windows logical drive rather than a physical drive
-        for disk in logical_disks:
-            if disk.Caption == usb_disk:
-                return (partition, disk)
-    raise RuntimeError('Failed to obtain drive information ' + usb_disk)
-
-def get_physical_disk_number(usb_disk):
-    """
-    Get the physical disk number as detected ny Windows.
-    :param usb_disk: USB disk (Like F:)
-    :return: Disk number.
-    """
-    partition, logical_disk = wmi_get_drive_info(usb_disk)
-    log("Physical Device Number is %d" % partition.DiskIndex)
-    return partition.DiskIndex
-=======
     
->>>>>>> upstream/master
-
 if __name__ == '__main__':
     log(quote("""Test-string"""))
     log(has_digit("test-string-with-01-digit"))
