@@ -145,8 +145,12 @@ Are you SURE you want to enable it?",
 
 		if config.usb_disk:
 			log("Selected device " + config.usb_disk)
-
-			config.usb_details = usb.details(config.usb_disk)
+			try:
+				config.usb_details = usb.details(config.usb_disk)
+			except usb.PartitionNotMounted as e:
+				log(str(e))
+				QtWidgets.QMessageBox.error("Error: partition not mounted", str(e))
+				return
 			config.persistence_max_size = persistence.max_disk_persistence(config.usb_disk)
 			config.usb_mount = config.usb_details.get('mount_point', "")
 			self.ui.usb_dev.setText(config.usb_disk)
@@ -526,6 +530,12 @@ Are you SURE you want to enable it?",
 		"""
 
 		self.ui_disable_controls()
+		try:
+			usb_details = usb.details(config.usb_disk)
+		except usb.PartitionNotMounted as e:
+			log(str(e))
+			QtWidgets.QMessageBox.error("Error: partition not mounted", str(e))
+			return
 
 		if not config.usb_disk:
 			log("ERROR: No USB device found.")
@@ -536,7 +546,7 @@ Are you SURE you want to enable it?",
 			log("No ISO selected.")
 			QtWidgets.QMessageBox.information(self, "No ISO...", "No ISO found.\n\nPlease select an ISO.")
 			self.ui_enable_controls()
-		elif usb.details(config.usb_disk)['mount_point'] == 'No_Mount':
+		elif usb_details['mount_point'] == 'No_Mount':
 			log("ERROR: USB disk is not mounted.")
 			QtWidgets.QMessageBox.information(self, "No Mount...", "USB disk is not mounted.\n"
 																   "Please mount USB disk and press refresh USB button.")
@@ -558,7 +568,12 @@ Are you SURE you want to enable it?",
 			# clean_iso_cfg_ext_dir(os.path.join(multibootusb_host_dir(), "iso_cfg_ext_dir"))  # Need to be cleaned.
 			# extract_cfg_file(config.image_path)  # Extract files from ISO
 			# config.distro = distro(iso_cfg_ext_dir(), config.image_path)  # Detect supported distro
-			usb_details = usb.details(config.usb_disk)
+			try:
+			        usb_details = usb.details(config.usb_disk)
+			except usb.PartitionNotMounted as e:
+				log(str(e))
+				QtWidgets.QMessageBox.error("Error: partition not mounted", str(e))
+				return
 			log("MultiBoot Install: USB Disk: " + config.usb_disk)
 			log("MultiBoot Install: USB Label: " + config.usb_label)
 			log("MultiBoot Install: USB UUID: " + config.usb_uuid)

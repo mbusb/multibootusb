@@ -21,7 +21,12 @@ def install_distro_list():
     List all distro names installed by previous install
     :return:  List of distro names as list
     """
-    usb_details = details(config.usb_disk)
+    try:
+        usb_details = details(config.usb_disk)
+    except PartitionNotMounted as e:
+        log(str(e))
+        return
+
     config.usb_mount = usb_details['mount_point']
     sys_cfg_file = os.path.join(config.usb_mount, "multibootusb", "syslinux.cfg")
 
@@ -54,7 +59,12 @@ def delete_frm_file_list(iso_file_list, uninstall_distro_dir_name):
     :param config.uninstall_distro_dir_name: Directory where the distro is installed
     :return:
     """
-    usb_details = details(config.usb_disk)
+    try:
+        usb_details = details(config.usb_disk)
+    except PartitionNotMounted as e:
+        log(str(e))
+        return
+
     usb_mount = usb_details['mount_point']
     if iso_file_list is not None:
         for f in iso_file_list:
@@ -104,7 +114,11 @@ def do_uninstall_distro(target_distro, uninstall_distro_dir_name):
     :param uninstall_distro_dir_name: Directory where the distro is installed
     :return:
     """
-    usb_details = details(config.usb_disk)
+    try:
+        usb_details = details(config.usb_disk)
+    except PartitionNotMounted as e:
+        log(str(e))
+        return
     usb_mount = usb_details['mount_point']
 
     if platform.system() == 'Linux':
@@ -229,7 +243,12 @@ def uninstall_progress():
     :return:
     """
     from . import progressbar
-    usb_details = details(config.usb_disk)
+    try:
+        usb_details = details(config.usb_disk)
+    except PartitionNotMounted as e:
+        log(str(e))
+        return
+
     usb_mount = usb_details['mount_point']
     if platform.system() == 'Linux':
         os.sync()

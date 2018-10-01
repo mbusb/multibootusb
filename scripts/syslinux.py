@@ -98,7 +98,12 @@ def syslinux_default(usb_disk):
     :version: Default version is 4. Change it if you wish. But necessary files needs to be copied accordingly
     :return: Bootable USB disk :-)
     """
-    usb_details = usb.details(usb_disk)
+    try:
+        usb_details = usb.details(config.usb_disk)
+    except usb.PartitionNotMounted as e:
+        log(str(e))
+        return False
+
     usb_fs = usb_details['file_system']
     usb_mount = usb_details['mount_point']
     mbr_bin = get_mbr_bin_path(usb_disk)
@@ -170,7 +175,7 @@ def syslinux_default(usb_disk):
                 config.status_text = 'Default syslinux successfully installed...'
                 log("\nDefault syslinux install is success...\n")
                 # We will need to flash gptmbr.bin only for GPT disk. As of version 8.9.0 this corrupts the gpt disk.
-                # Therefore not included for BIOS booting. GPT disk may work on UEFI system. 
+                # Therefore not included for BIOS booting. GPT disk may work on UEFI system.
                 # if gpt_part_table(config.usb_disk) is True:
                 '''
                 if config.usb_gpt is False:
@@ -196,7 +201,12 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
     :param iso_link: Path to ISO file
     :return:
     """
-    usb_details = usb.details(usb_disk)
+    try:
+        usb_details = usb.details(config.usb_disk)
+    except usb.PartitionNotMounted as e:
+        log(str(e))
+        return
+
     usb_fs = usb_details['file_system']
     usb_mount = usb_details['mount_point']
     isolinux_bin_dir(iso_link)
@@ -296,7 +306,7 @@ def replace_grub_binary():
     This function checks if correct binary is installed on grub and EFI directory.
     If mismatch is found between partition table and binary, replace it correct one.
     Default binaries will work for msdos partition table and therefore need not be replaced.
-    :return: 
+    :return:
     """
 
     # There used to be msdos/gpt specific files installed and relevant
