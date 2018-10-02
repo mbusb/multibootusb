@@ -341,7 +341,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
         if not fname.lower().endswith('isolinux.cfg'):
             return
         isolinux_cfg_path = os.path.join(dir_, fname)
-        syslinux_cfg_fname = fname.replace('isolinux.cfg','syslinux.cfg')
+        syslinux_cfg_fname = fname.lower().replace('isolinux.cfg','syslinux.cfg')
         syslinux_cfg_path = os.path.join(dir_, syslinux_cfg_fname)
         if os.path.exists(syslinux_cfg_path):
             return # don't overwrite.
