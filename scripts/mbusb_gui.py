@@ -160,7 +160,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 		"""
 		self.ui.installed_distros.clear()
 		config.usb_disk = osdriver.listbox_entry_to_device(
-                        self.ui.combo_drives.currentText())
+			self.ui.combo_drives.currentText())
 		if config.usb_disk == 0 or config.usb_disk:
 			# Get the GPT status of the disk and store it on a variable
 			try:

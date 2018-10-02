@@ -55,7 +55,11 @@ def cli_install_distro():
     #    log(config.image_path + ' failed to pass integrity check...')
     #    exit(1)
     else:
-        usb_details = details(config.usb_disk)
+        try:
+            usb_details = details(config.usb_disk)
+        except PartitionNotMounted as e:
+            log(str(e))
+            exit(1)
         config.usb_mount = usb_details['mount_point']
         config.usb_uuid = usb_details['uuid']
         config.usb_label = usb_details['label']

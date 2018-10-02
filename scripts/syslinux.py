@@ -135,7 +135,12 @@ def syslinux_default(usb_disk):
     :version: Default version is 4. Change it if you wish. But necessary files needs to be copied accordingly
     :return: Bootable USB disk :-)
     """
-    usb_details = usb.details(usb_disk)
+    try:
+        usb_details = usb.details(config.usb_disk)
+    except usb.PartitionNotMounted as e:
+        log(str(e))
+        return False
+
     usb_fs = usb_details['file_system']
     usb_mount = usb_details['mount_point']
     mbr_bin = get_mbr_bin_path(usb_disk)
@@ -276,7 +281,12 @@ def syslinux_distro_dir(usb_disk, iso_link, distro):
     :param iso_link: Path to ISO file
     :return:
     """
-    usb_details = usb.details(usb_disk)
+    try:
+        usb_details = usb.details(config.usb_disk)
+    except usb.PartitionNotMounted as e:
+        log(str(e))
+        return
+
     usb_fs = usb_details['file_system']
     usb_mount = usb_details['mount_point']
     isolinux_bin_dir(iso_link)

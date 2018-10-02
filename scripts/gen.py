@@ -101,8 +101,15 @@ def copy_mbusb_dir_usb(usb_disk):
     :param usb_mount_path: Path to USB mount.
     :return:
     """
+#     from .iso import iso_size
+    from .usb import details, PartitionNotMounted
 
-    usb_details = config.usb_details
+    try:
+        usb_details = details(usb_disk)
+    except PartitionNotMounted as e:
+        log(str(e))
+        return False
+
     usb_mount_path = usb_details['mount_point']
     result = ''
     if not os.path.exists(os.path.join(usb_mount_path, "multibootusb")):
@@ -150,7 +157,7 @@ def copy_mbusb_dir_usb(usb_disk):
     if not os.path.exists(os.path.join(usb_mount_path, 'multibootusb', 'grub', 'core-msdos.img')):
         shutil.copy(resource_path(os.path.join('data', 'multibootusb', 'grub', 'core-msdos.img')),
                     os.path.join(usb_mount_path, 'multibootusb', 'grub', 'core-msdos.img'))
-    
+
     if not os.path.exists(os.path.join(usb_mount_path, 'multibootusb', 'grub', 'x86_64-efi')):
         log("New EFI modules does not exist. Copying now.")
         shutil.copytree(resource_path(os.path.join('data', 'multibootusb', 'grub', 'x86_64-efi')),
@@ -208,8 +215,13 @@ def strings(filename, _min=4):
 
 def size_not_enough(iso_link, usb_disk):
     from .iso import iso_size
+    from .usb import details, PartitionNotMounted
     isoSize = iso_size(iso_link)
-    usb_details = config.usb_details
+    try:
+        usb_details = details(usb_disk)
+    except PartitionNotMounted as e:
+        log(str(e))
+        return False
     usb_size = usb_details['size_free']
 
     return bool(isoSize > usb_size)
@@ -351,7 +363,7 @@ class MemoryCheck():
     Cross platform way to checks memory of a given system. Works on Linux and Windows.
     psutil is a good option to get memory info. But version 5.0 and only will work.
     Source: https://doeidoei.wordpress.com/2009/03/22/python-tip-3-checking-available-ram-with-python/
-    Call this class like this: 
+    Call this class like this:
     mem_info = memoryCheck()
     print(mem_info.value)
     """
@@ -396,8 +408,8 @@ class MemoryCheck():
         """
         totalMemory = os.popen("free -m").readlines()[1].split()[1]
         return int(totalMemory)
-    
 
+    
 if __name__ == '__main__':
     log(quote("""Test-string"""))
     log(has_digit("test-string-with-01-digit"))
