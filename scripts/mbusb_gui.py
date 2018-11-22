@@ -702,7 +702,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
             return False
 
         msg = '''
-The ISO sleceted is not supported at the moment.
+The ISO selected is not supported at the moment.
 You can try booting ISO using memdisk.
 Distro can be uninstalled anytime from main menu.
 
