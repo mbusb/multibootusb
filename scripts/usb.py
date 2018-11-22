@@ -386,7 +386,7 @@ def gpt_device(dev_name):
     """
     is_gpt = osdriver.gpt_device(dev_name)
     config.usb_gpt = is_gpt
-    gen.log('Device %s is a %s disk.' % (dev_name, is_gpt and 'GPT' or 'MBR'))
+    gen.log('Device %s is %s disk.' % (dev_name, is_gpt and 'a GPT' or 'an MBR'))
 
 
 def unmount(usb_disk):
