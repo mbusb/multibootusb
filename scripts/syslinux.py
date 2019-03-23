@@ -37,7 +37,7 @@ def gpt_part_table(usb_disk):
     :return: True if GPT else False
     """
     if platform.system() == "Linux":
-        _cmd_out = subprocess.check_output("parted  " + usb_disk[:-1] + " print", shell=True)
+        _cmd_out = subprocess.check_output("parted  " + physical_disk(usb_disk) + " print", shell=True)
         if b'msdos' in _cmd_out:
             return False
         elif b'gpt' in _cmd_out:
@@ -67,31 +67,31 @@ def get_mbr_bin_path(usb_disk):
 
 def set_boot_flag(usb_disk):
     if platform.system() == "Linux":
-        log("\nChecking boot flag on " + usb_disk[:-1], '\n')
-        cmd_out = subprocess.check_output("parted -m -s " + usb_disk[:-1] + " print", shell=True)
+        log("\nChecking boot flag on " + physical_disk(usb_disk), '\n')
+        cmd_out = subprocess.check_output("parted -m -s " + physical_disk(usb_disk) + " print", shell=True)
         if gpt_part_table(usb_disk) is False:
             if b'boot' in cmd_out:
-                log("\nDisk " + usb_disk[:-1] + " already has boot flag.\n")
+                log("\nDisk " + physical_disk(usb_disk) + " already has boot flag.\n")
                 return True
             else:
-                log("\nExecuting ==>  parted " + usb_disk[:-1] + " set 1 boot on", '\n')
-                if subprocess.call("parted " + usb_disk[:-1] + " set 1 boot on", shell=True) == 0:
-                    log("\nBoot flag set to bootable " + usb_disk[:-1], '\n')
+                log("\nExecuting ==>  parted " + physical_disk(usb_disk) + " set 1 boot on", '\n')
+                if subprocess.call("parted " + physical_disk(usb_disk) + " set 1 boot on", shell=True) == 0:
+                    log("\nBoot flag set to bootable " + physical_disk(usb_disk), '\n')
                     return True
                 else:
-                    log("\nUnable to set boot flag on  " + usb_disk[:-1], '\n')
+                    log("\nUnable to set boot flag on  " + physical_disk(usb_disk), '\n')
                     return False
         elif gpt_part_table(usb_disk) is True:
             if b'legacy_boot' in cmd_out:
-                log("\nGPT Disk " + usb_disk[:-1] + " already has legacy_boot flag.\n")
+                log("\nGPT Disk " + physical_disk(usb_disk) + " already has legacy_boot flag.\n")
                 return True
             else:
-                log("\nExecuting ==>  parted " + usb_disk[:-1] + " set 1 legacy_boot on", '\n')
-                if subprocess.call("parted " + usb_disk[:-1] + " set 1 legacy_boot on", shell=True) == 0:
-                    log("\nBoot flag set to legacy_boot " + usb_disk[:-1], '\n')
+                log("\nExecuting ==>  parted " + physical_disk(usb_disk) + " set 1 legacy_boot on", '\n')
+                if subprocess.call("parted " + physical_disk(usb_disk) + " set 1 legacy_boot on", shell=True) == 0:
+                    log("\nBoot flag set to legacy_boot " + physical_disk(usb_disk), '\n')
                     return True
                 else:
-                    log("\nUnable to set legacy_boot flag on  " + usb_disk[:-1], '\n')
+                    log("\nUnable to set legacy_boot flag on  " + physical_disk(usb_disk), '\n')
                     return False
 
 def linux_install_default_bootsector(usb_disk, mbr_install_cmd):
@@ -124,7 +124,7 @@ def linux_install_default_bootsector(usb_disk, mbr_install_cmd):
 
 
 def create_syslinux_bs(usb_disk, usb_mount):
-    osdriver.run_dd(osdriver.physical_disk(usb_disk),
+    osdriver.run_dd(physical_disk(usb_disk),
                     os.path.join(usb_mount, 'multibootusb', 'syslinux.bin'),
                     512, 1)
 
@@ -141,7 +141,7 @@ def syslinux_default(usb_disk):
     mbr_bin = get_mbr_bin_path(usb_disk)
     if platform.system() == 'Linux':
         mbr_install_cmd = 'dd bs=440 count=1 conv=notrunc if=' + mbr_bin \
-                          + ' of=' + usb_disk[:-1]
+                          + ' of=' + physical_disk(usb_disk)
     else:
         win_usb_disk_no = get_physical_disk_number(usb_disk)
         _windd = resource_path(os.path.join("data", "tools", "dd", "dd.exe"))

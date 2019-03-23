@@ -412,7 +412,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 											  "No USB device found.\n\nInsert USB and use Refresh USB button to detect USB.")
 		elif platform.system() == "Linux" or platform.system() == "Windows":
 			if self.ui.check_install_sys_all.isChecked() or self.ui.check_install_sys_only.isChecked():
-				if platform.system() == 'Linux' and config.usb_disk[-1].isdigit() is False:
+				if platform.system() == 'Linux' and is_partition(config.usb_disk) is False:
 					gen.log('Selected USB is a disk. Please select a disk partition from the drop down list')
 					QtWidgets.QMessageBox.information(self, 'No Partition...!',
 													  'USB disk selected doesn\'t contain a partition.\n'
@@ -476,7 +476,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
 				self, 'No partition is selected',
 				'Please select the partition to check.')
 			return
-		if not config.usb_disk[-1:].isdigit():
+		if not is_partition(config.usb_disk):
 			QtWidgets.QMessageBox.information(
 				self, 'Selected device is not partition',
 				'Please select a partition not a disk.')

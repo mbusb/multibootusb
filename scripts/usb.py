@@ -187,13 +187,6 @@ def list_devices(fixed=False):
         return None
 
 
-def parent_partition(partition):
-    exploded = [c for c in partition]
-    while exploded[-1].isdigit():
-        exploded.pop()
-    return ''.join(exploded)
-
-
 def details_udev(usb_disk_part):
     """
     Get details of USB partition using udev
@@ -216,7 +209,7 @@ def details_udev(usb_disk_part):
         return None
 
     try:
-        ppart = parent_partition(usb_disk_part)
+        ppart = gen.physical_disk(usb_disk_part)
         fdisk_cmd_out = subprocess.check_output(
             'LANG=C fdisk -l ' + ppart, shell=True)
         partition_prefix = bytes(usb_disk_part, 'utf-8') + b' '
@@ -414,7 +407,7 @@ class UnmountedContext:
         self.usb_disk = usb_disk
         self.exit_callback = exit_callback
         self.is_relevant = platform.system() != 'Windows' and \
-          self.usb_disk[-1:].isdigit()
+          gen.is_partition(self.usb_disk)
 
     def assert_no_access(self):
         p = subprocess.Popen(['lsof', self.usb_disk],

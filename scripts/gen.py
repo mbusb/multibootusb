@@ -346,6 +346,30 @@ def write_to_file(filepath, text):
         f.write(text.strip())
 
 
+def physical_disk(partition):
+    if platform.system() == "Windows":
+        partition, logical_disk = wmi_get_drive_info(partition)
+        return r'\\.\physicaldrive%d' % logical_disk.DiskIndex
+    elif platform.system() == "Linux":
+        if partition.startswith('/dev/sd'):
+            return partition.rstrip('0123456789')
+        elif partition.startswith('/dev/loop'):
+            if partition.count('p') == 1:
+                # 'p' is from /dev/looPx, so return the original string
+                return partition
+            elif partition.count('p') == 2:
+                # 'p's are from /dev/looPxPy, so return up to the loop device number
+                return 'p'.join(partition.split('p')[:2])
+
+
+def is_partition(path):
+    if path.startswith('/dev/sd'):
+        return path[-1].isdigit()
+    elif path.startswith('/dev/loop'):
+        # loop device partitions use /dev/loopxpy as path, so check for a second 'p'
+        return path.count('p') == 2
+
+
 class MemoryCheck():
     """
     Cross platform way to checks memory of a given system. Works on Linux and Windows.
