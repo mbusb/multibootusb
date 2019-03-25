@@ -11,6 +11,8 @@ import sys
 import tempfile
 import time
 
+from . import gen
+
 if platform.system() == 'Windows':
     import wmi
     from scripts import win32
@@ -258,7 +260,7 @@ class Base:
         '''
         in_file_size = os.path.getsize(input_)
         cmd = [self.dd_exe, 'if=' + input_,
-               'of=' + self.physical_disk(output), 'bs=1M']
+               'of=' + gen.physical_disk(output), 'bs=1M']
         self.dd_iso_image_add_args(cmd, input_, output)
         kw_args = {
             'stdout' : subprocess.PIPE,
@@ -302,11 +304,6 @@ class Windows(Base):
             hDrive.CopyFrom(input_, lambda bytes_copied:
                             gui_update(float(bytes_copied)/in_file_size*100.))
 
-    def physical_disk(self, usb_disk):
-        if type(usb_disk) is str:
-            usb_disk = get_physical_disk_number(usb_disk)
-        return r'\\.\physicaldrive%d' % usb_disk
-
     def mbusb_log_file(self):
         return os.path.join(os.getcwd(), 'multibootusb.log')
 
@@ -342,7 +339,7 @@ class Windows(Base):
             return lb_entry     # see win_volume_to_listbox_entry()
 
     def qemu_more_params(self, disk):
-        return ['-L', '.', '-boot', 'c', '-hda', self.physical_disk(disk)]
+        return ['-L', '.', '-boot', 'c', '-hda', gen.physical_disk(disk)]
 
 class Linux(Base):
 
@@ -386,9 +383,6 @@ class Linux(Base):
     def dd_iso_image_interpret_result(self, returncode, output_list):
         return None if returncode==0 else '\n'.join(output_list)
 
-    def physical_disk(self, usb_disk):
-        return usb_disk.rstrip('0123456789')
-
     def mbusb_log_file(self):
         return '/var/log/multibootusb.log'
 
@@ -399,7 +393,7 @@ class Linux(Base):
         return os.path.join(os.path.expanduser('~'), ".multibootusb")
 
     def gpt_device(self, dev_name):
-        disk_dev = self.physical_disk(dev_name)
+        disk_dev = gen.physical_disk(dev_name)
         cmd = ['parted', disk_dev, '-s', 'print']
         with open(os.devnull) as devnull:
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
@@ -425,7 +419,7 @@ class Linux(Base):
         return lb_entry
 
     def qemu_more_params(self, disk):
-        return ['-hda', self.physical_disk(disk), '-vga', 'std']
+        return ['-hda', gen.physical_disk(disk), '-vga', 'std']
 
 driverClass = {
     'Windows' : Windows,
@@ -437,7 +431,6 @@ osdriver = driverClass()
 
 for func_name in [
         'run_dd',
-        'physical_disk',
         'mbusb_log_file',
         'dd_iso_image',
         'find_mounted_partitions_on',

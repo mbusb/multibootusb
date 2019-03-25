@@ -138,7 +138,7 @@ def cli_dd():
     :return:
     """
     if platform.system() == 'Linux':
-        if config.usb_disk[-1].isdigit() is True:
+        if is_partition(config.usb_disk) is True:
             log('Selected USB is a disk partition. Please select the whole disk eg. \'/dev/sdb\'')
             sys.exit(2)
 
@@ -173,7 +173,7 @@ def cli_install_syslinux():
     """
     usb.gpt_device(config.usb_disk)
     if platform.system() == 'Linux':
-        if config.usb_disk[-1].isdigit() is not True:
+        if is_partition(config.usb_disk) is not True:
             log('Selected USB disk is not a partition. Please enter the partition eg. \'/dev/sdb1\'')
             sys.exit(2)
 
