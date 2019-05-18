@@ -313,7 +313,8 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
                                     'from=/multibootusb/' + iso_basename(iso_link) + '/' + iso_name(iso_link) + ' initrd=',
                                     string)
                 elif distro == "mageialive":
-                    string = re.sub(r'LABEL=\S*', 'LABEL=' + usb_label, string)
+                    string = re.sub(r'LABEL=\S*', 'UUID=' + usb_uuid + ' mgalive.basedir=/multibootusb/' + iso_basename(iso_link),
+                                    string)
                 elif distro == "solydx":
                     string = re.sub(r'live-media-path=', 'live-media-path=/multibootusb/' + iso_basename(iso_link),
                                     string)

@@ -55,7 +55,7 @@ def mbusb_update_grub_cfg():
             (loopback_cfg_list, lambda x: 'efi' in x.lower()),
             (loopback_cfg_list, lambda x: 'boot' in x.lower()),
             (grub_cfg_list, lambda x: 'efi' in x.lower()),
-            (grub_cfg_list, lambda x: 'boot' in x.lower()),
+            (grub_cfg_list, lambda x: 'boot' in x.lower() and 'efi' not in x.lower()),
             (loopback_cfg_list,
              lambda x: 'efi' not in x.lower() and 'boot' not in x.lower()),
             (grub_cfg_list,
@@ -66,7 +66,9 @@ def mbusb_update_grub_cfg():
             # We could 'break' here but will let the iteration continue
             # in order to lower the chance of keeping latent bugs.
 
-    if 0<len(candidates):
+    if config.distro == 'mageialive' and 1<len(candidates):
+        grub_cfg_path = candidates[1].replace('\\', '/')
+    elif 0<len(candidates):
         grub_cfg_path = candidates[0].replace('\\', '/')
     else :
         # No suitable grub configuration file is provided by distro.
