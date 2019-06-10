@@ -212,7 +212,12 @@ def detect_iso_from_file_list(iso_file_list):
 
     filenames = [f.lower() for f in iso_file_list]
     for keys, distro in keys_to_distro:
-        if all(k in filenames for k in keys):
+        match = True
+        for k in keys:
+            if all(k not in fn for fn in filenames):
+                match = False
+                break
+        if match is True:
             return distro
     #log("Examined %d %s in the iso but could not determine the distro."
     #  % (len(filenames), len(filenames)==1 and 'filename' or 'filenames'))
