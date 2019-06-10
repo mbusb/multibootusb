@@ -412,7 +412,13 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
         shutil.copy2(resource_path(os.path.join("data", "EFI", "BOOT", "bootx64.efi")),
                                    os.path.join(config.usb_mount, 'EFI', 'BOOT'))
     elif gen.grub_efi_exist(efi_grub_img) is False:
-        gen.log('EFI image overwritten by distro install. Replacing it now...')
+        if distro == "Windows":
+            gen.log('EFI image overwritten by Windows install. Moving it now...')
+            dst = os.path.join(config.usb_mount, 'EFI', 'BOOT_WINDOWS')
+            os.makedirs(dst)
+            shutil.move(efi_grub_img, dst)
+        else:
+            gen.log('EFI image overwritten by distro install. Replacing it now...')
         shutil.copy2(resource_path(os.path.join("data", "EFI", "BOOT", "bootx64.efi")),
                      os.path.join(config.usb_mount, 'EFI', 'BOOT'))
     else:
