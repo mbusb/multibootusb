@@ -353,7 +353,7 @@ def update_distro_cfg_files(iso_link, usb_disk, distro, persistence=0):
             return
         theme_file = os.path.join(dir_, fname)
         updated = False
-        with open(theme_file, 'r', encoding='utf-8') as f:
+        with open(theme_file, 'r', encoding='utf-8', errors='replace') as f:
             pattern = re.compile(r'^desktop-image\s*:\s*(.*)$')
             try:
                 src_lines = f.readlines()
