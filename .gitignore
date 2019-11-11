@@ -97,7 +97,6 @@ ENV/
 multibootusb*.tar.gz
 
 # Temp files
-data/multibootusb/grub/menus.zip
 MANIFEST
 
 # Setup file
