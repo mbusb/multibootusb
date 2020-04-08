@@ -128,11 +128,6 @@ Example for installing syslinux to target USB disk:
 def start_gui():
     from scripts import mbusb_gui
     gen.log('Starting multibootusb GUI...')
-    if platform.system() == 'Linux':
-        if os.getuid() != 0:
-            gen.log('\n\nAdmin privilege is required to run multibootusb.\n If you are running from source try '
-                  '\'sudo python3 ./multibootusb\'\n or you can try \'multibootusb-pkexec\' (post install)\n\n',
-                    info=False, debug=True)
     mbusb_gui.main_gui()
 
 

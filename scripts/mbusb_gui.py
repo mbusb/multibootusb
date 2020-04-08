@@ -1048,13 +1048,8 @@ def main_gui():
     #    ui_about = Ui_About()
     #    ui = Ui_MainWindow()
 
-    if platform.system() == 'Linux' and os.getuid() != 0:
-        show_admin_info()
-        sys.exit(2)
-
-    else:
-        window = AppGui()
-        window.show()
-        window.setWindowTitle("MultiBootUSB - " + mbusb_version())
-        window.setWindowIcon(QtGui.QIcon(resource_path(os.path.join("data", "tools", "multibootusb.png"))))
+    window = AppGui()
+    window.show()
+    window.setWindowTitle("MultiBootUSB - " + mbusb_version())
+    window.setWindowIcon(QtGui.QIcon(resource_path(os.path.join("data", "tools", "multibootusb.png"))))
     sys.exit(app.exec_())

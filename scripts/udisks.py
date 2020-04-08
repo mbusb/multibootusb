@@ -136,6 +136,16 @@ class UDisks2(object):
 
         raise ValueError('%r not known to UDisks2'%device_node_path)
 
+    def rescan(self, node_path):
+        # Rescan partition table
+        import dbus
+        mgr = self.bus.get_object('org.freedesktop.UDisks2',
+                            '/org/freedesktop/UDisks2/Manager')
+        dev_paths = mgr.ResolveDevice({'path': node_path}, {}, dbus_interface='org.freedesktop.UDisks2.Manager')
+        for dev in dev_paths:
+            bd = self.bus.get_object('org.freedesktop.UDisks2', dev)
+            bd.Rescan('', dbus_interface='org.freedesktop.UDisks2.Block')
+
     def mount(self, device_node_path, remounted=None):
         mp = node_mountpoint(str(device_node_path))
         if mp:
@@ -206,6 +216,10 @@ def umount(node_path):
     u = get_udisks1()
     u.unmount(node_path)
 
+
+def rescan(node_path):
+    u = get_udisks()
+    u.rescan(node_path)
 
 def test_udisks(ver=None):
     import sys

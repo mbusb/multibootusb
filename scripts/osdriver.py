@@ -410,7 +410,7 @@ class Linux(Base):
             lang = os.getenv('LANG')
             encoding = lang.rsplit('.')[-1] if lang else 'utf-8'
             raise RuntimeError(str(_err_out, encoding))
-        subprocess.check_call(['partprobe', disk_dev])
+        udisks.rescan(disk_dev)
         if b'msdos' in _cmd_out:
             return False
         if b'gpt' in _cmd_out:
