@@ -9,6 +9,7 @@
 import os
 import ctypes
 import platform
+import sys
 from . import usb
 from . import gen
 from .iso import *
@@ -37,11 +38,11 @@ def check_admin():
     """
     if platform.system() == 'Linux':
         if os.getuid() != 0:
-            exit("You need to have root privileges to run this application."
+            sys.exit("You need to have root privileges to run this application."
                  "\nPlease try again using 'sudo'. Exiting.")
     elif platform.system() == 'Windows':
         if ctypes.windll.shell32.IsUserAnAdmin() != 1:
-            exit("You need to have admin privileges to run this application."
+            sys.exit("You need to have admin privileges to run this application."
                  "\nPlease open command window with admin rights. Exiting.")
 
     return False
@@ -50,7 +51,7 @@ def cli_install_distro():
     log('Starting multibootusb from Command line...')
     if usb.is_block(config.usb_disk) is False:
         log(config.usb_disk + ' is not a valid device partition...')
-        exit(1)
+        sys.exit(1)
     #elif integrity(config.image_path) is not True:
     #    log(config.image_path + ' failed to pass integrity check...')
     #    exit(1)
@@ -59,7 +60,7 @@ def cli_install_distro():
             usb_details = details(config.usb_disk)
         except PartitionNotMounted as e:
             log(str(e))
-            exit(1)
+            sys.exit(1)
         config.usb_mount = usb_details['mount_point']
         config.usb_uuid = usb_details['uuid']
         config.usb_label = usb_details['label']

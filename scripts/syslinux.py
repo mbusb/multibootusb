@@ -10,6 +10,7 @@ import os
 import subprocess
 import platform
 from .gen import *
+import sys
 from . import usb
 from .iso import *
 from . import config
@@ -403,7 +404,7 @@ def replace_grub_binary():
 if __name__ == '__main__':
     if os.geteuid() != 0:
         log('Please running this script with sudo/root/admin privilage.')
-        exit(1)
+        sys.exit(1)
     else:
         syslinux_distro_dir('/dev/sdb1', '../../../DISTROS/2016/debian-live-8.3.0-amd64-lxde-desktop.iso', 'debian')
         syslinux_default('/dev/sdb1')

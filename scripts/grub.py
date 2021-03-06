@@ -315,9 +315,9 @@ def iso2grub2(install_dir, loopback_cfg_path):
 
             # Make sure that lines with 'label' available for processing.
             # Do nothing otherwise.
-            matching_blocks_re = [m for m in re.finditer(
+            matching_blocks_re = list(re.finditer(
                 '^(label)(.*?)(?=(^label))',
-                data, re.I|re.DOTALL|re.MULTILINE)]
+                data, re.I|re.DOTALL|re.MULTILINE))
 
             if matching_blocks_re:
                 matching_blocks = [m.group() for m in matching_blocks_re]

@@ -282,10 +282,7 @@ class ISO9660:
 
         #gen.log "-->(0x%x,0x%x)" %(s1, s2)
 
-        if (s1 == 0x55) and (s2 == 0xAA):
-            result = True   # "Bootable"
-        else:
-            result = False  # "Not bootable"
+        result = bool((s1 == 0x55) and (s2 == 0xAA))
 
         return result
 
@@ -529,7 +526,7 @@ class ISO9660:
                 sys.stderr.write("can't makedirs\n")
                 return E_FAILURE
 
-        if all_type == True:
+        if all_type is True:
             # device file
             if dirRec.rrip != None and (dirRec.rrip.devH != 0 or dirRec.rrip.devL != 0):
                 #fFlag == 0
@@ -632,10 +629,7 @@ class ISO9660:
                             self.isoFile.seek(0, os.SEEK_END)
                             iso_end = self.isoFile.tell()
                             #gen.log("%d-->%d")%(lastfile_end, iso_end)
-                            if iso_end >= lastfile_end:
-                                return True
-                            else:
-                                return False
+                            return iso_end >= lastfile_end
                         except(IOError):
                             #gen.log "exception when seek. iso is broken"
                             return False
@@ -752,7 +746,7 @@ if __name__ == '__main__':
 
     iso9660fs = ISO9660(argv[-1])
     integrity = iso9660fs.checkIntegrity()
-    if integrity == False:
+    if integrity is False:
         gen.log("iso file is broken")
         sys.exit(-1)
 
@@ -787,10 +781,10 @@ if __name__ == '__main__':
             elif arg == "-p":
                 o = False
                 p = True
-            elif o == True:
+            elif o is True:
                 o_path = arg
                 o = False
-            elif p == True:
+            elif p is True:
                 pattern = arg
                 p = False
 

@@ -194,7 +194,7 @@ def list_devices(fixed=False):
 
 
 def parent_partition(partition):
-    exploded = [c for c in partition]
+    exploded = list(partition)
     while exploded[-1].isdigit():
         exploded.pop()
     return ''.join(exploded)
