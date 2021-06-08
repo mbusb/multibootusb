@@ -27,8 +27,8 @@ MultiBootUSB allows you to do the following:
 
 * On Windows:
     * The windows version of multbootusb is not a standalone program. You need to install it on windows after download. Download the latest 
-    precompiled setup binary (.exe) file from 
-     [here](http://multibootusb.org/page_download/)
+    precompiled setup binary (`.exe`) file from 
+     [here](https://github.com/mbusb/multibootusb/releases/latest)
      * The installation is fairly simple. Double click on the executable and follow the onscreen instructions.
 
 * On Linux:
@@ -36,16 +36,16 @@ MultiBootUSB allows you to do the following:
     **Using binary method:**
     
     * Download the installation and source files for various distros from 
-    [here](http://multibootusb.org/page_download/)
+    [here](https://github.com/mbusb/multibootusb/releases/latest)
     * Use your favourite package manager to install multibootusb.
     
     **Using source code method:**
     
-    * Please follow the instructions provided [here](http://multibootusb.org/page_faq/#your-package-for-my-favourite-distro-never-worked-for-me-what-can-i-do-now)
+    * Please [follow the instructions](https://github.com/mbusb/multibootusb/wiki/User-Guide#installation)
 
 ---
 
-For the rest of the guide please refer [Guide](http://multibootusb.org/page_guide/) section of [http://multibootusb.org](http://multibootusb.org)
+For additional details please refer to the [User Guide](https://github.com/mbusb/multibootusb/wiki/User-Guide).
 
 Website:
 --------
@@ -61,8 +61,8 @@ https://github.com/mbusb/multibootusb
 Help:
 -----
 
-Use Github issue service at [https://github.com/mbusb/multibootusb/issues](https://github.com/mbusb/multibootusb/issues) 
-for help and issues.    
+Use Github's [issue service](https://github.com/mbusb/multibootusb/issues) 
+for help and reporting bugs.    
 
 Contributor(s)
 --------------
