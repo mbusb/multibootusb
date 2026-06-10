@@ -320,7 +320,7 @@ class AppGui(qemu.Qemu, Imager, QtWidgets.QMainWindow, Ui_MainWindow):
             self.ui.slider_persistence.setEnabled(True)
             self.ui.slider_persistence.setTickInterval(10)
             self.ui.slider_persistence.setSingleStep(10)
-            self.ui.slider_persistence.setMaximum(config.persistence_max_size / 1024 / 1024)
+            self.ui.slider_persistence.setMaximum(int(config.persistence_max_size / 1024 / 1024))
         #             log("===== getMaximum = " + self.ui.slider_persistence.getMaximum()
         else:
             self.ui.label_persistence_value.setEnabled(False)
